@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>RecipE-Z</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #ffffff;
+      min-height: 100vh;
+      color: #000000;
+      margin: 0;
+    }
+
+    .font-title { font-family: 'Cinzel', serif; }
+
+    .graphic-nav-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: transform 0.2s ease, filter 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .graphic-nav-btn img {
+      height: 100%;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+    .graphic-nav-btn:hover {
+      transform: translateY(-3px);
+      filter: brightness(1.05);
+    }
+
+    .btn-recipe-manager { height: 115px; }
+    .btn-ingredients-manager { height: 95px; }
+
+    .card-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      background: #ffffff;
+    }
+    .card-container:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+    }
+
+    .card-bg-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      mix-blend-mode: multiply;
+    }
+
+    .card-content {
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.25rem;
+    }
+
+    .food-photo-frame {
+      position: relative;
+      width: 100%;
+      height: 60%;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1);
+      background: #e8dbc3;
+    }
+
+    .tape-corner {
+      position: absolute;
+      width: 28px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(180, 170, 150, 0.5);
+      backdrop-filter: blur(1px);
+      z-index: 10;
+    }
+    .tape-tl { top: -3px; left: -5px; transform: rotate(-25deg); }
+    .tape-tr { top: -3px; right: -5px; transform: rotate(25deg); }
+    .tape-bl { bottom: -3px; left: -5px; transform: rotate(25deg); }
+    .tape-br { bottom: -3px; right: -5px; transform: rotate(-25deg); }
+
+    .fill-in-input {
+      background: rgba(253, 248, 237, 0.95);
+      border: 1.5px solid #a88d67;
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #3b220c;
+      transition: all 0.2s ease;
+    }
+    .fill-in-input:focus {
+      outline: none;
+      background: #ffffff;
+      border-color: #6b411b;
+      box-shadow: 0 0 0 3px rgba(107, 65, 27, 0.2);
+    }
+
+    .modal-backdrop {
+      background: rgba(15, 8, 4, 0.6);
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body class="px-4 pt-2 pb-8 sm:px-8">
+
+  <!-- ================= MAIN HOME SCREEN ================= -->
+  <div class="max-w-6xl mx-auto space-y-4">
+    
+    <header class="text-center pt-1 pb-0">
+      <h1 class="text-5xl sm:text-6xl font-black font-title text-black tracking-widest uppercase">
+        RecipE-Z
+      </h1>
+    </header>
+
+    <div class="flex flex-col sm:flex-row justify-center items-center gap-6 max-w-2xl mx-auto pt-2">
+      <button onclick="openRecipeManagerHub()" class="graphic-nav-btn btn-recipe-manager" title="Recipe Manager">
+        <img src="https://i.imgur.com/igSX2kh.png" alt="Recipe Manager" loading="eager">
+      </button>
+
+      <button onclick="openEditorToIngredients()" class="graphic-nav-btn btn-ingredients-manager" title="Ingredients Manager">
+        <img src="https://i.imgur.com/tf32W4V.png" alt="Ingredients Manager" loading="eager">
+      </button>
+    </div>
+
+    <main class="max-w-5xl mx-auto pt-4">
+      <div class="flex justify-between items-center mb-6 px-2">
+        <h2 class="text-2xl font-bold font-title text-black">Your Recipe Cards</h2>
+        
+        <div class="flex gap-3">
+          <input type="text" id="mainSearchInput" oninput="filterMainGrid()" placeholder="Search recipes..." 
+                 class="px-3 py-1.5 rounded-lg text-sm bg-stone-100 text-stone-900 placeholder-stone-500 border border-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400">
+          
+          <select id="mainSortOption" onchange="filterMainGrid()" class="px-3 py-1.5 rounded-lg text-sm bg-stone-100 text-stone-900 border border-stone-300 focus:outline-none">
+            <option value="A-Z">Sort: A to Z</option>
+            <option value="Z-A">Sort: Z to A</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="mainCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ================= VIEW RECIPE CARD MODAL ================= -->
+  <div id="recipeViewModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-start pt-8 p-4 z-50">
+    <div class="bg-[#fcf8ef] border-2 border-[#a88d67] max-w-xl w-full max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
+      
+      <div class="px-6 py-4 border-b border-amber-900/15 bg-[#f4ebd9] flex justify-between items-center">
+        <div>
+          <h3 id="viewTitle" class="text-2xl font-black font-title text-[#3b220c]">Recipe Details</h3>
+          <span id="viewCategory" class="text-xs font-bold text-amber-900/80 uppercase tracking-wider"></span>
+        </div>
+        <button onclick="closeRecipeViewModal()" class="text-amber-950/70 hover:text-amber-950 text-2xl font-bold">&times;</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1 space-y-4">
+        <div class="food-photo-frame h-56 w-full">
+          <div class="tape-corner tape-tl"></div>
+          <div class="tape-corner tape-tr"></div>
+          <div class="tape-corner tape-bl"></div>
+          <div class="tape-corner tape-br"></div>
+          <img id="viewImage" src="" class="w-full h-full object-cover" alt="Recipe Image" loading="lazy">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 bg-[#f4ebd9]/60 p-4 rounded-xl border border-amber-900/10 text-sm">
+          <div>
+            <span class="block text-xs font-bold text-amber-900/70 uppercase">Prep Time</span>
+            <span id="viewPrepTime" class="font-semibold text-[#3b220c]"></span>
+          </div>
+          <div>
+            <span class="block text-xs font-bold text-amber-900/70 uppercase">Servings</span>
+            <span id="viewServings" class="font-semibold text-[#3b220c]"></span>
+          </div>
+          <div class="col-span-2">
+            <span class="block text-xs font-bold text-amber-900/70 uppercase">Equipment Needed</span>
+            <span id="viewEquipment" class="font-semibold text-[#3b220c]"></span>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-2 border-b border-amber-900/10 pb-1">Ingredients List</h4>
+          <ul id="viewIngredientsList" class="space-y-1.5 text-sm text-[#3b220c] font-medium"></ul>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-2 border-b border-amber-900/10 pb-1">Preparation Steps</h4>
+          <ol id="viewStepsList" class="space-y-3 text-sm text-[#3b220c] font-medium list-decimal pl-4"></ol>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-amber-900/20 bg-[#efe2c8] flex justify-end items-center">
+        <button onclick="closeRecipeViewModal()" class="bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold px-6 py-2 rounded-lg text-xs uppercase tracking-wider shadow">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= RECIPE MANAGER HUB MODAL ================= -->
+  <div id="recipeManagerHubModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-start pt-8 p-4 z-40">
+    <div class="bg-[#f7eedc] border-2 border-[#a88d67] max-w-4xl w-full max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
+      
+      <div class="p-5 border-b border-amber-900/20 bg-[#efe2c8] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <h2 class="text-2xl font-black font-title text-[#3b220c]">Recipe Manager</h2>
+          <p class="text-xs text-amber-900/80 font-semibold">Select a recipe to edit or manage your backups.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="exportRecipesJSON()" class="bg-amber-800 hover:bg-amber-900 text-amber-100 font-bold px-3 py-2 rounded-lg text-xs shadow transition flex items-center gap-1" title="Download backup file">
+            <span>💾 Export Backup</span>
+          </button>
+          <label class="bg-amber-800 hover:bg-amber-900 text-amber-100 font-bold px-3 py-2 rounded-lg text-xs shadow transition cursor-pointer flex items-center gap-1" title="Upload backup file">
+            <span>📂 Import Backup</span>
+            <input type="file" id="importFileField" onchange="importRecipesJSON(event)" accept=".json" class="hidden">
+          </label>
+
+          <button onclick="startNewRecipeForm()" class="bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold px-3 py-2 rounded-lg text-xs shadow transition">
+            <span>+ Add New</span>
+          </button>
+          <button onclick="closeRecipeManagerHub()" class="text-amber-950/70 hover:text-amber-950 text-2xl font-bold ml-2">&times;</button>
+        </div>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1">
+        <div id="hubRecipesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MULTI-STEP EDITOR MODAL (DETAILS -> INGREDIENTS -> STEPS) ================= -->
+  <div id="recipeEditorModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-start pt-8 p-4 z-50">
+    <div class="bg-[#fcf8ef] border-2 border-[#a88d67] max-w-3xl w-full max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
+      
+      <div class="px-6 py-4 border-b border-amber-900/15 bg-[#f4ebd9] flex justify-between items-center">
+        <h3 class="text-xl font-black font-title text-[#3b220c]" id="editorModalTitle">Add New Recipe</h3>
+        <button onclick="attemptCloseEditor()" class="text-amber-950/70 hover:text-amber-950 text-2xl font-bold">&times;</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1 space-y-5">
+        
+        <div class="flex border-b border-amber-900/20 pb-2 gap-4 text-xs font-bold uppercase tracking-wider">
+          <button id="tabBtnDetails" onclick="switchEditorTab(1)" class="text-[#3b220c] border-b-2 border-[#4a280e] pb-1">1. Details</button>
+          <button id="tabBtnIngredients" onclick="switchEditorTab(2)" class="text-amber-900/50 hover:text-[#3b220c] pb-1">2. Ingredients</button>
+          <button id="tabBtnSteps" onclick="switchEditorTab(3)" class="text-amber-900/50 hover:text-[#3b220c] pb-1">3. Steps</button>
+        </div>
+
+        <!-- STEP 1: DETAILS -->
+        <div id="section1Details" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Recipe Name *</label>
+            <input type="text" id="fieldTitle" oninput="markFormDirty()" placeholder="e.g. Wintry Beef Stew" class="w-full fill-in-input">
+          </div>
+
+          <div class="relative">
+            <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Category</label>
+            <input type="text" id="fieldCategory" oninput="handleCategoryInput()" onfocus="showCategoryDropdown()" placeholder="Type or select category..." class="w-full fill-in-input">
+            <div id="categoryDropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-amber-300 rounded-lg shadow-xl max-h-40 overflow-y-auto z-20 text-sm"></div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Equipment Needed</label>
+            <input type="text" id="fieldEquipment" oninput="markFormDirty()" placeholder="e.g. Dutch oven, Chef knife" class="w-full fill-in-input">
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Prep Time</label>
+              <input type="text" id="fieldPrepTime" oninput="markFormDirty()" placeholder="e.g. 25 mins" class="w-full fill-in-input">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Servings</label>
+              <input type="text" id="fieldServings" oninput="markFormDirty()" placeholder="e.g. 4 servings" class="w-full fill-in-input">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Recipe Photo</label>
+            <input type="url" id="fieldImageURL" oninput="markFormDirty()" placeholder="Paste Image URL (https://...)" class="w-full fill-in-input mb-2">
+            <div class="text-xs text-amber-900/70 font-semibold text-center">- OR -</div>
+            <input type="file" id="fieldImageFile" onchange="handleFileUpload(event)" accept="image/*" class="mt-2 text-xs text-amber-950 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-amber-200 file:text-amber-900 hover:file:bg-amber-300">
+          </div>
+        </div>
+
+        <!-- STEP 2: INGREDIENTS -->
+        <div id="section2Ingredients" class="hidden space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            
+            <div class="md:col-span-7 space-y-4 bg-[#f4ebd9]/50 p-4 rounded-xl border border-amber-900/15">
+              
+              <div class="relative">
+                <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Select Ingredient *</label>
+                <input type="text" id="ingNameInput" oninput="handleIngredientInput()" onfocus="showIngredientDropdown()" placeholder="Type ingredient (e.g., Butter)..." class="w-full fill-in-input">
+                <div id="ingDropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-amber-300 rounded-lg shadow-xl max-h-40 overflow-y-auto z-30 text-sm"></div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Amount</label>
+                <div class="flex items-center gap-2 mb-2">
+                  <div class="flex-1 flex gap-1">
+                    <button type="button" onclick="addIngredientQty(0.25)" class="px-2 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 rounded text-xs font-bold">+1/4</button>
+                    <button type="button" onclick="addIngredientQty(0.333)" class="px-2 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 rounded text-xs font-bold">+1/3</button>
+                    <button type="button" onclick="addIngredientQty(0.5)" class="px-2 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 rounded text-xs font-bold">+1/2</button>
+                    <button type="button" onclick="addIngredientQty(1.0)" class="px-2 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 rounded text-xs font-bold">+1</button>
+                    <button type="button" onclick="clearIngredientQty()" class="px-2 py-1 bg-red-200/80 hover:bg-red-300 text-red-950 rounded text-xs font-bold">0/Clear</button>
+                  </div>
+                  
+                  <div class="flex items-center border border-amber-800/30 rounded-lg bg-white overflow-hidden px-1">
+                    <input type="number" id="ingQtyInput" step="0.01" min="0" value="0.00" class="w-16 text-center text-sm font-bold text-[#3b220c] focus:outline-none py-1">
+                    <div class="flex flex-col text-[10px] leading-none px-1">
+                      <button type="button" onclick="stepIngredientQty(0.01)" class="hover:text-amber-700 font-black">▲</button>
+                      <button type="button" onclick="stepIngredientQty(-0.01)" class="hover:text-amber-700 font-black">▼</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Measurement Unit</label>
+                <div id="unitButtonsContainer" class="flex flex-wrap gap-1.5">
+                  <button type="button" onclick="selectUnit('oz')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">oz</button>
+                  <button type="button" onclick="selectUnit('tsp')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">tsp</button>
+                  <button type="button" onclick="selectUnit('tbsp')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">tbsp</button>
+                  <button type="button" onclick="selectUnit('g')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">g</button>
+                  <button type="button" onclick="selectUnit('cups')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">cups</button>
+                  <button type="button" onclick="selectUnit('lb')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">lb</button>
+                  <button type="button" onclick="selectUnit('Items')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">Items</button>
+                </div>
+              </div>
+
+              <div class="pt-2">
+                <button type="button" id="btnSaveIngredient" onclick="saveIngredientItem()" class="w-full bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider shadow">
+                  + Save & Add Another
+                </button>
+              </div>
+
+            </div>
+
+            <div class="md:col-span-5 bg-white border border-amber-900/20 rounded-xl p-4 flex flex-col justify-between max-h-80">
+              <div>
+                <h4 class="text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-2 border-b border-amber-900/10 pb-1">Current Ingredients List</h4>
+                <ul id="draftIngredientsList" class="space-y-2 overflow-y-auto max-h-56 pr-1 text-xs">
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- STEP 3: STEPS MANAGER -->
+        <div id="section3Steps" class="hidden space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            
+            <div class="md:col-span-7 space-y-4 bg-[#f4ebd9]/50 p-4 rounded-xl border border-amber-900/15">
+              <div>
+                <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Choose which ingredients are involved in this step:</label>
+                <div id="stepIngredientSelectors" class="flex flex-wrap gap-1.5 p-2 bg-white rounded-lg border border-amber-800/20 min-h-[44px] max-h-32 overflow-y-auto">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1" id="stepInstructionLabel">Step Instruction *</label>
+                <textarea id="stepTextInput" rows="5" oninput="markFormDirty()" placeholder="Describe what to do in this step..." class="w-full fill-in-input resize-none"></textarea>
+              </div>
+
+              <div>
+                <button type="button" id="btnSaveStep" onclick="saveStepItem()" class="w-full bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider shadow">
+                  + Save & Add Another Step
+                </button>
+              </div>
+            </div>
+
+            <div class="md:col-span-5 bg-white border border-amber-900/20 rounded-xl p-4 flex flex-col justify-between max-h-96">
+              <div>
+                <h4 class="text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-2 border-b border-amber-900/10 pb-1">Live Steps Preview</h4>
+                <ol id="draftStepsList" class="space-y-3 overflow-y-auto max-h-72 pr-1 text-xs list-decimal pl-4">
+                  <!-- Rendered dynamically -->
+                </ol>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <div class="p-4 border-t border-amber-900/20 bg-[#efe2c8] flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <button id="btnBack" onclick="handleFooterBack()" class="px-4 py-2 rounded-lg bg-[#a88d67]/30 text-amber-950 font-bold text-xs">
+            ← Back
+          </button>
+          <button id="btnDeleteRecipe" onclick="promptDeleteCurrentRecipe()" class="hidden bg-red-700 hover:bg-red-800 text-white font-bold px-3 py-2 rounded-lg text-xs uppercase tracking-wider shadow">
+            Delete
+          </button>
+        </div>
+
+        <button onclick="saveCurrentProgress()" id="btnSaveProgress" class="bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold px-5 py-2 rounded-lg text-xs uppercase tracking-wider shadow transition-colors">
+          Save
+        </button>
+
+        <button id="btnNext" onclick="handleFooterNext()" class="bg-[#a86022] hover:bg-[#8c4c16] text-white font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1 shadow">
+          <span>Next: Ingredients</span> →
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= UNSAVED CHANGES PROMPT MODAL ================= -->
+  <div id="unsavedChangesModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-center p-4 z-50">
+    <div class="bg-[#fcf8ef] border-2 border-amber-700 max-w-sm w-full p-6 rounded-xl shadow-2xl text-center space-y-4">
+      <h4 class="text-xl font-black font-title text-[#3b220c]">Unsaved Changes</h4>
+      <p class="text-xs text-amber-950 font-semibold">You have unsaved edits in this recipe card. What would you like to do?</p>
+      
+      <div class="flex flex-col gap-2 pt-2">
+        <button onclick="confirmSaveAndClose()" class="bg-[#4a280e] text-white font-bold py-2 rounded text-xs uppercase tracking-wider shadow">Save & Close</button>
+        <button onclick="confirmDiscardAndClose()" class="bg-red-800 text-white font-bold py-2 rounded text-xs uppercase tracking-wider shadow">Discard Changes</button>
+        <button onclick="closeUnsavedPrompt()" class="border border-amber-800/40 text-amber-950 font-bold py-1.5 rounded text-xs">Keep Editing</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CARD_BG_URL = "https://i.imgur.com/cJbB04a.png";
+    const FOOD_FALLBACK_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23e2ccab'/><circle cx='200' cy='150' r='60' fill='%23a16630'/><path d='M150,150 Q200,100 250,150 Q200,200 150,150' fill='%235c2e10'/></svg>";
+
+    let masterRecipes = JSON.parse(localStorage.getItem('recinez_recipes')) || [
+      { id: '1', title: 'Wintry Beef Stew', category: 'Dinner', equipment: 'Dutch Oven', prepTime: '30 mins', servings: '6', mainPicture: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?q=80&w=600&auto=format&fit=crop', ingredients: [{ name: 'Beef Chuck', qty: 2.0, unit: 'lb' }, { name: 'Carrots', qty: 3.0, unit: 'Items' }], steps: [{ text: 'Brown the beef chuck in the Dutch oven.', ingredients: ['Beef Chuck'] }] },
+      { id: '2', title: 'Garden Salad', category: 'Lunch', equipment: 'Salad Bowl', prepTime: '10 mins', servings: '2', mainPicture: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=600&auto=format&fit=crop', ingredients: [{ name: 'Tomatoes', qty: 2.0, unit: 'Items' }, { name: 'Olive Oil', qty: 1.0, unit: 'tbsp' }], steps: [{ text: 'Chop the tomatoes and toss with olive oil.', ingredients: ['Tomatoes', 'Olive Oil'] }] }
+    ];
+    let categoriesList = JSON.parse(localStorage.getItem('recinez_categories')) || ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snacks', 'Appetizers', 'Side Dish', 'Beverages'];
+    let masterIngredientsList = JSON.parse(localStorage.getItem('recinez_ingredients')) || ['Butter', 'Tomatoes', 'Beef Chuck', 'Carrots', 'Olive Oil', 'Garlic', 'Onions', 'Salt', 'Black Pepper', 'Flour'];
+
+    let currentEditingId = null;
+    let isFormDirty = false;
+    let currentEditorStep = 1;
+
+    let draftIngredients = [];
+    let draftSteps = [];
+    let selectedUnit = 'oz';
+    let editingIngIndex = null;
+    let editingStepIndex = null;
+    let selectedStepIngredients = [];
+
+    window.onload = function() {
+      renderMainGrid();
+    };
+
+    function persistData() {
+      const dataPayload = {
+        recipes: masterRecipes,
+        categories: categoriesList,
+        ingredients: masterIngredientsList
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          console.log("Synced to Google Sheet!");
+        })
+        .withFailureHandler(function(error) {
+          console.error("Sync error: ", error.message);
+          alert("Could not save to spreadsheet: " + error.message);
+        })
+        .saveAppData(dataPayload);
+    }
+
+    function exportRecipesJSON() {
+      const backupData = {
+        recipes: masterRecipes,
+        categories: categoriesList,
+        ingredients: masterIngredientsList,
+        exportDate: new Date().toISOString()
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `recinez_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importRecipesJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed.recipes && Array.isArray(parsed.recipes)) {
+            masterRecipes = parsed.recipes;
+            if (parsed.categories) categoriesList = parsed.categories;
+            if (parsed.ingredients) masterIngredientsList = parsed.ingredients;
+            
+            persistData();
+            renderMainGrid();
+            renderHubGrid();
+            alert("Backup successfully imported!");
+          } else {
+            alert("Invalid backup file format.");
+          }
+        } catch (err) {
+          alert("Error reading JSON file.");
+        }
+        event.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    function renderMainGrid() {
+      const container = document.getElementById('mainCardsGrid');
+      const query = document.getElementById('mainSearchInput').value.toLowerCase();
+      const sortVal = document.getElementById('mainSortOption').value;
+
+      let filtered = masterRecipes.filter(r => r.title.toLowerCase().includes(query));
+      filtered.sort((a, b) => sortVal === 'A-Z' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title));
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-12 text-amber-950 font-bold">No recipe cards found.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(r => createCardHTML(r, `openRecipeViewModal('${r.id}')`, true)).join('');
+    }
+
+    function filterMainGrid() {
+      renderMainGrid();
+    }
+
+    function createCardHTML(recipe, onclickHandler, isLazy = false) {
+      const imgSrc = recipe.mainPicture && recipe.mainPicture.trim() !== '' ? recipe.mainPicture : FOOD_FALLBACK_SVG;
+      const loadingAttr = isLazy ? 'loading="lazy"' : '';
+      
+      return `
+        <div onclick="${onclickHandler}" class="card-container">
+          <img src="${CARD_BG_URL}" class="card-bg-img" alt="Card Graphic" ${loadingAttr}>
+          <div class="card-content">
+            
+            <div class="food-photo-frame">
+              <div class="tape-corner tape-tl"></div>
+              <div class="tape-corner tape-tr"></div>
+              <div class="tape-corner tape-bl"></div>
+              <div class="tape-corner tape-br"></div>
+              <img src="${imgSrc}" onerror="this.src='${FOOD_FALLBACK_SVG}'" class="w-full h-full object-cover" alt="${recipe.title}" ${loadingAttr}>
+            </div>
+
+            <div class="pt-2 text-center">
+              <h3 class="font-black font-title text-base text-[#2b1707] truncate px-1">${recipe.title}</h3>
+              <div class="flex justify-around items-center text-xs font-bold text-amber-950/80 pt-1 border-t border-amber-900/15 mt-1">
+                <span>⏱️ ${recipe.prepTime || 'N/A'}</span>
+                <span>🍽️ ${recipe.servings || 'N/A'}</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      `;
+    }
+
+    function openRecipeViewModal(id) {
+      const recipe = masterRecipes.find(r => r.id === id);
+      if (!recipe) return;
+
+      const imgSrc = recipe.mainPicture && recipe.mainPicture.trim() !== '' ? recipe.mainPicture : FOOD_FALLBACK_SVG;
+
+      document.getElementById('viewTitle').innerText = recipe.title;
+      document.getElementById('viewCategory').innerText = recipe.category || 'Uncategorized';
+      document.getElementById('viewPrepTime').innerText = recipe.prepTime || 'N/A';
+      document.getElementById('viewServings').innerText = recipe.servings || 'N/A';
+      document.getElementById('viewEquipment').innerText = recipe.equipment || 'None listed';
+      document.getElementById('viewImage').src = imgSrc;
+
+      const listEl = document.getElementById('viewIngredientsList');
+      if (recipe.ingredients && recipe.ingredients.length > 0) {
+        listEl.innerHTML = recipe.ingredients.map(ing => `
+          <li class="flex justify-between border-b border-amber-900/10 py-1">
+            <span>• ${ing.name}</span>
+            <span class="font-bold">${ing.qty} ${ing.unit}</span>
+          </li>
+        `).join('');
+      } else {
+        listEl.innerHTML = `<li class="text-amber-900/60 italic text-xs">No ingredients specified.</li>`;
+      }
+
+      const stepsEl = document.getElementById('viewStepsList');
+      if (recipe.steps && recipe.steps.length > 0) {
+        stepsEl.innerHTML = recipe.steps.map(st => `
+          <li class="py-1">
+            <span>${st.text}</span>
+            ${st.ingredients && st.ingredients.length > 0 ? `<div class="text-[10px] text-amber-900/70 font-semibold mt-0.5">Involves: ${st.ingredients.join(', ')}</div>` : ''}
+          </li>
+        `).join('');
+      } else {
+        stepsEl.innerHTML = `<li class="text-amber-900/60 italic text-xs">No steps specified.</li>`;
+      }
+
+      document.getElementById('recipeViewModal').classList.remove('hidden');
+    }
+
+    function closeRecipeViewModal() {
+      document.getElementById('recipeViewModal').classList.add('hidden');
+    }
+
+    function openRecipeManagerHub() {
+      renderHubGrid();
+      document.getElementById('recipeManagerHubModal').classList.remove('hidden');
+    }
+
+    function closeRecipeManagerHub() {
+      document.getElementById('recipeManagerHubModal').classList.add('hidden');
+    }
+
+    function renderHubGrid() {
+      document.getElementById('hubRecipesGrid').innerHTML = masterRecipes.map(r => createCardHTML(r, `openEditFromHub('${r.id}')`, false)).join('');
+    }
+
+    function openEditorToIngredients() {
+      closeRecipeManagerHub();
+      startNewRecipeForm();
+      switchEditorTab(2);
+    }
+
+    function startNewRecipeForm() {
+      currentEditingId = null;
+      draftIngredients = [];
+      draftSteps = [];
+      resetEditorFields();
+      document.getElementById('editorModalTitle').innerText = "Add New Recipe";
+      document.getElementById('btnDeleteRecipe').classList.add('hidden');
+      switchEditorTab(1);
+      selectUnit('oz');
+      renderDraftIngredients();
+      renderStepIngredientSelectors();
+      renderDraftSteps();
+      document.getElementById('recipeEditorModal').classList.remove('hidden');
+    }
+
+    function openEditFromHub(id) {
+      currentEditingId = id;
+      const recipe = masterRecipes.find(r => r.id === id);
+      if (!recipe) return;
+
+      document.getElementById('fieldTitle').value = recipe.title || '';
+      document.getElementById('fieldCategory').value = recipe.category || '';
+      document.getElementById('fieldEquipment').value = recipe.equipment || '';
+      document.getElementById('fieldPrepTime').value = recipe.prepTime || '';
+      document.getElementById('fieldServings').value = recipe.servings || '';
+      document.getElementById('fieldImageURL').value = recipe.mainPicture || '';
+
+      draftIngredients = recipe.ingredients ? [...recipe.ingredients] : [];
+      draftSteps = recipe.steps ? [...recipe.steps] : [];
+
+      document.getElementById('editorModalTitle').innerText = "Edit Recipe";
+      document.getElementById('btnDeleteRecipe').classList.remove('hidden');
+      isFormDirty = false;
+
+      switchEditorTab(1);
+      selectUnit('oz');
+      renderDraftIngredients();
+      renderStepIngredientSelectors();
+      renderDraftSteps();
+      document.getElementById('recipeEditorModal').classList.remove('hidden');
+    }
+
+    function promptDeleteCurrentRecipe() {
+      if (!currentEditingId) return;
+      if (confirm("Are you sure you want to delete this recipe card?")) {
+        masterRecipes = masterRecipes.filter(r => r.id !== currentEditingId);
+        persistData();
+        renderMainGrid();
+        renderHubGrid();
+        isFormDirty = false;
+        document.getElementById('recipeEditorModal').classList.add('hidden');
+        openRecipeManagerHub();
+      }
+    }
+
+    function resetEditorFields() {
+      document.getElementById('fieldTitle').value = '';
+      document.getElementById('fieldCategory').value = '';
+      document.getElementById('fieldEquipment').value = '';
+      document.getElementById('fieldPrepTime').value = '';
+      document.getElementById('fieldServings').value = '';
+      document.getElementById('fieldImageURL').value = '';
+      document.getElementById('fieldImageFile').value = '';
+      isFormDirty = false;
+    }
+
+    function markFormDirty() { isFormDirty = true; }
+
+    function showCategoryDropdown() {
+      handleCategoryInput();
+      document.getElementById('categoryDropdown').classList.remove('hidden');
+    }
+
+    function handleCategoryInput() {
+      markFormDirty();
+      const val = document.getElementById('fieldCategory').value.toLowerCase();
+      const dropdown = document.getElementById('categoryDropdown');
+      
+      const filtered = categoriesList.filter(c => c.toLowerCase().includes(val));
+      let html = filtered.map(c => `<div onclick="selectCategory('${c}')" class="px-3 py-2 hover:bg-amber-100 cursor-pointer text-amber-950 font-medium">${c}</div>`).join('');
+
+      if (val && !categoriesList.some(c => c.toLowerCase() === val)) {
+        html += `<div onclick="selectCategory('${document.getElementById('fieldCategory').value}')" class="px-3 py-2 hover:bg-amber-100 cursor-pointer text-amber-900 font-bold border-t border-amber-200">+ Add "${document.getElementById('fieldCategory').value}"</div>`;
+      }
+
+      dropdown.innerHTML = html;
+      dropdown.classList.remove('hidden');
+    }
+
+    function selectCategory(cat) {
+      document.getElementById('fieldCategory').value = cat;
+      if (!categoriesList.includes(cat)) {
+        categoriesList.push(cat);
+        persistData();
+      }
+      document.getElementById('categoryDropdown').classList.add('hidden');
+    }
+
+    function handleFileUpload(e) {
+      markFormDirty();
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          document.getElementById('fieldImageURL').value = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function switchEditorTab(step) {
+      currentEditorStep = step;
+
+      const sec1 = document.getElementById('section1Details');
+      const sec2 = document.getElementById('section2Ingredients');
+      const sec3 = document.getElementById('section3Steps');
+      const btnTab1 = document.getElementById('tabBtnDetails');
+      const btnTab2 = document.getElementById('tabBtnIngredients');
+      const btnTab3 = document.getElementById('tabBtnSteps');
+      const btnNext = document.getElementById('btnNext');
+
+      sec1.classList.add('hidden');
+      sec2.classList.add('hidden');
+      sec3.classList.add('hidden');
+
+      btnTab1.className = "text-amber-900/50 hover:text-[#3b220c] pb-1 font-bold";
+      btnTab2.className = "text-amber-900/50 hover:text-[#3b220c] pb-1 font-bold";
+      btnTab3.className = "text-amber-900/50 hover:text-[#3b220c] pb-1 font-bold";
+
+      if (step === 1) {
+        sec1.classList.remove('hidden');
+        btnTab1.className = "text-[#3b220c] border-b-2 border-[#4a280e] pb-1 font-bold";
+        btnNext.innerHTML = "<span>Next: Ingredients</span> →";
+      } else if (step === 2) {
+        sec2.classList.remove('hidden');
+        btnTab2.className = "text-[#3b220c] border-b-2 border-[#4a280e] pb-1 font-bold";
+        btnNext.innerHTML = "<span>Next: Steps</span> →";
+      } else {
+        sec3.classList.remove('hidden');
+        btnTab3.className = "text-[#3b220c] border-b-2 border-[#4a280e] pb-1 font-bold";
+        btnNext.innerHTML = "<span>Finish</span> ✓";
+        renderStepIngredientSelectors();
+      }
+    }
+
+    function handleFooterBack() {
+      if (currentEditorStep === 3) {
+        switchEditorTab(2);
+      } else if (currentEditorStep === 2) {
+        switchEditorTab(1);
+      } else {
+        attemptCloseEditor();
+      }
+    }
+
+    function handleFooterNext() {
+      if (currentEditorStep === 1) {
+        switchEditorTab(2);
+      } else if (currentEditorStep === 2) {
+        switchEditorTab(3);
+      } else {
+        saveCurrentProgress();
+      }
+    }
+
+    function showIngredientDropdown() {
+      handleIngredientInput();
+      document.getElementById('ingDropdown').classList.remove('hidden');
+    }
+
+    function handleIngredientInput() {
+      const val = document.getElementById('ingNameInput').value.toLowerCase();
+      const dropdown = document.getElementById('ingDropdown');
+
+      const filtered = masterIngredientsList.filter(i => i.toLowerCase().includes(val));
+      let html = filtered.map(i => `<div onclick="selectIngredientName('${i}')" class="px-3 py-2 hover:bg-amber-100 cursor-pointer text-amber-950 font-medium">${i}</div>`).join('');
+
+      if (val && !masterIngredientsList.some(i => i.toLowerCase() === val)) {
+        html += `<div onclick="selectIngredientName('${document.getElementById('ingNameInput').value}')" class="px-3 py-2 hover:bg-amber-100 cursor-pointer text-amber-900 font-bold border-t border-amber-200">+ Add "${document.getElementById('ingNameInput').value}"</div>`;
+      }
+
+      dropdown.innerHTML = html;
+      dropdown.classList.remove('hidden');
+    }
+
+    function selectIngredientName(name) {
+      document.getElementById('ingNameInput').value = name;
+      if (!masterIngredientsList.includes(name)) {
+        masterIngredientsList.push(name);
+        persistData();
+      }
+      document.getElementById('ingDropdown').classList.add('hidden');
+    }
+
+    function addIngredientQty(val) {
+      const input = document.getElementById('ingQtyInput');
+      const current = parseFloat(input.value) || 0;
+      input.value = (current + val).toFixed(2);
+    }
+
+    function stepIngredientQty(val) {
+      const input = document.getElementById('ingQtyInput');
+      const current = parseFloat(input.value) || 0;
+      const updated = Math.max(0, current + val);
+      input.value = updated.toFixed(2);
+    }
+
+    function clearIngredientQty() {
+      document.getElementById('ingQtyInput').value = "0.00";
+    }
+
+    function selectUnit(unit) {
+      selectedUnit = unit;
+      document.querySelectorAll('.unit-btn').forEach(btn => {
+        if (btn.innerText === unit) {
+          btn.className = "unit-btn px-2.5 py-1 rounded text-xs font-bold bg-[#4a280e] text-white shadow";
+        } else {
+          btn.className = "unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950";
+        }
+      });
+    }
+
+    function saveIngredientItem() {
+      const name = document.getElementById('ingNameInput').value.trim();
+      const qty = parseFloat(document.getElementById('ingQtyInput').value) || 0;
+
+      if (!name) {
+        alert("Please enter an ingredient name.");
+        return;
+      }
+
+      markFormDirty();
+
+      if (editingIngIndex !== null) {
+        draftIngredients[editingIngIndex] = { name, qty, unit: selectedUnit };
+        editingIngIndex = null;
+        document.getElementById('btnSaveIngredient').innerText = "+ Save & Add Another";
+      } else {
+        draftIngredients.push({ name, qty, unit: selectedUnit });
+      }
+
+      document.getElementById('ingNameInput').value = '';
+      document.getElementById('ingQtyInput').value = '0.00';
+      renderDraftIngredients();
+    }
+
+    function renderDraftIngredients() {
+      const listEl = document.getElementById('draftIngredientsList');
+
+      if (draftIngredients.length === 0) {
+        listEl.innerHTML = `<li class="text-amber-900/50 italic text-xs">No ingredients added yet.</li>`;
+        return;
+      }
+
+      listEl.innerHTML = draftIngredients.map((item, idx) => `
+        <li class="flex justify-between items-center bg-amber-50 p-2 rounded border border-amber-200">
+          <div>
+            <span class="font-bold text-[#3b220c]">${item.name}</span>
+            <span class="text-amber-900/70 ml-1">(${item.qty} ${item.unit})</span>
+          </div>
+          <div class="flex gap-1">
+            <button type="button" onclick="editDraftIngredient(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold">✎</button>
+            <button type="button" onclick="removeDraftIngredient(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold">&times;</button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    function editDraftIngredient(idx) {
+      const item = draftIngredients[idx];
+      editingIngIndex = idx;
+      document.getElementById('ingNameInput').value = item.name;
+      document.getElementById('ingQtyInput').value = item.qty.toFixed(2);
+      selectUnit(item.unit);
+      document.getElementById('btnSaveIngredient').innerText = "Update Ingredient";
+    }
+
+    function removeDraftIngredient(idx) {
+      markFormDirty();
+      draftIngredients.splice(idx, 1);
+      renderDraftIngredients();
+    }
+
+    // --- STEP FUNCTIONS ---
+    function renderStepIngredientSelectors() {
+      const container = document.getElementById('stepIngredientSelectors');
+      if (draftIngredients.length === 0) {
+        container.innerHTML = `<span class="text-amber-900/50 text-xs italic">No ingredients in recipe yet. Add some in Step 2!</span>`;
+        return;
+      }
+
+      container.innerHTML = draftIngredients.map(ing => {
+        const isSelected = selectedStepIngredients.includes(ing.name);
+        const btnClass = isSelected 
+          ? "px-2.5 py-1 rounded-full text-xs font-bold bg-[#4a280e] text-white shadow cursor-pointer transition-all" 
+          : "px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100/70 hover:bg-amber-200 text-amber-950 border border-amber-300 cursor-pointer transition-all";
+        
+        return `<button type="button" onclick="toggleStepIngredient('${ing.name}')" class="${btnClass}">${ing.name}</button>`;
+      }).join('');
+    }
+
+    function toggleStepIngredient(name) {
+      if (selectedStepIngredients.includes(name)) {
+        selectedStepIngredients = selectedStepIngredients.filter(i => i !== name);
+      } else {
+        selectedStepIngredients.push(name);
+      }
+      renderStepIngredientSelectors();
+    }
+
+    function saveStepItem() {
+      const text = document.getElementById('stepTextInput').value.trim();
+      if (!text) {
+        alert("Please enter step instructions.");
+        return;
+      }
+
+      markFormDirty();
+
+      if (editingStepIndex !== null) {
+        draftSteps[editingStepIndex] = { text, ingredients: [...selectedStepIngredients] };
+        editingStepIndex = null;
+        document.getElementById('btnSaveStep').innerText = "+ Save & Add Another Step";
+        document.getElementById('stepInstructionLabel').innerText = "Step Instruction *";
+      } else {
+        draftSteps.push({ text, ingredients: [...selectedStepIngredients] });
+      }
+
+      document.getElementById('stepTextInput').value = '';
+      selectedStepIngredients = [];
+      renderStepIngredientSelectors();
+      renderDraftSteps();
+    }
+
+    function renderDraftSteps() {
+      const listEl = document.getElementById('draftStepsList');
+
+      if (draftSteps.length === 0) {
+        listEl.innerHTML = `<li class="text-amber-900/50 italic text-xs list-none">No steps added yet.</li>`;
+        return;
+      }
+
+      listEl.innerHTML = draftSteps.map((step, idx) => `
+        <li class="bg-amber-50 p-2.5 rounded border border-amber-200 space-y-1">
+          <div class="flex justify-between items-start">
+            <span class="font-bold text-[#3b220c] text-xs">Step #${idx + 1}</span>
+            <div class="flex items-center gap-1">
+              ${idx > 0 ? `<button type="button" onclick="moveStep(${idx}, -1)" class="text-amber-800 hover:text-amber-950 px-1 font-bold" title="Move Up">▲</button>` : ''}
+              ${idx < draftSteps.length - 1 ? `<button type="button" onclick="moveStep(${idx}, 1)" class="text-amber-800 hover:text-amber-950 px-1 font-bold" title="Move Down">▼</button>` : ''}
+              <button type="button" onclick="editDraftStep(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold" title="Edit Step">✎</button>
+              <button type="button" onclick="removeDraftStep(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold" title="Delete Step">&times;</button>
+            </div>
+          </div>
+          <p class="text-amber-950 text-xs font-medium leading-relaxed">${step.text}</p>
+          ${step.ingredients ? `<div class="text-[10px] text-amber-900/70 font-semibold">Involves: ${Array.isArray(step.ingredients) ? step.ingredients.join(', ') : step.ingredients}</div>` : ''}
+        </li>
+      `).join('');
+    }
+
+    function editDraftStep(idx) {
+      const step = draftSteps[idx];
+      editingStepIndex = idx;
+      document.getElementById('stepTextInput').value = step.text;
+      selectedStepIngredients = step.ingredients ? [...step.ingredients] : [];
+      renderStepIngredientSelectors();
+      document.getElementById('btnSaveStep').innerText = "Update Step";
+      document.getElementById('stepInstructionLabel').innerText = `Editing Step #${idx + 1}`;
+    }
+
+    function removeDraftStep(idx) {
+      markFormDirty();
+      draftSteps.splice(idx, 1);
+      renderDraftSteps();
+    }
+
+    function moveStep(idx, direction) {
+      markFormDirty();
+      const targetIdx = idx + direction;
+      if (targetIdx < 0 || targetIdx >= draftSteps.length) return;
+      
+      const temp = draftSteps[idx];
+      draftSteps[idx] = draftSteps[targetIdx];
+      draftSteps[targetIdx] = temp;
+      renderDraftSteps();
+    }
+
+    function saveCurrentProgress() {
+      const title = document.getElementById('fieldTitle').value.trim();
+      if (!title) {
+        alert("Please provide a recipe name.");
+        switchEditorTab(1);
+        return false;
+      }
+
+      const recipeData = {
+        id: currentEditingId || Date.now().toString(),
+        title,
+        category: document.getElementById('fieldCategory').value.trim(),
+        equipment: document.getElementById('fieldEquipment').value.trim(),
+        prepTime: document.getElementById('fieldPrepTime').value.trim(),
+        servings: document.getElementById('fieldServings').value.trim(),
+        mainPicture: document.getElementById('fieldImageURL').value.trim(),
+        ingredients: [...draftIngredients],
+        steps: [...draftSteps]
+      };
+
+      if (currentEditingId) {
+        const idx = masterRecipes.findIndex(r => r.id === currentEditingId);
+        if (idx !== -1) masterRecipes[idx] = recipeData;
+      } else {
+        masterRecipes.push(recipeData);
+        currentEditingId = recipeData.id; 
+        document.getElementById('btnDeleteRecipe').classList.remove('hidden');
+      }
+
+      isFormDirty = false;
+      persistData();
+      renderMainGrid();
+      renderHubGrid();
+
+      const saveBtn = document.getElementById('btnSaveProgress');
+      saveBtn.innerText = "Saved ✓";
+      saveBtn.classList.remove('bg-[#4a280e]', 'hover:bg-[#311807]');
+      saveBtn.classList.add('bg-green-700', 'hover:bg-green-800');
+      
+      setTimeout(() => { 
+        saveBtn.innerText = "Save"; 
+        saveBtn.classList.add('bg-[#4a280e]', 'hover:bg-[#311807]');
+        saveBtn.classList.remove('bg-green-700', 'hover:bg-green-800');
+      }, 2000);
+
+      return true;
+    }
+
+    function attemptCloseEditor() {
+      if (isFormDirty) {
+        document.getElementById('unsavedChangesModal').classList.remove('hidden');
+      } else {
+        document.getElementById('recipeEditorModal').classList.add('hidden');
+      }
+    }
+
+    function closeUnsavedPrompt() {
+      document.getElementById('unsavedChangesModal').classList.add('hidden');
+    }
+
+    function confirmSaveAndClose() {
+      closeUnsavedPrompt();
+      if (saveCurrentProgress()) {
+        document.getElementById('recipeEditorModal').classList.add('hidden');
+      }
+    }
+
+    function confirmDiscardAndClose() {
+      isFormDirty = false;
+      closeUnsavedPrompt();
+      document.getElementById('recipeEditorModal').classList.add('hidden');
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#fieldCategory') && !e.target.closest('#categoryDropdown')) {
+        document.getElementById('categoryDropdown')?.classList.add('hidden');
+      }
+      if (!e.target.closest('#ingNameInput') && !e.target.closest('#ingDropdown')) {
+        document.getElementById('ingDropdown')?.classList.add('hidden');
+      }
+    });
+    window.addEventListener('DOMContentLoaded', function() {
+      google.script.run
+        .withSuccessHandler(function(serverRecipes) {
+          if (serverRecipes && Array.isArray(serverRecipes)) {
+            masterRecipes = serverRecipes;
+          }
+          renderMainGrid();
+          if (typeof renderHubGrid === 'function') {
+            renderHubGrid();
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error("Failed to load recipes: ", error.message);
+        })
+        .getRecipes();
+    });
+  </script>
+</body>
+</html>
