@@ -14,6 +14,9 @@
       min-height: 100vh;
       color: #000000;
       margin: 0;
+    }
+
+    .linen-bg {
       background-color: #f6efdd;
       background-image:
         radial-gradient(ellipse 900px 460px at 50% -8%, rgba(255,255,255,0.55), transparent 60%),
@@ -215,9 +218,257 @@
       background: rgba(15, 8, 4, 0.6);
       backdrop-filter: blur(4px);
     }
+
+    /* ============ UNIFORM PAGE TOOLBAR (Home / sections / Close) ============ */
+    .uni-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fdf8ef; border-bottom: 1.5px solid #d8c19c;
+      padding: 10px 28px;
+      box-shadow: 0 2px 8px rgba(70,45,10,0.06);
+      position: sticky; top: 0; z-index: 5;
+    }
+    .uni-home { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 70px; }
+    .uni-home-btn {
+      width: 42px; height: 42px; border-radius: 999px;
+      border: 1.5px solid #c9ad82; background: #ffffff; color: #4a280e;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .uni-home-btn:hover { background: #f4e9d2; }
+    .uni-home-hint { font-size: 9px; font-weight: 700; color: #97621f; text-transform: uppercase; letter-spacing: 0.03em; text-align: center; line-height: 1.2; }
+
+    .uni-tabs { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .uni-tab {
+      min-width: 100px; text-align: center;
+      padding: 9px 16px; border-radius: 10px;
+      border: 1.5px solid #d8c19c; background: #ffffff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700; font-size: 11.5px; color: #8a7256;
+      text-transform: uppercase; letter-spacing: 0.03em;
+      cursor: pointer;
+    }
+    .uni-tab.active {
+      background: #4a280e; border-color: #4a280e; color: #fdf8ef;
+      box-shadow: 0 3px 10px rgba(74,40,14,0.3);
+    }
+
+    .uni-page-title { font-family: 'Cinzel', serif; font-weight: 800; font-size: 18px; color: #3b220c; }
+
+    .uni-close-wrap { min-width: 70px; display: flex; justify-content: flex-end; }
+    .uni-close {
+      width: 42px; height: 42px; border-radius: 999px;
+      background: #c0392b; color: #ffffff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 19px;
+      box-shadow: 0 3px 12px rgba(192,57,43,0.45);
+      border: 2px solid #ffffff;
+      cursor: pointer;
+    }
+    .uni-close:hover { background: #a5281b; }
+
+    .detail-body { max-width: 980px; margin: 0 auto; padding: 36px 32px 60px; width: 100%; text-align: center; overflow-wrap: break-word; }
+
+    /* Text-centering exceptions: typed input text, form labels (should match their input's side),
+       and name/value data rows (ingredient lists, shopping items, step cards) read better left-aligned
+       than centered — centering those would hurt scannability and make typing feel disorienting. */
+    .detail-body label,
+    .detail-body input,
+    .detail-body textarea,
+    .detail-body select {
+      text-align: left;
+    }
+    .detail-ing-row, .print-ing-row, .shopping-item,
+    .detail-step, .print-step, .cooking-ing-used,
+    #draftIngredientsList li, #draftStepsList li,
+    #managerIngredientsList li, #managerUnitsList li,
+    #stepIngredientAmounts, #hubRecipesGrid {
+      text-align: left;
+    }
+
+    .detail-photo-frame {
+      position: relative; height: 300px; border-radius: 10px; overflow: hidden;
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.15), 0 4px 14px rgba(0,0,0,0.14);
+      margin-bottom: 22px;
+    }
+    .detail-photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+
+    .detail-title-row { text-align: center; margin-bottom: 22px; }
+    .detail-title { font-family: 'Cinzel', serif; font-weight: 900; font-size: 40px; color: #2b1707; margin: 0; }
+    .detail-category-pill {
+      display: inline-block; margin-top: 10px;
+      font-weight: 700; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: #8a5a24; background: #f4e9d2; border: 1px solid #d8c19c;
+      padding: 5px 14px; border-radius: 999px;
+    }
+
+    .detail-info-row { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; margin-bottom: 34px; }
+    .detail-info-card {
+      background: #fdf8ef; border: 1.3px solid #d8c19c; border-radius: 12px;
+      padding: 14px 16px; text-align: center;
+      box-shadow: 0 2px 8px rgba(70,45,10,0.06);
+    }
+    .detail-info-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #97621f; margin-bottom: 4px; }
+    .detail-info-value { font-size: 15px; font-weight: 700; color: #3b220c; }
+
+    .detail-section-title {
+      font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px;
+      letter-spacing: 0.2em; text-transform: uppercase; color: #4a280e;
+      border-bottom: 1px solid rgba(74,40,14,0.15); padding-bottom: 8px; margin: 0 0 16px;
+    }
+
+    .detail-ing-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 4px 28px; margin: 0 0 36px; padding: 0; list-style: none; }
+    .detail-ing-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(74,40,14,0.1); font-size: 13.5px; color: #3b220c; }
+    .detail-ing-row .ing-name { font-weight: 600; }
+    .detail-ing-row .ing-qty { font-weight: 700; color: #4a280e; }
+
+    .detail-steps { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+    .detail-step { background: #fdf8ef; border: 1.3px solid #e4d3ae; border-radius: 10px; padding: 14px 18px; display: flex; gap: 14px; align-items: flex-start; }
+    .detail-step-num {
+      flex-shrink: 0; width: 28px; height: 28px; border-radius: 999px; background: #4a280e; color: #fdf8ef;
+      display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;
+    }
+    .detail-step-body { font-size: 14px; color: #3b220c; line-height: 1.5; }
+    .detail-step-ings { font-size: 11px; color: rgba(74,40,14,0.7); font-weight: 600; margin-top: 4px; }
+
+    /* Print Mode */
+    .print-toolbar { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 18px 0 6px; flex-wrap: wrap; }
+    .print-photo-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #4a280e; }
+    .print-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: #4a280e; color: #fdf8ef; font-weight: 700; font-size: 13px;
+      padding: 10px 22px; border-radius: 10px; box-shadow: 0 3px 10px rgba(70,45,10,0.2);
+      border: none; cursor: pointer;
+    }
+    .print-sheet {
+      background: #ffffff; max-width: 760px; margin: 20px auto 60px;
+      padding: 48px 56px; border-radius: 4px;
+      box-shadow: 0 8px 28px rgba(40,25,10,0.14);
+      color: #1c1108;
+    }
+    .print-photo-frame { margin-bottom: 22px; border-radius: 4px; overflow: hidden; }
+    .print-photo-frame img { width: 100%; max-height: 280px; object-fit: cover; display: block; }
+    .print-photo-frame.hidden-photo { display: none; }
+    .print-title { font-family: 'Cinzel', serif; font-weight: 800; font-size: 30px; text-align: center; margin: 0 0 4px; }
+    .print-category { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6b5230; margin-bottom: 22px; }
+    .print-info-row { display: flex; justify-content: center; gap: 40px; margin-bottom: 26px; padding-bottom: 20px; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
+    .print-info-item { text-align: center; }
+    .print-info-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8a7a5c; margin-bottom: 3px; }
+    .print-info-value { font-size: 14px; font-weight: 700; }
+    .print-section-title { font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 12px; }
+    .print-ing-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 4px 28px; margin: 0 0 30px; padding: 0; list-style: none; }
+    .print-ing-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; border-bottom: 1px dotted #ccc; }
+    .print-steps { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+    .print-step { display: flex; gap: 10px; font-size: 13px; line-height: 1.5; }
+    .print-step-num { font-weight: 800; flex-shrink: 0; }
+
+    @media print {
+      .uni-toolbar, .print-toolbar { display: none !important; }
+      .print-sheet { box-shadow: none; margin: 0; max-width: 100%; }
+      #recipeDetailView { position: static; background: #fff; }
+      #detailTabRecipe, #detailTabShopping, #detailTabCooking { display: none !important; }
+    }
+
+    /* Shopping Mode */
+    .shopping-subtitle { text-align: center; font-size: 13px; color: #8a5a24; font-weight: 600; margin-bottom: 22px; }
+    .shopping-toolbar { display: flex; justify-content: center; margin-bottom: 20px; }
+    .shopping-sort-toggle {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700; font-size: 12px; padding: 8px 16px; border-radius: 999px;
+      border: 1.3px solid #c9ad82; background: #ffffff; color: #4a280e; cursor: pointer;
+    }
+    .shopping-sort-toggle.active { background: #4a280e; color: #fdf8ef; border-color: #4a280e; }
+    .shopping-group-label {
+      font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: #97621f; margin: 22px 0 10px;
+    }
+    .shopping-group-label:first-child { margin-top: 0; }
+    .shopping-item {
+      display: flex; align-items: center; gap: 14px;
+      background: #fdf8ef; border: 1.3px solid #e4d3ae; border-radius: 10px;
+      padding: 13px 16px; margin-bottom: 8px; cursor: pointer;
+    }
+    .shopping-checkbox { width: 20px; height: 20px; border-radius: 5px; border: 1.6px solid #a88d67; flex-shrink: 0; background: #ffffff; display: flex; align-items: center; justify-content: center; }
+    .shopping-checkbox.checked { background: #4a280e; border-color: #4a280e; }
+    .shopping-item-name { flex: 1; font-weight: 700; font-size: 14px; color: #3b220c; }
+    .shopping-item-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: #f4e9d2; color: #8a5a24; border: 1px solid #d8c19c; border-radius: 999px; padding: 3px 9px; }
+    .shopping-item-qty { font-weight: 700; font-size: 13px; color: #4a280e; min-width: 60px; text-align: right; }
+    .shopping-item.done { opacity: 0.45; }
+    .shopping-item.done .shopping-item-name { text-decoration: line-through; }
+
+    /* Cooking Mode */
+    .cooking-peek { opacity: 0.4; text-align: center; font-size: 12.5px; color: #4a280e; font-weight: 600; padding: 10px 18px; margin: 0 auto 10px; max-width: 480px; min-height: 20px; }
+    .cooking-peek-label { font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; margin-bottom: 2px; display: block; }
+    .cooking-current { background: #fdf8ef; border: 1.5px solid #a88d67; border-radius: 16px; padding: 26px 30px; box-shadow: 0 8px 22px rgba(70,45,10,0.14); }
+    .cooking-step-badge { display: inline-block; font-family: 'Cinzel', serif; font-weight: 800; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a5a24; background: #f4e9d2; border: 1px solid #d8c19c; border-radius: 999px; padding: 5px 14px; margin-bottom: 16px; }
+    .cooking-step-photo { height: 190px; border-radius: 10px; overflow: hidden; margin-bottom: 18px; box-shadow: inset 0 0 4px rgba(0,0,0,0.15), 0 3px 10px rgba(0,0,0,0.12); }
+    .cooking-step-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .cooking-ing-used { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .cooking-ing-chip { font-size: 12px; font-weight: 700; color: #4a280e; background: #ffffff; border: 1.3px solid #c9ad82; border-radius: 999px; padding: 6px 13px; }
+    .cooking-step-text { font-size: 18px; line-height: 1.55; color: #2b1707; font-weight: 600; }
+    .cooking-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 26px; }
+    .cooking-nav-btn {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700; font-size: 13px; padding: 10px 20px; border-radius: 10px;
+      background: #4a280e; color: #fdf8ef; box-shadow: 0 3px 10px rgba(70,45,10,0.2);
+      border: none; cursor: pointer;
+    }
+    .cooking-nav-btn:disabled { opacity: 0.35; cursor: default; box-shadow: none; }
+    .cooking-nav-count { font-size: 12px; font-weight: 700; color: #8a5a24; }
+
+    .add-recipe-hero {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 20px;
+      margin-bottom: 28px;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #c9835a, #a86022 45%, #4a280e);
+      color: #fdf8ef;
+      font-family: 'Cinzel', serif;
+      font-weight: 800;
+      font-size: 19px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      box-shadow: 0 6px 18px rgba(74,40,14,0.35);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: add-recipe-glow 3s ease-in-out infinite;
+    }
+    .add-recipe-hero:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 26px rgba(74,40,14,0.45);
+    }
+    .add-recipe-hero-icon {
+      width: 30px; height: 30px; flex-shrink: 0;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    @keyframes add-recipe-glow {
+      0%, 100% { box-shadow: 0 6px 18px rgba(74,40,14,0.35); }
+      50% { box-shadow: 0 6px 24px rgba(201,131,90,0.55); }
+    }
+
+    .editor-footer {
+      position: sticky;
+      bottom: 0;
+      background: #efe2c8;
+      border-top: 1.5px solid #d8c19c;
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 -2px 8px rgba(70,45,10,0.08);
+      z-index: 5;
+    }
   </style>
 </head>
-<body class="px-4 pt-2 pb-8 sm:px-8">
+<body class="px-4 pt-2 pb-8 sm:px-8 linen-bg">
 
   <!-- ================= MAIN HOME SCREEN ================= -->
   <div class="max-w-6xl mx-auto space-y-4">
@@ -266,111 +517,167 @@
   </div>
 
   <!-- ================= VIEW RECIPE CARD MODAL ================= -->
-  <div id="recipeViewModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-start pt-8 p-4 z-50">
-    <div class="bg-[#fcf8ef] border-2 border-[#a88d67] max-w-xl w-full max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
-      
-      <div class="px-6 py-4 border-b border-amber-900/15 bg-[#f4ebd9] flex justify-between items-center">
-        <div>
-          <h3 id="viewTitle" class="text-2xl font-black font-title text-[#3b220c]">Recipe Details</h3>
-          <span id="viewCategory" class="text-xs font-bold text-amber-900/80 uppercase tracking-wider"></span>
-        </div>
-        <button onclick="closeRecipeViewModal()" class="text-amber-950/70 hover:text-amber-950 text-2xl font-bold">&times;</button>
+  <div id="recipeDetailView" class="fixed inset-0 hidden flex-col z-50 linen-bg" style="overflow-y: auto;">
+
+    <div class="uni-toolbar">
+      <div class="uni-home">
+        <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        </button>
+        <span class="uni-home-hint">Home</span>
+      </div>
+      <div class="uni-tabs">
+        <button class="uni-tab" data-tab="recipe" onclick="switchDetailTab('recipe')">1. Recipe</button>
+        <button class="uni-tab" data-tab="print" onclick="switchDetailTab('print')">2. Print Mode</button>
+        <button class="uni-tab" data-tab="shopping" onclick="switchDetailTab('shopping')">3. Shopping</button>
+        <button class="uni-tab" data-tab="cooking" onclick="switchDetailTab('cooking')">4. Cooking</button>
+      </div>
+      <div class="uni-close-wrap">
+        <button class="uni-close" onclick="closeRecipeDetailView()" title="Close">&times;</button>
+      </div>
+    </div>
+
+    <!-- TAB: RECIPE -->
+    <div id="detailTabRecipe" class="detail-body">
+      <div class="detail-photo-frame">
+        <div class="tape-corner tape-tl"></div>
+        <div class="tape-corner tape-tr"></div>
+        <div class="tape-corner tape-bl"></div>
+        <div class="tape-corner tape-br"></div>
+        <img id="detailImage" src="" alt="Recipe Image" loading="lazy">
       </div>
 
-      <div class="p-6 overflow-y-auto flex-1 space-y-4">
-        <div class="food-photo-frame h-56 w-full">
-          <div class="tape-corner tape-tl"></div>
-          <div class="tape-corner tape-tr"></div>
-          <div class="tape-corner tape-bl"></div>
-          <div class="tape-corner tape-br"></div>
-          <img id="viewImage" src="" class="w-full h-full object-cover" alt="Recipe Image" loading="lazy">
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 bg-[#f4ebd9]/60 p-4 rounded-xl border border-amber-900/10 text-sm">
-          <div>
-            <span class="block text-xs font-bold text-amber-900/70 uppercase">Prep Time</span>
-            <span id="viewPrepTime" class="font-semibold text-[#3b220c]"></span>
-          </div>
-          <div>
-            <span class="block text-xs font-bold text-amber-900/70 uppercase">Servings</span>
-            <span id="viewServings" class="font-semibold text-[#3b220c]"></span>
-          </div>
-          <div class="col-span-2">
-            <span class="block text-xs font-bold text-amber-900/70 uppercase">Equipment Needed</span>
-            <span id="viewEquipment" class="font-semibold text-[#3b220c]"></span>
-          </div>
-        </div>
-
-        <div>
-          <h4 class="text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-2 border-b border-amber-900/10 pb-1">Ingredients List</h4>
-          <ul id="viewIngredientsList" class="space-y-1.5 text-sm text-[#3b220c] font-medium"></ul>
-        </div>
-
-        <div>
-          <h4 class="text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-2 border-b border-amber-900/10 pb-1">Preparation Steps</h4>
-          <ol id="viewStepsList" class="space-y-3 text-sm text-[#3b220c] font-medium list-decimal pl-4"></ol>
-        </div>
+      <div class="detail-title-row">
+        <h1 id="detailTitle" class="detail-title"></h1>
+        <span id="detailCategory" class="detail-category-pill"></span>
       </div>
 
-      <div class="p-4 border-t border-amber-900/20 bg-[#efe2c8] flex justify-end items-center">
-        <button onclick="closeRecipeViewModal()" class="bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold px-6 py-2 rounded-lg text-xs uppercase tracking-wider shadow">
-          Close
+      <div class="detail-info-row">
+        <div class="detail-info-card"><div class="detail-info-label">Equipment</div><div id="detailEquipment" class="detail-info-value"></div></div>
+        <div class="detail-info-card"><div class="detail-info-label">Prep Time</div><div id="detailPrepTime" class="detail-info-value"></div></div>
+        <div class="detail-info-card"><div class="detail-info-label">Servings</div><div id="detailServings" class="detail-info-value"></div></div>
+      </div>
+
+      <h2 class="detail-section-title">Ingredients</h2>
+      <ul id="detailIngredientsList" class="detail-ing-grid"></ul>
+
+      <h2 class="detail-section-title">Preparation Steps</h2>
+      <ol id="detailStepsList" class="detail-steps"></ol>
+    </div>
+
+    <!-- TAB: PRINT MODE -->
+    <div id="detailTabPrint" class="detail-body hidden">
+      <div class="print-toolbar">
+        <label class="print-photo-toggle">
+          <input type="checkbox" id="printIncludePhoto" checked onchange="togglePrintPhoto()">
+          Include Photo
+        </label>
+        <button type="button" class="print-btn" onclick="window.print()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fdf8ef" stroke-width="2"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>
+          Print This Recipe
         </button>
       </div>
-
+      <div class="print-sheet">
+        <div id="printPhotoFrame" class="print-photo-frame">
+          <img id="printImage" src="" alt="Recipe Image">
+        </div>
+        <h1 id="printTitle" class="print-title"></h1>
+        <div id="printCategory" class="print-category"></div>
+        <div class="print-info-row">
+          <div class="print-info-item"><div class="print-info-label">Equipment</div><div id="printEquipment" class="print-info-value"></div></div>
+          <div class="print-info-item"><div class="print-info-label">Prep Time</div><div id="printPrepTime" class="print-info-value"></div></div>
+          <div class="print-info-item"><div class="print-info-label">Servings</div><div id="printServings" class="print-info-value"></div></div>
+        </div>
+        <h2 class="print-section-title">Ingredients</h2>
+        <ul id="printIngredientsList" class="print-ing-grid"></ul>
+        <h2 class="print-section-title">Preparation Steps</h2>
+        <ol id="printStepsList" class="print-steps"></ol>
+      </div>
     </div>
+
+    <!-- TAB: SHOPPING MODE -->
+    <div id="detailTabShopping" class="detail-body hidden" style="max-width: 680px;">
+      <h1 id="shoppingTitle" class="detail-title" style="font-size: 1.75rem; text-align: center;"></h1>
+      <div class="shopping-subtitle">Shopping List</div>
+      <div class="shopping-toolbar">
+        <button type="button" id="shoppingSortBtn" class="shopping-sort-toggle" onclick="toggleShoppingSort()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+          Sort by Type
+        </button>
+      </div>
+      <div id="shoppingList"></div>
+    </div>
+
+    <!-- TAB: COOKING MODE -->
+    <div id="detailTabCooking" class="detail-body hidden" style="max-width: 620px;">
+      <div id="cookingPrevPeek" class="cooking-peek"></div>
+      <div class="cooking-current">
+        <div id="cookingStepBadge" class="cooking-step-badge"></div>
+        <div id="cookingStepPhoto" class="cooking-step-photo hidden"></div>
+        <div id="cookingIngUsed" class="cooking-ing-used"></div>
+        <div id="cookingStepText" class="cooking-step-text"></div>
+        <div class="cooking-nav">
+          <button type="button" id="cookingPrevBtn" class="cooking-nav-btn" onclick="cookingPrevStep()">&larr; Previous</button>
+          <span id="cookingNavCount" class="cooking-nav-count"></span>
+          <button type="button" id="cookingNextBtn" class="cooking-nav-btn" onclick="cookingNextStep()">Next &rarr;</button>
+        </div>
+      </div>
+      <div id="cookingNextPeek" class="cooking-peek"></div>
+    </div>
+
   </div>
 
   <!-- ================= RECIPE MANAGER HUB MODAL ================= -->
-  <div id="recipeManagerHubModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-start pt-8 p-4 z-40">
-    <div class="bg-[#f7eedc] border-2 border-[#a88d67] max-w-4xl w-full max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
-      
-      <div class="p-5 border-b border-amber-900/20 bg-[#efe2c8] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h2 class="text-2xl font-black font-title text-[#3b220c]">Recipe Manager</h2>
-          <p class="text-xs text-amber-900/80 font-semibold">Select a recipe to edit or manage your backups.</p>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-2">
-          <button onclick="exportRecipesJSON()" class="bg-amber-800 hover:bg-amber-900 text-amber-100 font-bold px-3 py-2 rounded-lg text-xs shadow transition flex items-center gap-1" title="Download backup file">
-            <span>💾 Export Backup</span>
-          </button>
-          <label class="bg-amber-800 hover:bg-amber-900 text-amber-100 font-bold px-3 py-2 rounded-lg text-xs shadow transition cursor-pointer flex items-center gap-1" title="Upload backup file">
-            <span>📂 Import Backup</span>
-            <input type="file" id="importFileField" onchange="importRecipesJSON(event)" accept=".json" class="hidden">
-          </label>
-
-          <button onclick="startNewRecipeForm()" class="bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold px-3 py-2 rounded-lg text-xs shadow transition">
-            <span>+ Add New</span>
-          </button>
-          <button onclick="closeRecipeManagerHub()" class="text-amber-950/70 hover:text-amber-950 text-2xl font-bold ml-2">&times;</button>
-        </div>
+  <div id="recipeManagerHubModal" class="fixed inset-0 hidden flex flex-col z-40 linen-bg" style="overflow-y: auto;">
+    <div class="uni-toolbar">
+      <div class="uni-home">
+        <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        </button>
+        <span class="uni-home-hint">Home</span>
       </div>
-
-      <div class="p-6 overflow-y-auto flex-1">
-        <div id="hubRecipesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        </div>
+      <div class="uni-page-title">Recipe Manager</div>
+      <div class="uni-close-wrap">
+        <button class="uni-close" onclick="closeRecipeManagerHub()" title="Close">&times;</button>
       </div>
+    </div>
 
+    <div class="detail-body" style="max-width: 1100px;">
+      <button type="button" onclick="startNewRecipeForm()" class="add-recipe-hero">
+        <span class="add-recipe-hero-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </span>
+        Add New Recipe
+      </button>
+
+      <div id="hubRecipesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      </div>
     </div>
   </div>
 
   <!-- ================= MULTI-STEP EDITOR MODAL (DETAILS -> INGREDIENTS -> STEPS) ================= -->
-  <div id="recipeEditorModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-start pt-8 p-4 z-50">
-    <div class="bg-[#fcf8ef] border-2 border-[#a88d67] max-w-3xl w-full max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
-      
-      <div class="px-6 py-4 border-b border-amber-900/15 bg-[#f4ebd9] flex justify-between items-center">
-        <h3 class="text-xl font-black font-title text-[#3b220c]" id="editorModalTitle">Add New Recipe</h3>
-        <button onclick="attemptCloseEditor()" class="text-amber-950/70 hover:text-amber-950 text-2xl font-bold">&times;</button>
-      </div>
+  <div id="recipeEditorModal" class="fixed inset-0 hidden flex flex-col z-50 linen-bg" style="overflow-y: auto;">
 
-      <div class="p-6 overflow-y-auto flex-1 space-y-5">
-        
-        <div class="flex border-b border-amber-900/20 pb-2 gap-4 text-xs font-bold uppercase tracking-wider">
-          <button id="tabBtnDetails" onclick="switchEditorTab(1)" class="text-[#3b220c] border-b-2 border-[#4a280e] pb-1">1. Details</button>
-          <button id="tabBtnIngredients" onclick="switchEditorTab(2)" class="text-amber-900/50 hover:text-[#3b220c] pb-1">2. Ingredients</button>
-          <button id="tabBtnSteps" onclick="switchEditorTab(3)" class="text-amber-900/50 hover:text-[#3b220c] pb-1">3. Steps</button>
-        </div>
+    <div class="uni-toolbar">
+      <div class="uni-home">
+        <button class="uni-home-btn" onclick="goHomeFromEditor()" title="Save &amp; Home">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        </button>
+        <span class="uni-home-hint">Save &amp; Home</span>
+      </div>
+      <div class="uni-tabs">
+        <button id="tabBtnDetails" onclick="switchEditorTab(1)" class="uni-tab active">1. Details</button>
+        <button id="tabBtnIngredients" onclick="switchEditorTab(2)" class="uni-tab">2. Ingredients</button>
+        <button id="tabBtnSteps" onclick="switchEditorTab(3)" class="uni-tab">3. Steps</button>
+      </div>
+      <div class="uni-close-wrap">
+        <button class="uni-close" onclick="attemptCloseEditor()" title="Close">&times;</button>
+      </div>
+    </div>
+
+    <div class="detail-body space-y-5" style="max-width: 1000px; padding-bottom: 110px;">
+
+      <h1 class="text-xl font-black font-title text-[#3b220c] text-center" id="editorModalTitle">Add New Recipe</h1>
 
         <!-- STEP 1: DETAILS -->
         <div id="section1Details" class="space-y-4">
@@ -417,13 +724,14 @@
               
               <div class="relative">
                 <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Select Ingredient *</label>
+                <div id="ingFilterBar" class="flex gap-1 mb-1.5 flex-wrap"></div>
                 <input type="text" id="ingNameInput" oninput="handleIngredientInput()" onfocus="showIngredientDropdown()" placeholder="Type ingredient (e.g., Butter)..." class="w-full fill-in-input">
                 <div id="ingDropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-amber-300 rounded-lg shadow-xl max-h-40 overflow-y-auto z-30 text-sm"></div>
               </div>
 
               <div>
                 <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Amount</label>
-                <div class="flex items-center gap-2 mb-2">
+                <div class="flex items-center gap-2 mb-1.5">
                   <div class="flex-1 flex gap-1">
                     <button type="button" onclick="addIngredientQty(0.25)" class="px-2 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 rounded text-xs font-bold">+1/4</button>
                     <button type="button" onclick="addIngredientQty(0.333)" class="px-2 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 rounded text-xs font-bold">+1/3</button>
@@ -431,7 +739,7 @@
                     <button type="button" onclick="addIngredientQty(1.0)" class="px-2 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 rounded text-xs font-bold">+1</button>
                     <button type="button" onclick="clearIngredientQty()" class="px-2 py-1 bg-red-200/80 hover:bg-red-300 text-red-950 rounded text-xs font-bold">0/Clear</button>
                   </div>
-                  
+
                   <div class="flex items-center border border-amber-800/30 rounded-lg bg-white overflow-hidden px-1">
                     <input type="number" id="ingQtyInput" step="0.01" min="0" value="0.00" class="w-16 text-center text-sm font-bold text-[#3b220c] focus:outline-none py-1">
                     <div class="flex flex-col text-[10px] leading-none px-1">
@@ -440,18 +748,18 @@
                     </div>
                   </div>
                 </div>
+                <div class="flex gap-1">
+                  <button type="button" onclick="addIngredientQty(-0.25)" class="px-2 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 rounded text-xs font-bold">-1/4</button>
+                  <button type="button" onclick="addIngredientQty(-0.333)" class="px-2 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 rounded text-xs font-bold">-1/3</button>
+                  <button type="button" onclick="addIngredientQty(-0.5)" class="px-2 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 rounded text-xs font-bold">-1/2</button>
+                  <button type="button" onclick="addIngredientQty(-1.0)" class="px-2 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 rounded text-xs font-bold">-1</button>
+                </div>
               </div>
 
               <div>
                 <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Measurement Unit</label>
                 <div id="unitButtonsContainer" class="flex flex-wrap gap-1.5">
-                  <button type="button" onclick="selectUnit('oz')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">oz</button>
-                  <button type="button" onclick="selectUnit('tsp')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">tsp</button>
-                  <button type="button" onclick="selectUnit('tbsp')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">tbsp</button>
-                  <button type="button" onclick="selectUnit('g')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">g</button>
-                  <button type="button" onclick="selectUnit('cups')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">cups</button>
-                  <button type="button" onclick="selectUnit('lb')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">lb</button>
-                  <button type="button" onclick="selectUnit('Items')" class="unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950">Items</button>
+                  <!-- Rendered dynamically from UNIT_OPTIONS -->
                 </div>
               </div>
 
@@ -479,10 +787,27 @@
           <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
             
             <div class="md:col-span-7 space-y-4 bg-[#f4ebd9]/50 p-4 rounded-xl border border-amber-900/15">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <button type="button" id="btnPrevStep" onclick="navigateStep(-1)" class="px-3 py-1.5 rounded-lg bg-amber-200/70 hover:bg-amber-300 disabled:opacity-40 disabled:hover:bg-amber-200/70 text-amber-950 text-xs font-bold">&larr; Previous</button>
+                  <button type="button" onclick="resetStepForm()" class="px-2 py-1 rounded-lg text-amber-900/60 hover:text-amber-950 hover:bg-amber-100 text-xs font-bold flex items-center gap-1" title="Discard unsaved changes to this step">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 1 2.64 6.36"/><path d="M3 21v-6h6"/></svg>
+                    Reset
+                  </button>
+                  <button type="button" id="btnNextStep" onclick="navigateStep(1)" class="px-3 py-1.5 rounded-lg bg-amber-200/70 hover:bg-amber-300 disabled:opacity-40 disabled:hover:bg-amber-200/70 text-amber-950 text-xs font-bold">Next &rarr;</button>
+                </div>
+                <div id="stepPillsRow" class="flex flex-wrap gap-1.5 justify-center">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
               <div>
                 <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Choose which ingredients are involved in this step:</label>
                 <div id="stepIngredientSelectors" class="flex flex-wrap gap-1.5 p-2 bg-white rounded-lg border border-amber-800/20 min-h-[44px] max-h-32 overflow-y-auto">
                   <!-- Rendered dynamically -->
+                </div>
+                <div id="stepIngredientAmounts" class="max-h-40 overflow-y-auto">
+                  <!-- Rendered dynamically: per-step amount for each selected ingredient -->
                 </div>
               </div>
 
@@ -492,8 +817,18 @@
               </div>
 
               <div>
-                <button type="button" id="btnSaveStep" onclick="saveStepItem()" class="w-full bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider shadow">
+                <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Step Photo (optional)</label>
+                <input type="url" id="stepPictureURL" oninput="markFormDirty()" placeholder="Paste Image URL (https://...)" class="w-full fill-in-input mb-2">
+                <div class="text-xs text-amber-900/70 font-semibold text-center">- OR -</div>
+                <input type="file" id="stepPictureFile" onchange="handleStepPictureUpload(event)" accept="image/*" class="mt-2 text-xs text-amber-950 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-amber-200 file:text-amber-900 hover:file:bg-amber-300">
+              </div>
+
+              <div class="flex gap-2">
+                <button type="button" id="btnSaveStep" onclick="saveStepItem()" class="flex-1 bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider shadow">
                   + Save & Add Another Step
+                </button>
+                <button type="button" id="btnInsertStep" onclick="insertNewStepAfterCurrent()" class="hidden flex-1 bg-[#a86022] hover:bg-[#8c4c16] text-white font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider shadow">
+                  + Insert Step After This
                 </button>
               </div>
             </div>
@@ -505,6 +840,9 @@
                   <!-- Rendered dynamically -->
                 </ol>
               </div>
+              <button type="button" onclick="startNewStepEntry()" class="w-full mt-3 bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold py-2 rounded-lg text-xs uppercase tracking-wider border border-amber-300">
+                + Add New Step
+              </button>
             </div>
 
           </div>
@@ -512,7 +850,7 @@
 
       </div>
 
-      <div class="p-4 border-t border-amber-900/20 bg-[#efe2c8] flex justify-between items-center">
+      <div class="editor-footer">
         <div class="flex items-center gap-2">
           <button id="btnBack" onclick="handleFooterBack()" class="px-4 py-2 rounded-lg bg-[#a88d67]/30 text-amber-950 font-bold text-xs">
             ← Back
@@ -531,23 +869,33 @@
         </button>
       </div>
 
-    </div>
   </div>
 
   <!-- ================= INGREDIENTS MANAGER MODAL ================= -->
-  <div id="ingredientsManagerModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-start pt-8 p-4 z-40">
-    <div class="bg-[#f7eedc] border-2 border-[#a88d67] max-w-4xl w-full max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
+  <div id="ingredientsManagerModal" class="fixed inset-0 hidden flex flex-col z-40 linen-bg" style="overflow-y: auto;">
 
-      <div class="p-5 border-b border-amber-900/20 bg-[#efe2c8] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h2 class="text-2xl font-black font-title text-[#3b220c]">Ingredients Manager</h2>
-          <p class="text-xs text-amber-900/80 font-semibold">Manage your recurring ingredients, categories, and default units.</p>
-        </div>
-        <button onclick="closeIngredientsManager()" class="text-amber-950/70 hover:text-amber-950 text-2xl font-bold">&times;</button>
+    <div class="uni-toolbar">
+      <div class="uni-home">
+        <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        </button>
+        <span class="uni-home-hint">Home</span>
       </div>
+      <div class="uni-tabs">
+        <button id="mgrTabBtn1" onclick="switchIngManagerTab(1)" class="uni-tab active">1. Add Ingredient</button>
+        <button id="mgrTabBtn2" onclick="switchIngManagerTab(2)" class="uni-tab">2. View All</button>
+        <button id="mgrTabBtn3" onclick="switchIngManagerTab(3)" class="uni-tab">3. Add Unit</button>
+        <button id="mgrTabBtn4" onclick="switchIngManagerTab(4)" class="uni-tab">4. View Units</button>
+      </div>
+      <div class="uni-close-wrap">
+        <button class="uni-close" onclick="closeIngredientsManager()" title="Close">&times;</button>
+      </div>
+    </div>
 
-      <div class="p-6 overflow-y-auto flex-1 space-y-5">
+    <div class="detail-body" style="max-width: 900px;">
 
+      <!-- SECTION 1: ADD NEW INGREDIENT -->
+      <div id="mgrSection1">
         <div class="bg-white border border-amber-900/20 rounded-xl p-4 space-y-3">
           <h4 class="text-xs font-bold text-[#3b220c] uppercase tracking-wider" id="managerIngFormTitle">Add New Ingredient</h4>
           <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
@@ -568,16 +916,37 @@
             </div>
           </div>
         </div>
+      </div>
 
+      <!-- SECTION 2: VIEW / EDIT / DELETE INGREDIENTS -->
+      <div id="mgrSection2" class="hidden space-y-5">
         <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           <input type="text" id="managerIngSearchInput" oninput="renderIngredientsManagerList()" placeholder="Search ingredients..."
                  class="px-3 py-1.5 rounded-lg text-sm bg-white text-stone-900 placeholder-stone-500 border border-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400 w-full sm:w-64">
           <div id="managerIngFilterButtons" class="flex flex-wrap gap-1.5"></div>
         </div>
-
         <ul id="managerIngredientsList" class="space-y-2"></ul>
-
       </div>
+
+      <!-- SECTION 3: ADD NEW MEASUREMENT TYPE -->
+      <div id="mgrSection3" class="hidden">
+        <div class="bg-white border border-amber-900/20 rounded-xl p-4 space-y-3 max-w-md">
+          <h4 class="text-xs font-bold text-[#3b220c] uppercase tracking-wider" id="managerUnitFormTitle">Add New Measurement Type</h4>
+          <div class="flex gap-2 items-end">
+            <div class="flex-1">
+              <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Name *</label>
+              <input type="text" id="managerUnitNewInput" placeholder="e.g. cans" class="w-full fill-in-input">
+            </div>
+            <button type="button" id="managerUnitSaveBtn" onclick="saveManagerUnit()" class="bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold px-5 py-2.5 rounded-lg text-xs uppercase tracking-wider shadow">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 4: VIEW / EDIT / DELETE MEASUREMENT TYPES -->
+      <div id="mgrSection4" class="hidden">
+        <ul id="managerUnitsList" class="space-y-2 max-w-md"></ul>
+      </div>
+
     </div>
   </div>
 
@@ -602,7 +971,7 @@
   </div>
 
   <!-- ================= UNSAVED CHANGES PROMPT MODAL ================= -->
-  <div id="unsavedChangesModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-center p-4 z-50">
+  <div id="unsavedChangesModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-center p-4 z-[60]">
     <div class="bg-[#fcf8ef] border-2 border-amber-700 max-w-sm w-full p-6 rounded-xl shadow-2xl text-center space-y-4">
       <h4 class="text-xl font-black font-title text-[#3b220c]">Unsaved Changes</h4>
       <p class="text-xs text-amber-950 font-semibold">You have unsaved edits in this recipe card. What would you like to do?</p>
@@ -619,27 +988,15 @@
     const CARD_BG_URL = "https://i.imgur.com/cJbB04a.png";
     const FOOD_FALLBACK_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23e2ccab'/><circle cx='200' cy='150' r='60' fill='%23a16630'/><path d='M150,150 Q200,100 250,150 Q200,200 150,150' fill='%235c2e10'/></svg>";
 
-    // Placeholder content shown instantly while getAppData() loads the real data from the spreadsheet
-    let masterRecipes = [
-      { id: '1', title: 'Wintry Beef Stew', category: 'Dinner', equipment: 'Dutch Oven', prepTime: '30 mins', servings: '6', mainPicture: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?q=80&w=600&auto=format&fit=crop', ingredients: [{ name: 'Beef Chuck', qty: 2.0, unit: 'lb' }, { name: 'Carrots', qty: 3.0, unit: 'Items' }], steps: [{ text: 'Brown the beef chuck in the Dutch oven.', ingredients: ['Beef Chuck'] }] },
-      { id: '2', title: 'Garden Salad', category: 'Lunch', equipment: 'Salad Bowl', prepTime: '10 mins', servings: '2', mainPicture: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=600&auto=format&fit=crop', ingredients: [{ name: 'Tomatoes', qty: 2.0, unit: 'Items' }, { name: 'Olive Oil', qty: 1.0, unit: 'tbsp' }], steps: [{ text: 'Chop the tomatoes and toss with olive oil.', ingredients: ['Tomatoes', 'Olive Oil'] }] }
-    ];
-    let categoriesList = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snacks', 'Appetizers', 'Side Dish', 'Beverages'];
-    let masterIngredientsList = [
-      { name: 'Butter', category: 'basic', unit: 'oz' },
-      { name: 'Tomatoes', category: 'basic', unit: 'Items' },
-      { name: 'Beef Chuck', category: 'basic', unit: 'lb' },
-      { name: 'Carrots', category: 'basic', unit: 'Items' },
-      { name: 'Olive Oil', category: 'basic', unit: 'tbsp' },
-      { name: 'Garlic', category: 'basic', unit: 'Items' },
-      { name: 'Onions', category: 'basic', unit: 'Items' },
-      { name: 'Salt', category: 'basic', unit: 'tsp' },
-      { name: 'Black Pepper', category: 'basic', unit: 'tsp' },
-      { name: 'Flour', category: 'basic', unit: 'cups' }
-    ];
+    // Empty until getAppData() loads the real data from the spreadsheet — renderMainGrid() shows a
+    // loading message rather than any placeholder recipes, so nothing fake ever flashes on screen.
+    let masterRecipes = [];
+    let recipesLoaded = false;
+    let categoriesList = [];
+    let masterIngredientsList = [];
 
     const INGREDIENT_CATEGORIES = ['basic', 'probably buy', 'must check'];
-    const UNIT_OPTIONS = ['oz', 'tsp', 'tbsp', 'g', 'cups', 'lb', 'Items', 'jars'];
+    let unitsList = [];
 
     let currentEditingId = null;
     let currentEditingCreatedAt = null;
@@ -658,27 +1015,54 @@
     let managerSelectedUnit = 'oz';
     let managerFilterCategory = 'All';
     let managerEditingIndex = null;
+    let managerUnitEditingIndex = null;
 
     window.onload = function() {
       renderMainGrid();
     };
 
-    function persistData() {
-      const dataPayload = {
-        recipes: masterRecipes,
-        categories: categoriesList,
-        ingredients: masterIngredientsList
-      };
-
+    function persistRecipe(recipeData, onSuccess, onError) {
       google.script.run
         .withSuccessHandler(function(response) {
-          console.log("Synced to Google Sheet!");
+          console.log("Recipe synced to Google Sheet!");
+          if (onSuccess) onSuccess(response);
         })
         .withFailureHandler(function(error) {
           console.error("Sync error: ", error.message);
           showAlert("Could not save to spreadsheet: " + error.message);
+          if (onError) onError(error);
         })
-        .saveAppData(dataPayload);
+        .saveNewRecipe(recipeData);
+    }
+
+    function persistCategories() {
+      google.script.run
+        .withSuccessHandler(function() { console.log("Categories synced to Google Sheet!"); })
+        .withFailureHandler(function(error) {
+          console.error("Sync error: ", error.message);
+          showAlert("Could not save categories to spreadsheet: " + error.message);
+        })
+        .saveCategories(categoriesList);
+    }
+
+    function persistIngredientsList() {
+      google.script.run
+        .withSuccessHandler(function() { console.log("Ingredients synced to Google Sheet!"); })
+        .withFailureHandler(function(error) {
+          console.error("Sync error: ", error.message);
+          showAlert("Could not save ingredients to spreadsheet: " + error.message);
+        })
+        .saveIngredientsMasterList(masterIngredientsList);
+    }
+
+    function persistUnits() {
+      google.script.run
+        .withSuccessHandler(function() { console.log("Units synced to Google Sheet!"); })
+        .withFailureHandler(function(error) {
+          console.error("Sync error: ", error.message);
+          showAlert("Could not save measurement types to spreadsheet: " + error.message);
+        })
+        .saveUnits(unitsList);
     }
 
     // Apps Script serves this page inside a cross-origin iframe, where browsers block native confirm()/alert() dialogs.
@@ -725,57 +1109,14 @@
         .deleteRecipe(id);
     }
 
-    function exportRecipesJSON() {
-      const backupData = {
-        recipes: masterRecipes,
-        categories: categoriesList,
-        ingredients: masterIngredientsList,
-        exportDate: new Date().toISOString()
-      };
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `recinez_backup_${new Date().toISOString().slice(0,10)}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function importRecipesJSON(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const parsed = JSON.parse(e.target.result);
-          if (parsed.recipes && Array.isArray(parsed.recipes)) {
-            masterRecipes = parsed.recipes;
-            if (parsed.categories) categoriesList = parsed.categories;
-            if (parsed.ingredients) {
-              // Backups exported before ingredients had categories/units are just plain name strings; normalize them
-              masterIngredientsList = parsed.ingredients.map(i =>
-                typeof i === 'string' ? { name: i, category: 'probably buy', unit: '' } : i
-              );
-            }
-            
-            persistData();
-            renderMainGrid();
-            renderHubGrid();
-            showAlert("Backup successfully imported!");
-          } else {
-            showAlert("Invalid backup file format.");
-          }
-        } catch (err) {
-          showAlert("Error reading JSON file.");
-        }
-        event.target.value = '';
-      };
-      reader.readAsText(file);
-    }
-
     function renderMainGrid() {
       const container = document.getElementById('mainCardsGrid');
+
+      if (!recipesLoaded) {
+        container.innerHTML = `<div class="col-span-full text-center py-12 text-amber-950 font-bold">Loading your recipes&hellip;</div>`;
+        return;
+      }
+
       const query = document.getElementById('mainSearchInput').value.toLowerCase();
 
       let filtered = masterRecipes.filter(r => r.title.toLowerCase().includes(query));
@@ -795,7 +1136,7 @@
         return;
       }
 
-      container.innerHTML = filtered.map(r => createCardHTML(r, `openRecipeViewModal('${r.id}')`, true)).join('');
+      container.innerHTML = filtered.map(r => createCardHTML(r, `openRecipeDetailView('${r.id}')`, true)).join('');
     }
 
     function filterMainGrid() {
@@ -841,48 +1182,268 @@
       `;
     }
 
-    function openRecipeViewModal(id) {
+    let currentDetailRecipe = null;
+    let shoppingCheckedItems = new Set();
+    let shoppingSortByType = false;
+    let cookingStepIndex = 0;
+
+    function openRecipeDetailView(id) {
       const recipe = masterRecipes.find(r => r.id === id);
       if (!recipe) return;
 
+      currentDetailRecipe = recipe;
+      shoppingCheckedItems = new Set();
+      shoppingSortByType = false;
+      cookingStepIndex = 0;
+
+      renderDetailRecipeTab();
+      renderDetailPrintTab();
+      renderShoppingList();
+      renderCookingStep();
+
+      document.getElementById('shoppingSortBtn').classList.remove('active');
+      switchDetailTab('recipe');
+
+      const view = document.getElementById('recipeDetailView');
+      view.classList.remove('hidden');
+      view.classList.add('flex');
+    }
+
+    function closeRecipeDetailView() {
+      const view = document.getElementById('recipeDetailView');
+      view.classList.add('hidden');
+      view.classList.remove('flex');
+      currentDetailRecipe = null;
+    }
+
+    function switchDetailTab(tab) {
+      const ids = { recipe: 'detailTabRecipe', print: 'detailTabPrint', shopping: 'detailTabShopping', cooking: 'detailTabCooking' };
+      document.querySelectorAll('.uni-tab[data-tab]').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+      Object.entries(ids).forEach(([key, elId]) => {
+        document.getElementById(elId).classList.toggle('hidden', key !== tab);
+      });
+    }
+
+    function renderDetailRecipeTab() {
+      const recipe = currentDetailRecipe;
       const imgSrc = recipe.mainPicture && recipe.mainPicture.trim() !== '' ? recipe.mainPicture : FOOD_FALLBACK_SVG;
 
-      document.getElementById('viewTitle').innerText = recipe.title;
-      document.getElementById('viewCategory').innerText = recipe.category || 'Uncategorized';
-      document.getElementById('viewPrepTime').innerText = recipe.prepTime || 'N/A';
-      document.getElementById('viewServings').innerText = recipe.servings || 'N/A';
-      document.getElementById('viewEquipment').innerText = recipe.equipment || 'None listed';
-      document.getElementById('viewImage').src = imgSrc;
+      document.getElementById('detailImage').src = imgSrc;
+      document.getElementById('detailTitle').innerText = recipe.title;
+      document.getElementById('detailCategory').innerText = recipe.category || 'Uncategorized';
+      document.getElementById('detailEquipment').innerText = recipe.equipment || 'None listed';
+      document.getElementById('detailPrepTime').innerText = recipe.prepTime || 'N/A';
+      document.getElementById('detailServings').innerText = recipe.servings || 'N/A';
 
-      const listEl = document.getElementById('viewIngredientsList');
+      const ingEl = document.getElementById('detailIngredientsList');
       if (recipe.ingredients && recipe.ingredients.length > 0) {
-        listEl.innerHTML = recipe.ingredients.map(ing => `
-          <li class="flex justify-between border-b border-amber-900/10 py-1">
-            <span>• ${ing.name}</span>
-            <span class="font-bold">${ing.qty} ${ing.unit}</span>
-          </li>
+        ingEl.innerHTML = recipe.ingredients.map(ing => `
+          <li class="detail-ing-row"><span class="ing-name">${ing.name}</span><span class="ing-qty">${ing.qty} ${ing.unit}</span></li>
         `).join('');
       } else {
-        listEl.innerHTML = `<li class="text-amber-900/60 italic text-xs">No ingredients specified.</li>`;
+        ingEl.innerHTML = `<li class="text-amber-900/60 italic text-xs">No ingredients specified.</li>`;
       }
 
-      const stepsEl = document.getElementById('viewStepsList');
+      const stepsEl = document.getElementById('detailStepsList');
       if (recipe.steps && recipe.steps.length > 0) {
-        stepsEl.innerHTML = recipe.steps.map(st => `
-          <li class="py-1">
-            <span>${st.text}</span>
-            ${st.ingredients && st.ingredients.length > 0 ? `<div class="text-[10px] text-amber-900/70 font-semibold mt-0.5">Involves: ${st.ingredients.join(', ')}</div>` : ''}
+        stepsEl.innerHTML = recipe.steps.map((st, idx) => `
+          <li class="detail-step">
+            <div class="detail-step-num">${idx + 1}</div>
+            <div>
+              <div class="detail-step-body">${st.text}</div>
+              ${st.ingredients && st.ingredients.length > 0 ? `<div class="detail-step-ings">Involves: ${formatStepIngredients(st.ingredients)}</div>` : ''}
+            </div>
           </li>
         `).join('');
       } else {
         stepsEl.innerHTML = `<li class="text-amber-900/60 italic text-xs">No steps specified.</li>`;
       }
-
-      document.getElementById('recipeViewModal').classList.remove('hidden');
     }
 
-    function closeRecipeViewModal() {
-      document.getElementById('recipeViewModal').classList.add('hidden');
+    function renderDetailPrintTab() {
+      const recipe = currentDetailRecipe;
+      const imgSrc = recipe.mainPicture && recipe.mainPicture.trim() !== '' ? recipe.mainPicture : FOOD_FALLBACK_SVG;
+
+      document.getElementById('printImage').src = imgSrc;
+      document.getElementById('printTitle').innerText = recipe.title;
+      document.getElementById('printCategory').innerText = recipe.category || 'Uncategorized';
+      document.getElementById('printEquipment').innerText = recipe.equipment || 'None listed';
+      document.getElementById('printPrepTime').innerText = recipe.prepTime || 'N/A';
+      document.getElementById('printServings').innerText = recipe.servings || 'N/A';
+
+      const ingEl = document.getElementById('printIngredientsList');
+      ingEl.innerHTML = (recipe.ingredients && recipe.ingredients.length > 0)
+        ? recipe.ingredients.map(ing => `<li class="print-ing-row"><span>${ing.name}</span><span>${ing.qty} ${ing.unit}</span></li>`).join('')
+        : `<li>No ingredients specified.</li>`;
+
+      const stepsEl = document.getElementById('printStepsList');
+      stepsEl.innerHTML = (recipe.steps && recipe.steps.length > 0)
+        ? recipe.steps.map((st, idx) => `<li class="print-step"><span class="print-step-num">${idx + 1}.</span><span>${st.text}</span></li>`).join('')
+        : `<li>No steps specified.</li>`;
+
+      document.getElementById('printIncludePhoto').checked = true;
+      togglePrintPhoto();
+    }
+
+    function togglePrintPhoto() {
+      const include = document.getElementById('printIncludePhoto').checked;
+      document.getElementById('printPhotoFrame').classList.toggle('hidden-photo', !include);
+    }
+
+    // --- SHOPPING MODE ---
+    function getIngredientCategory(name) {
+      const found = masterIngredientsList.find(i => i.name.toLowerCase() === name.toLowerCase());
+      return found ? found.category : '';
+    }
+
+    function toggleShoppingSort() {
+      shoppingSortByType = !shoppingSortByType;
+      document.getElementById('shoppingSortBtn').classList.toggle('active', shoppingSortByType);
+      renderShoppingList();
+    }
+
+    function toggleShoppingItem(name) {
+      if (shoppingCheckedItems.has(name)) shoppingCheckedItems.delete(name);
+      else shoppingCheckedItems.add(name);
+      renderShoppingList();
+    }
+
+    const SHOPPING_CATEGORY_ORDER = ['probably buy', 'must check', 'basic', ''];
+    const SHOPPING_CATEGORY_LABELS = { 'probably buy': 'Probably Buy', 'must check': 'Must Check', 'basic': 'Basic', '': 'Uncategorized' };
+
+    function renderShoppingItemRow(item) {
+      const isChecked = shoppingCheckedItems.has(item.name);
+      const safeName = item.name.replace(/'/g, "\\'");
+      return `
+        <div class="shopping-item ${isChecked ? 'done' : ''}" onclick="toggleShoppingItem('${safeName}')">
+          <div class="shopping-checkbox ${isChecked ? 'checked' : ''}">
+            ${isChecked ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fdf8ef" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>' : ''}
+          </div>
+          <div class="shopping-item-name">${item.name}</div>
+          ${item.category ? `<div class="shopping-item-tag">${SHOPPING_CATEGORY_LABELS[item.category] || item.category}</div>` : ''}
+          <div class="shopping-item-qty">${item.qty} ${item.unit}</div>
+        </div>
+      `;
+    }
+
+    function renderShoppingList() {
+      const container = document.getElementById('shoppingList');
+      const recipe = currentDetailRecipe;
+      if (!recipe) return;
+
+      document.getElementById('shoppingTitle').innerText = recipe.title;
+
+      const items = (recipe.ingredients || []).map(ing => ({ ...ing, category: getIngredientCategory(ing.name) }));
+
+      if (items.length === 0) {
+        container.innerHTML = `<div class="text-amber-900/60 italic text-sm text-center py-8">No ingredients specified.</div>`;
+        return;
+      }
+
+      const unchecked = items.filter(i => !shoppingCheckedItems.has(i.name));
+      const checked = items.filter(i => shoppingCheckedItems.has(i.name));
+
+      let html = '';
+      if (shoppingSortByType) {
+        const grouped = {};
+        unchecked.forEach(item => {
+          const key = item.category || '';
+          if (!grouped[key]) grouped[key] = [];
+          grouped[key].push(item);
+        });
+        SHOPPING_CATEGORY_ORDER.forEach(cat => {
+          if (grouped[cat] && grouped[cat].length > 0) {
+            html += `<div class="shopping-group-label">${SHOPPING_CATEGORY_LABELS[cat]}</div>`;
+            html += grouped[cat].map(renderShoppingItemRow).join('');
+          }
+        });
+      } else {
+        html += unchecked.map(renderShoppingItemRow).join('');
+      }
+
+      if (checked.length > 0) {
+        html += checked.map(renderShoppingItemRow).join('');
+      }
+
+      container.innerHTML = html;
+    }
+
+    // --- COOKING MODE ---
+    function renderCookingStep() {
+      const recipe = currentDetailRecipe;
+      if (!recipe) return;
+      const steps = recipe.steps || [];
+
+      const prevEl = document.getElementById('cookingPrevPeek');
+      const nextEl = document.getElementById('cookingNextPeek');
+
+      if (steps.length === 0) {
+        document.getElementById('cookingStepBadge').innerText = '';
+        document.getElementById('cookingStepPhoto').classList.add('hidden');
+        document.getElementById('cookingStepPhoto').innerHTML = '';
+        document.getElementById('cookingIngUsed').innerHTML = '';
+        document.getElementById('cookingStepText').innerText = 'No steps specified for this recipe.';
+        document.getElementById('cookingNavCount').innerText = '';
+        document.getElementById('cookingPrevBtn').disabled = true;
+        document.getElementById('cookingNextBtn').disabled = true;
+        prevEl.innerHTML = '';
+        nextEl.innerHTML = '';
+        return;
+      }
+
+      cookingStepIndex = Math.max(0, Math.min(cookingStepIndex, steps.length - 1));
+      const current = steps[cookingStepIndex];
+
+      prevEl.innerHTML = cookingStepIndex > 0
+        ? `<span class="cooking-peek-label">Step ${cookingStepIndex}</span>${steps[cookingStepIndex - 1].text}`
+        : '';
+      nextEl.innerHTML = cookingStepIndex < steps.length - 1
+        ? `<span class="cooking-peek-label">Step ${cookingStepIndex + 2}</span>${steps[cookingStepIndex + 1].text}`
+        : '';
+
+      document.getElementById('cookingStepBadge').innerText = `Step ${cookingStepIndex + 1} of ${steps.length}`;
+
+      const photoEl = document.getElementById('cookingStepPhoto');
+      if (current.picture && current.picture.trim() !== '') {
+        photoEl.innerHTML = `<img src="${current.picture}" alt="Step ${cookingStepIndex + 1}">`;
+        photoEl.classList.remove('hidden');
+      } else {
+        photoEl.innerHTML = '';
+        photoEl.classList.add('hidden');
+      }
+
+      const ingUsedEl = document.getElementById('cookingIngUsed');
+      const usedItems = current.ingredients || [];
+      if (usedItems.length > 0) {
+        ingUsedEl.innerHTML = usedItems.map(item => {
+          // New steps carry their own per-step qty/unit; legacy steps are just a name string —
+          // fall back to the recipe's total amount for those so it's not blank.
+          if (typeof item === 'string') {
+            const fullIng = (recipe.ingredients || []).find(i => i.name.toLowerCase() === item.toLowerCase());
+            const qtyLabel = fullIng ? `${fullIng.qty} ${fullIng.unit}` : '';
+            return `<span class="cooking-ing-chip">${item}${qtyLabel ? ' &middot; ' + qtyLabel : ''}</span>`;
+          }
+          const hasQty = item.qty !== '' && item.qty !== undefined && item.qty !== null && Number(item.qty) > 0;
+          const qtyLabel = hasQty ? `${item.qty} ${item.unit || ''}`.trim() : '';
+          return `<span class="cooking-ing-chip">${item.name}${qtyLabel ? ' &middot; ' + qtyLabel : ''}</span>`;
+        }).join('');
+      } else {
+        ingUsedEl.innerHTML = '';
+      }
+
+      document.getElementById('cookingStepText').innerText = current.text;
+      document.getElementById('cookingNavCount').innerText = `Step ${cookingStepIndex + 1} / ${steps.length}`;
+      document.getElementById('cookingPrevBtn').disabled = cookingStepIndex === 0;
+      document.getElementById('cookingNextBtn').disabled = cookingStepIndex === steps.length - 1;
+    }
+
+    function cookingPrevStep() {
+      if (cookingStepIndex > 0) { cookingStepIndex--; renderCookingStep(); }
+    }
+
+    function cookingNextStep() {
+      const steps = (currentDetailRecipe && currentDetailRecipe.steps) || [];
+      if (cookingStepIndex < steps.length - 1) { cookingStepIndex++; renderCookingStep(); }
     }
 
     function openRecipeManagerHub() {
@@ -909,16 +1470,48 @@
       document.getElementById('managerIngSaveBtn').innerText = 'Save';
       document.getElementById('managerIngSearchInput').value = '';
 
+      managerUnitEditingIndex = null;
+      document.getElementById('managerUnitFormTitle').innerText = 'Add New Measurement Type';
+      document.getElementById('managerUnitNewInput').value = '';
+      document.getElementById('managerUnitSaveBtn').innerText = 'Save';
+
       renderManagerCategoryButtons();
       renderManagerUnitButtons();
       renderManagerFilterButtons();
       renderIngredientsManagerList();
+      renderManagerUnitsList();
+      switchIngManagerTab(1);
 
       document.getElementById('ingredientsManagerModal').classList.remove('hidden');
     }
 
     function closeIngredientsManager() {
       document.getElementById('ingredientsManagerModal').classList.add('hidden');
+    }
+
+    function switchIngManagerTab(n) {
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById('mgrSection' + i).classList.toggle('hidden', i !== n);
+        document.getElementById('mgrTabBtn' + i).classList.toggle('active', i === n);
+      }
+    }
+
+    // Hides every full-page view and returns to the home grid underneath. Only toggles 'hidden' —
+    // 'flex' is permanently part of these pages' base class (except the detail view, which manages
+    // its own 'flex' toggle in open/closeRecipeDetailView) so it's never removed out from under them.
+    function goToHomeGrid() {
+      ['recipeDetailView', 'recipeEditorModal', 'recipeManagerHubModal', 'ingredientsManagerModal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+    }
+
+    // Home always saves from the editor (if there's a valid title to save), then returns home
+    function goHomeFromEditor() {
+      const title = document.getElementById('fieldTitle').value.trim();
+      if (title) saveCurrentProgress();
+      document.getElementById('recipeEditorModal').classList.add('hidden');
+      goToHomeGrid();
     }
 
     function renderManagerCategoryButtons() {
@@ -939,7 +1532,7 @@
 
     function renderManagerUnitButtons() {
       const container = document.getElementById('managerIngUnitButtons');
-      container.innerHTML = UNIT_OPTIONS.map(u => {
+      container.innerHTML = unitsList.map(u => {
         const isSelected = managerSelectedUnit === u;
         const cls = isSelected
           ? "px-2.5 py-1 rounded text-xs font-bold bg-[#4a280e] text-white shadow"
@@ -955,13 +1548,18 @@
 
     function renderManagerFilterButtons() {
       const container = document.getElementById('managerIngFilterButtons');
-      const options = ['All', ...INGREDIENT_CATEGORIES];
-      container.innerHTML = options.map(cat => {
-        const isSelected = managerFilterCategory === cat;
+      const options = [
+        { value: 'All', label: 'All' },
+        ...INGREDIENT_CATEGORIES.map(c => ({ value: c, label: c })),
+        { value: 'missing', label: 'Missing Info' }
+      ];
+      container.innerHTML = options.map(opt => {
+        const isSelected = managerFilterCategory === opt.value;
+        const warnCls = opt.value === 'missing' && !isSelected ? " border-red-300 text-red-700" : "";
         const cls = isSelected
           ? "px-3 py-1.5 rounded-lg text-xs font-bold capitalize bg-[#4a280e] text-white shadow"
-          : "px-3 py-1.5 rounded-lg text-xs font-bold capitalize bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300";
-        return `<button type="button" onclick="setManagerFilter('${cat}')" class="${cls}">${cat}</button>`;
+          : `px-3 py-1.5 rounded-lg text-xs font-bold capitalize bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300${warnCls}`;
+        return `<button type="button" onclick="setManagerFilter('${opt.value}')" class="${cls}">${opt.label}</button>`;
       }).join('');
     }
 
@@ -992,7 +1590,7 @@
         masterIngredientsList.push(entry);
       }
 
-      persistData();
+      persistIngredientsList();
 
       managerEditingIndex = null;
       document.getElementById('managerIngFormTitle').innerText = 'Add New Ingredient';
@@ -1010,8 +1608,8 @@
       managerEditingIndex = idx;
       document.getElementById('managerIngFormTitle').innerText = `Editing "${ing.name}"`;
       document.getElementById('managerIngNameInput').value = ing.name;
-      managerSelectedCategory = ing.category || 'probably buy';
-      managerSelectedUnit = ing.unit || 'oz';
+      managerSelectedCategory = ing.category || '';
+      managerSelectedUnit = ing.unit || '';
       renderManagerCategoryButtons();
       renderManagerUnitButtons();
       document.getElementById('managerIngSaveBtn').innerText = 'Update';
@@ -1021,9 +1619,89 @@
       const ing = masterIngredientsList[idx];
       showConfirmModal(`Delete "${ing.name}" from your ingredients list? This won't remove it from recipes that already use it.`, function() {
         masterIngredientsList.splice(idx, 1);
-        persistData();
+        persistIngredientsList();
         renderIngredientsManagerList();
       });
+    }
+
+    // --- MEASUREMENT TYPES (units) ---
+    function saveManagerUnit() {
+      const name = document.getElementById('managerUnitNewInput').value.trim();
+      if (!name) {
+        showAlert("Please enter a measurement type name.");
+        return;
+      }
+
+      const duplicateIdx = unitsList.findIndex(u => u.toLowerCase() === name.toLowerCase());
+      if (duplicateIdx !== -1 && duplicateIdx !== managerUnitEditingIndex) {
+        showAlert(`"${name}" is already a measurement type.`);
+        return;
+      }
+
+      if (managerUnitEditingIndex !== null) {
+        const oldName = unitsList[managerUnitEditingIndex];
+        unitsList[managerUnitEditingIndex] = name;
+
+        // Renaming (not deleting) a unit updates any ingredients using it as their default, so we
+        // don't reintroduce the same "phantom reference" problem a stale ingredient rename caused.
+        if (oldName !== name) {
+          let changed = false;
+          masterIngredientsList.forEach(ing => {
+            if (ing.unit === oldName) { ing.unit = name; changed = true; }
+          });
+          if (changed) persistIngredientsList();
+        }
+      } else {
+        unitsList.push(name);
+      }
+
+      persistUnits();
+
+      managerUnitEditingIndex = null;
+      document.getElementById('managerUnitFormTitle').innerText = 'Add New Measurement Type';
+      document.getElementById('managerUnitNewInput').value = '';
+      document.getElementById('managerUnitSaveBtn').innerText = 'Save';
+      renderManagerUnitsList();
+      renderManagerUnitButtons();
+      renderUnitButtons();
+    }
+
+    function editManagerUnit(idx) {
+      managerUnitEditingIndex = idx;
+      document.getElementById('managerUnitFormTitle').innerText = `Editing "${unitsList[idx]}"`;
+      document.getElementById('managerUnitNewInput').value = unitsList[idx];
+      document.getElementById('managerUnitSaveBtn').innerText = 'Update';
+    }
+
+    function deleteManagerUnit(idx) {
+      const name = unitsList[idx];
+      showConfirmModal(`Delete "${name}" from your measurement types? This won't remove it from ingredients that already use it.`, function() {
+        unitsList.splice(idx, 1);
+        persistUnits();
+        renderManagerUnitsList();
+        renderManagerUnitButtons();
+        renderUnitButtons();
+      });
+    }
+
+    function renderManagerUnitsList() {
+      const container = document.getElementById('managerUnitsList');
+      if (!container) return;
+
+      if (unitsList.length === 0) {
+        container.innerHTML = `<li class="text-amber-900/50 italic text-xs text-center py-6">No measurement types yet.</li>`;
+        return;
+      }
+
+      container.innerHTML = unitsList.map((u, idx) => `
+        <li class="flex justify-between items-center bg-white p-3 rounded-lg border border-amber-900/15">
+          <span class="font-bold text-[#3b220c] text-sm">${u}</span>
+          <div class="flex gap-1">
+            <button type="button" onclick="editManagerUnit(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold" title="Edit">✎</button>
+            <button type="button" onclick="deleteManagerUnit(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold" title="Delete">&times;</button>
+          </div>
+        </li>
+      `).join('');
     }
 
     function renderIngredientsManagerList() {
@@ -1034,7 +1712,9 @@
         .map((ing, idx) => ({ ing, idx }))
         .filter(({ ing }) => ing.name.toLowerCase().includes(query));
 
-      if (managerFilterCategory !== 'All') {
+      if (managerFilterCategory === 'missing') {
+        filtered = filtered.filter(({ ing }) => !ing.category || !ing.unit);
+      } else if (managerFilterCategory !== 'All') {
         filtered = filtered.filter(({ ing }) => ing.category === managerFilterCategory);
       }
 
@@ -1045,19 +1725,28 @@
         return;
       }
 
-      listEl.innerHTML = filtered.map(({ ing, idx }) => `
+      listEl.innerHTML = filtered.map(({ ing, idx }) => {
+        const categoryBadge = ing.category
+          ? `<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">${ing.category}</span>`
+          : `<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-300">No Category</span>`;
+        const unitBadge = ing.unit
+          ? `<span class="text-xs text-amber-900/70 font-semibold">${ing.unit}</span>`
+          : `<span class="text-xs font-bold text-red-700">No Default Unit</span>`;
+
+        return `
         <li class="flex justify-between items-center bg-white p-3 rounded-lg border border-amber-900/15">
           <div class="flex items-center gap-3 flex-wrap">
             <span class="font-bold text-[#3b220c] text-sm">${ing.name}</span>
-            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">${ing.category}</span>
-            <span class="text-xs text-amber-900/70 font-semibold">${ing.unit || 'no default unit'}</span>
+            ${categoryBadge}
+            ${unitBadge}
           </div>
           <div class="flex gap-1">
             <button type="button" onclick="editManagerIngredient(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold" title="Edit">✎</button>
             <button type="button" onclick="deleteManagerIngredient(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold" title="Delete">&times;</button>
           </div>
         </li>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function quickDeleteRecipe(id, event) {
@@ -1076,6 +1765,7 @@
     function startNewRecipeForm() {
       currentEditingId = null;
       currentEditingCreatedAt = null;
+      ingDropdownFilterCategory = 'All';
       draftIngredients = [];
       draftSteps = [];
       resetEditorFields();
@@ -1083,6 +1773,8 @@
       document.getElementById('btnDeleteRecipe').classList.add('hidden');
       switchEditorTab(1);
       selectUnit('oz');
+      renderUnitButtons();
+      renderIngFilterBar();
       renderDraftIngredients();
       renderStepIngredientSelectors();
       renderDraftSteps();
@@ -1094,6 +1786,7 @@
       const recipe = masterRecipes.find(r => r.id === id);
       if (!recipe) return;
       currentEditingCreatedAt = recipe.createdAt || null;
+      ingDropdownFilterCategory = 'All';
 
       document.getElementById('fieldTitle').value = recipe.title || '';
       document.getElementById('fieldCategory').value = recipe.category || '';
@@ -1103,7 +1796,9 @@
       document.getElementById('fieldImageURL').value = recipe.mainPicture || '';
 
       draftIngredients = recipe.ingredients ? [...recipe.ingredients] : [];
-      draftSteps = recipe.steps ? [...recipe.steps] : [];
+      // Clean up any step ingredient references left stale by an ingredient being renamed
+      // (different casing) since the step was last saved — see normalizeStepIngredients above.
+      draftSteps = recipe.steps ? recipe.steps.map(step => ({ ...step, ingredients: normalizeStepIngredients(step.ingredients) })) : [];
 
       document.getElementById('editorModalTitle').innerText = "Edit Recipe";
       document.getElementById('btnDeleteRecipe').classList.remove('hidden');
@@ -1111,6 +1806,8 @@
 
       switchEditorTab(1);
       selectUnit('oz');
+      renderUnitButtons();
+      renderIngFilterBar();
       renderDraftIngredients();
       renderStepIngredientSelectors();
       renderDraftSteps();
@@ -1168,9 +1865,21 @@
       document.getElementById('fieldCategory').value = cat;
       if (!categoriesList.includes(cat)) {
         categoriesList.push(cat);
-        persistData();
+        persistCategories();
       }
       document.getElementById('categoryDropdown').classList.add('hidden');
+    }
+
+    function handleStepPictureUpload(e) {
+      markFormDirty();
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          document.getElementById('stepPictureURL').value = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
     }
 
     function handleFileUpload(e) {
@@ -1200,21 +1909,21 @@
       sec2.classList.add('hidden');
       sec3.classList.add('hidden');
 
-      btnTab1.className = "text-amber-900/50 hover:text-[#3b220c] pb-1 font-bold";
-      btnTab2.className = "text-amber-900/50 hover:text-[#3b220c] pb-1 font-bold";
-      btnTab3.className = "text-amber-900/50 hover:text-[#3b220c] pb-1 font-bold";
+      btnTab1.classList.remove('active');
+      btnTab2.classList.remove('active');
+      btnTab3.classList.remove('active');
 
       if (step === 1) {
         sec1.classList.remove('hidden');
-        btnTab1.className = "text-[#3b220c] border-b-2 border-[#4a280e] pb-1 font-bold";
+        btnTab1.classList.add('active');
         btnNext.innerHTML = "<span>Next: Ingredients</span> →";
       } else if (step === 2) {
         sec2.classList.remove('hidden');
-        btnTab2.className = "text-[#3b220c] border-b-2 border-[#4a280e] pb-1 font-bold";
+        btnTab2.classList.add('active');
         btnNext.innerHTML = "<span>Next: Steps</span> →";
       } else {
         sec3.classList.remove('hidden');
-        btnTab3.className = "text-[#3b220c] border-b-2 border-[#4a280e] pb-1 font-bold";
+        btnTab3.classList.add('active');
         btnNext.innerHTML = "<span>Finish</span> ✓";
         renderStepIngredientSelectors();
       }
@@ -1241,26 +1950,63 @@
     }
 
     function showIngredientDropdown() {
+      renderIngFilterBar();
       handleIngredientInput();
       document.getElementById('ingDropdown').classList.remove('hidden');
+    }
+
+    let ingDropdownFilterCategory = 'All';
+
+    // Filter bar lives permanently above the input, outside the dropdown's own rebuilt content —
+    // it used to be rebuilt as part of the dropdown's innerHTML, which meant the very button just
+    // clicked got detached from the DOM before the outside-click listener re-checked it, so the
+    // dropdown would incorrectly close right after picking a filter.
+    function renderIngFilterBar() {
+      const container = document.getElementById('ingFilterBar');
+      if (!container) return;
+      const filterOptions = ['All', ...INGREDIENT_CATEGORIES];
+      container.innerHTML = filterOptions.map(cat => {
+        const isActive = ingDropdownFilterCategory === cat;
+        const cls = isActive
+          ? "px-2 py-0.5 rounded-full text-[10px] font-bold capitalize bg-[#4a280e] text-white"
+          : "px-2 py-0.5 rounded-full text-[10px] font-bold capitalize bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200";
+        return `<button type="button" onclick="setIngDropdownFilter('${cat}')" class="${cls}">${cat}</button>`;
+      }).join('');
+    }
+
+    function setIngDropdownFilter(cat) {
+      ingDropdownFilterCategory = cat;
+      renderIngFilterBar();
+      handleIngredientInput();
+      document.getElementById('ingDropdown').classList.remove('hidden');
+      document.getElementById('ingNameInput').focus();
     }
 
     function handleIngredientInput() {
       const val = document.getElementById('ingNameInput').value.toLowerCase();
       const dropdown = document.getElementById('ingDropdown');
 
-      const filtered = masterIngredientsList.filter(i => i.name.toLowerCase().includes(val));
-      let html = filtered.map(i => `
-        <div onclick="selectIngredientName('${i.name}')" class="px-3 py-2 hover:bg-amber-100 cursor-pointer text-amber-950 font-medium flex justify-between items-center gap-2">
+      let filtered = masterIngredientsList.filter(i => i.name.toLowerCase().includes(val));
+      if (ingDropdownFilterCategory !== 'All') {
+        filtered = filtered.filter(i => i.category === ingDropdownFilterCategory);
+      }
+      filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+
+      let listHtml = filtered.map(i => `
+        <div onclick="selectIngredientName('${i.name.replace(/'/g, "\\'")}')" class="px-3 py-2 hover:bg-amber-100 cursor-pointer text-amber-950 font-medium flex justify-between items-center gap-2">
           <span>${i.name}</span>
           <span class="text-[10px] text-amber-900/50 uppercase tracking-wider">${i.category}</span>
         </div>`).join('');
 
-      if (val && !masterIngredientsList.some(i => i.name.toLowerCase() === val)) {
-        html += `<div onclick="selectIngredientName('${document.getElementById('ingNameInput').value}')" class="px-3 py-2 hover:bg-amber-100 cursor-pointer text-amber-900 font-bold border-t border-amber-200">+ Add "${document.getElementById('ingNameInput').value}"</div>`;
+      if (filtered.length === 0) {
+        listHtml = `<div class="px-3 py-2 text-xs text-amber-900/50 italic">No matching ingredients.</div>`;
       }
 
-      dropdown.innerHTML = html;
+      if (val && !masterIngredientsList.some(i => i.name.toLowerCase() === val)) {
+        listHtml += `<div onclick="selectIngredientName('${document.getElementById('ingNameInput').value.replace(/'/g, "\\'")}')" class="px-3 py-2 hover:bg-amber-100 cursor-pointer text-amber-900 font-bold border-t border-amber-200">+ Add "${document.getElementById('ingNameInput').value}"</div>`;
+      }
+
+      dropdown.innerHTML = listHtml;
       dropdown.classList.remove('hidden');
     }
 
@@ -1276,7 +2022,7 @@
     function addIngredientQty(val) {
       const input = document.getElementById('ingQtyInput');
       const current = parseFloat(input.value) || 0;
-      input.value = (current + val).toFixed(2);
+      input.value = Math.max(0, current + val).toFixed(2);
     }
 
     function stepIngredientQty(val) {
@@ -1288,6 +2034,19 @@
 
     function clearIngredientQty() {
       document.getElementById('ingQtyInput').value = "0.00";
+    }
+
+    // Single source of truth for the unit button list (shared with the Ingredients Manager's own
+    // unit picker via UNIT_OPTIONS) so adding a new unit only has to happen in one place.
+    function renderUnitButtons() {
+      const container = document.getElementById('unitButtonsContainer');
+      if (!container) return;
+      container.innerHTML = unitsList.map(u => {
+        const cls = selectedUnit === u
+          ? "unit-btn px-2.5 py-1 rounded text-xs font-bold bg-[#4a280e] text-white shadow"
+          : "unit-btn px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950";
+        return `<button type="button" onclick="selectUnit('${u}')" class="${cls}">${u}</button>`;
+      }).join('');
     }
 
     function selectUnit(unit) {
@@ -1315,7 +2074,7 @@
       const existsInMaster = masterIngredientsList.some(i => i.name.toLowerCase() === name.toLowerCase());
       if (!existsInMaster) {
         masterIngredientsList.push({ name, category: 'probably buy', unit: selectedUnit });
-        persistData();
+        persistIngredientsList();
       }
 
       if (editingIngIndex !== null) {
@@ -1373,26 +2132,135 @@
       const container = document.getElementById('stepIngredientSelectors');
       if (draftIngredients.length === 0) {
         container.innerHTML = `<span class="text-amber-900/50 text-xs italic">No ingredients in recipe yet. Add some in Step 2!</span>`;
+        document.getElementById('stepIngredientAmounts').innerHTML = '';
         return;
       }
 
       container.innerHTML = draftIngredients.map(ing => {
-        const isSelected = selectedStepIngredients.includes(ing.name);
-        const btnClass = isSelected 
-          ? "px-2.5 py-1 rounded-full text-xs font-bold bg-[#4a280e] text-white shadow cursor-pointer transition-all" 
+        const isSelected = selectedStepIngredients.some(i => i.name === ing.name);
+        const btnClass = isSelected
+          ? "px-2.5 py-1 rounded-full text-xs font-bold bg-[#4a280e] text-white shadow cursor-pointer transition-all"
           : "px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100/70 hover:bg-amber-200 text-amber-950 border border-amber-300 cursor-pointer transition-all";
-        
-        return `<button type="button" onclick="toggleStepIngredient('${ing.name}')" class="${btnClass}">${ing.name}</button>`;
+
+        return `<button type="button" onclick="toggleStepIngredient('${ing.name.replace(/'/g, "\\'")}')" class="${btnClass}">${ing.name}</button>`;
       }).join('');
+
+      renderStepIngredientAmounts();
+    }
+
+    // Amount of each selected ingredient used specifically in THIS step — separate from the
+    // recipe's total amount, since an ingredient can be split across multiple steps.
+    // How much of an ingredient is still unallocated across the recipe's OTHER steps — caps how
+    // much this step can claim, so e.g. a 3 tbsp total ingredient with 1 tbsp already used in
+    // another step only allows up to 2 tbsp here. The step currently being edited is excluded
+    // from "other steps" so re-adjusting its own amount isn't penalized by itself.
+    // Rounds to 2 decimal places, guarding against float artifacts like 2 - 1.8 = 0.19999999999999996
+    function round2(n) {
+      return Math.round((n + Number.EPSILON) * 100) / 100;
+    }
+
+    function getRemainingQtyForIngredient(name) {
+      const master = draftIngredients.find(i => i.name.toLowerCase() === name.toLowerCase());
+      if (!master) return null;
+      const totalQty = parseFloat(master.qty) || 0;
+
+      let usedElsewhere = 0;
+      draftSteps.forEach((step, idx) => {
+        if (idx === editingStepIndex) return;
+        (step.ingredients || []).forEach(ing => {
+          const ingName = typeof ing === 'string' ? ing : ing.name;
+          if (ingName.toLowerCase() === name.toLowerCase()) {
+            usedElsewhere += typeof ing === 'string' ? 0 : (parseFloat(ing.qty) || 0);
+          }
+        });
+      });
+
+      return round2(Math.max(0, totalQty - usedElsewhere));
+    }
+
+    // Resolves a step's ingredient references against the recipe's CURRENT ingredient list
+    // (case-insensitively), and drops any that no longer match anything — e.g. a step saved
+    // referencing "Butter" when the recipe's ingredient was later re-typed as "butter" would
+    // otherwise show as a phantom, orphaned entry that the remaining-amount math can't see.
+    function normalizeStepIngredients(ingredients) {
+      return (ingredients || [])
+        .map(ing => {
+          const name = typeof ing === 'string' ? ing : ing.name;
+          const master = draftIngredients.find(di => di.name.toLowerCase() === name.toLowerCase());
+          if (!master) return null;
+          const qty = typeof ing === 'string' ? master.qty : (ing.qty !== undefined && ing.qty !== '' ? ing.qty : master.qty);
+          return { name: master.name, qty, unit: master.unit };
+        })
+        .filter(Boolean);
+    }
+
+    function renderStepIngredientAmounts() {
+      const container = document.getElementById('stepIngredientAmounts');
+      if (!container) return;
+
+      if (selectedStepIngredients.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = `
+        <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1 mt-2">Amount used in this step</label>
+        <div class="space-y-1">
+          ${selectedStepIngredients.map(ing => {
+            const remaining = getRemainingQtyForIngredient(ing.name);
+            const hint = remaining !== null ? `<span class="block text-[9px] text-amber-900/50">up to ${remaining} ${ing.unit || ''} left</span>` : '';
+            return `
+            <div class="flex items-center justify-between gap-2 bg-white rounded-lg border border-amber-800/20 px-2.5 py-1.5">
+              <div class="flex flex-col">
+                <span class="text-xs font-bold text-amber-950">${ing.name}</span>
+                ${hint}
+              </div>
+              <div class="flex items-center gap-1.5">
+                <input type="number" step="0.01" min="0" ${remaining !== null ? `max="${remaining}"` : ''} value="${ing.qty}" onchange="updateStepIngredientQty('${ing.name.replace(/'/g, "\\'")}', this.value)" class="w-16 text-center text-xs font-bold border border-amber-800/30 rounded px-1 py-0.5 focus:outline-none focus:border-amber-600">
+                <span class="text-[10px] text-amber-900/60 font-semibold w-10">${ing.unit || ''}</span>
+              </div>
+            </div>
+          `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    // Renders a step's ingredient list for display, handling both the new {name,qty,unit} shape
+    // and legacy plain-name strings from steps saved before per-step amounts existed.
+    function formatStepIngredients(ingredients) {
+      return (ingredients || []).map(i => {
+        if (typeof i === 'string') return i;
+        const hasQty = i.qty !== '' && i.qty !== undefined && i.qty !== null && Number(i.qty) > 0;
+        if (!hasQty) return i.name;
+        const unitPart = i.unit ? ` ${i.unit}` : '';
+        return `${i.name} (${i.qty}${unitPart})`;
+      }).join(', ');
     }
 
     function toggleStepIngredient(name) {
-      if (selectedStepIngredients.includes(name)) {
-        selectedStepIngredients = selectedStepIngredients.filter(i => i !== name);
+      const existingIdx = selectedStepIngredients.findIndex(i => i.name.toLowerCase() === name.toLowerCase());
+      if (existingIdx !== -1) {
+        selectedStepIngredients.splice(existingIdx, 1);
       } else {
-        selectedStepIngredients.push(name);
+        const master = draftIngredients.find(i => i.name === name);
+        const remaining = getRemainingQtyForIngredient(name);
+        const defaultQty = remaining !== null ? remaining : round2(master ? master.qty : 0);
+        selectedStepIngredients.push({ name, qty: defaultQty, unit: master ? master.unit : '' });
       }
+      markFormDirty();
       renderStepIngredientSelectors();
+    }
+
+    function updateStepIngredientQty(name, value) {
+      const entry = selectedStepIngredients.find(i => i.name.toLowerCase() === name.toLowerCase());
+      if (!entry) return;
+      let qty = round2(parseFloat(value) || 0);
+      const remaining = getRemainingQtyForIngredient(name);
+      if (remaining !== null) qty = Math.min(qty, remaining);
+      entry.qty = qty;
+      markFormDirty();
+      renderStepIngredientAmounts();
     }
 
     function saveStepItem() {
@@ -1402,76 +2270,221 @@
         return;
       }
 
+      const picture = document.getElementById('stepPictureURL').value.trim();
+
       markFormDirty();
 
       if (editingStepIndex !== null) {
-        draftSteps[editingStepIndex] = { text, ingredients: [...selectedStepIngredients] };
+        draftSteps[editingStepIndex] = { text, ingredients: [...selectedStepIngredients], picture };
         editingStepIndex = null;
         document.getElementById('btnSaveStep').innerText = "+ Save & Add Another Step";
         document.getElementById('stepInstructionLabel').innerText = "Step Instruction *";
       } else {
-        draftSteps.push({ text, ingredients: [...selectedStepIngredients] });
+        draftSteps.push({ text, ingredients: [...selectedStepIngredients], picture });
       }
 
       document.getElementById('stepTextInput').value = '';
+      document.getElementById('stepPictureURL').value = '';
+      document.getElementById('stepPictureFile').value = '';
       selectedStepIngredients = [];
       renderStepIngredientSelectors();
       renderDraftSteps();
     }
+
+    // Clears the form for a fresh step, appended at the end of the list when saved
+    // (used by the "+ Add New Step" button in the Live Steps Preview sidebar).
+    function startNewStepEntry() {
+      editingStepIndex = null;
+      document.getElementById('stepTextInput').value = '';
+      document.getElementById('stepPictureURL').value = '';
+      document.getElementById('stepPictureFile').value = '';
+      selectedStepIngredients = [];
+      document.getElementById('btnSaveStep').innerText = "+ Save & Add Another Step";
+      document.getElementById('stepInstructionLabel').innerText = "Step Instruction *";
+      renderStepIngredientSelectors();
+      renderDraftSteps();
+    }
+
+    // Inserts the form's current content as a brand-new step right after the one being viewed,
+    // without touching that step's own saved content — for splitting one step into two.
+    function insertNewStepAfterCurrent() {
+      if (editingStepIndex === null) return;
+
+      const text = document.getElementById('stepTextInput').value.trim();
+      if (!text) {
+        showAlert("Please enter step instructions.");
+        return;
+      }
+
+      const picture = document.getElementById('stepPictureURL').value.trim();
+      const insertAt = editingStepIndex + 1;
+      draftSteps.splice(insertAt, 0, { text, ingredients: [...selectedStepIngredients], picture });
+      markFormDirty();
+      renderDraftSteps();
+      editDraftStep(insertAt);
+    }
+
+    let draggedStepIndex = null;
 
     function renderDraftSteps() {
       const listEl = document.getElementById('draftStepsList');
 
       if (draftSteps.length === 0) {
         listEl.innerHTML = `<li class="text-amber-900/50 italic text-xs list-none">No steps added yet.</li>`;
+        updateStepNavIndicator();
         return;
       }
 
       listEl.innerHTML = draftSteps.map((step, idx) => `
-        <li class="bg-amber-50 p-2.5 rounded border border-amber-200 space-y-1">
-          <div class="flex justify-between items-start">
-            <span class="font-bold text-[#3b220c] text-xs">Step #${idx + 1}</span>
-            <div class="flex items-center gap-1">
-              ${idx > 0 ? `<button type="button" onclick="moveStep(${idx}, -1)" class="text-amber-800 hover:text-amber-950 px-1 font-bold" title="Move Up">▲</button>` : ''}
-              ${idx < draftSteps.length - 1 ? `<button type="button" onclick="moveStep(${idx}, 1)" class="text-amber-800 hover:text-amber-950 px-1 font-bold" title="Move Down">▼</button>` : ''}
-              <button type="button" onclick="editDraftStep(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold" title="Edit Step">✎</button>
-              <button type="button" onclick="removeDraftStep(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold" title="Delete Step">&times;</button>
+        <li draggable="true"
+            ondragstart="handleStepDragStart(${idx}, event)"
+            ondragover="handleStepDragOver(event)"
+            ondrop="handleStepDrop(${idx}, event)"
+            onclick="editDraftStep(${idx})"
+            class="bg-amber-50 p-2.5 rounded border ${editingStepIndex === idx ? 'border-amber-500 ring-1 ring-amber-400' : 'border-amber-200'} space-y-1 cursor-pointer hover:border-amber-400 transition-colors">
+          <div class="flex justify-between items-start gap-2">
+            <div class="flex items-center gap-1.5 text-amber-800/50" title="Drag to reorder">
+              <svg width="9" height="14" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.3"/><circle cx="8" cy="2" r="1.3"/><circle cx="2" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="2" cy="14" r="1.3"/><circle cx="8" cy="14" r="1.3"/></svg>
+              <span class="font-bold text-[#3b220c] text-xs">Step #${idx + 1}</span>
             </div>
+            <button type="button" onclick="event.stopPropagation(); removeDraftStep(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold" title="Delete Step">&times;</button>
           </div>
           <p class="text-amber-950 text-xs font-medium leading-relaxed">${step.text}</p>
-          ${step.ingredients ? `<div class="text-[10px] text-amber-900/70 font-semibold">Involves: ${Array.isArray(step.ingredients) ? step.ingredients.join(', ') : step.ingredients}</div>` : ''}
+          ${step.ingredients && step.ingredients.length > 0 ? `<div class="text-[10px] text-amber-900/70 font-semibold">Involves: ${formatStepIngredients(step.ingredients)}</div>` : ''}
+          ${step.picture ? `<div class="text-[10px] text-amber-900/70 font-semibold">📷 Has photo</div>` : ''}
         </li>
       `).join('');
+      updateStepNavIndicator();
     }
 
     function editDraftStep(idx) {
       const step = draftSteps[idx];
       editingStepIndex = idx;
       document.getElementById('stepTextInput').value = step.text;
-      selectedStepIngredients = step.ingredients ? [...step.ingredients] : [];
+      document.getElementById('stepPictureURL').value = step.picture || '';
+      selectedStepIngredients = normalizeStepIngredients(step.ingredients);
       renderStepIngredientSelectors();
       document.getElementById('btnSaveStep').innerText = "Update Step";
       document.getElementById('stepInstructionLabel').innerText = `Editing Step #${idx + 1}`;
+      renderDraftSteps();
     }
 
     function removeDraftStep(idx) {
       markFormDirty();
       draftSteps.splice(idx, 1);
+      if (editingStepIndex === idx) editingStepIndex = null;
+      else if (editingStepIndex !== null && editingStepIndex > idx) editingStepIndex--;
       renderDraftSteps();
     }
 
-    function moveStep(idx, direction) {
+    function handleStepDragStart(idx, event) {
+      draggedStepIndex = idx;
+      event.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleStepDragOver(event) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+    }
+
+    function handleStepDrop(idx, event) {
+      event.preventDefault();
+      if (draggedStepIndex === null || draggedStepIndex === idx) return;
+
       markFormDirty();
-      const targetIdx = idx + direction;
-      if (targetIdx < 0 || targetIdx >= draftSteps.length) return;
-      
-      const temp = draftSteps[idx];
-      draftSteps[idx] = draftSteps[targetIdx];
-      draftSteps[targetIdx] = temp;
+      const [moved] = draftSteps.splice(draggedStepIndex, 1);
+      draftSteps.splice(idx, 0, moved);
+      draggedStepIndex = null;
       renderDraftSteps();
     }
+
+    // Persists whatever's currently typed before navigating away, so clicking Previous/Next/a step
+    // pill never silently discards edits. Updates the step being viewed in place; if the form was
+    // composing a brand-new (not-yet-saved) step, that gets appended instead. Blank text is never
+    // saved over existing content — navigating away from an emptied-out field just leaves it alone.
+    function silentlySaveCurrentStepEdits() {
+      const text = document.getElementById('stepTextInput').value.trim();
+      if (!text) return;
+
+      const picture = document.getElementById('stepPictureURL').value.trim();
+      const stepData = { text, ingredients: [...selectedStepIngredients], picture };
+
+      if (editingStepIndex !== null) {
+        draftSteps[editingStepIndex] = stepData;
+      } else {
+        draftSteps.push(stepData);
+      }
+      markFormDirty();
+    }
+
+    function navigateStep(direction) {
+      if (draftSteps.length === 0) return;
+      silentlySaveCurrentStepEdits();
+      let idx = editingStepIndex !== null ? editingStepIndex + direction : 0;
+      idx = Math.max(0, Math.min(idx, draftSteps.length - 1));
+      editDraftStep(idx);
+    }
+
+    function jumpToStep(idx) {
+      if (idx === editingStepIndex) return;
+      silentlySaveCurrentStepEdits();
+      editDraftStep(idx);
+    }
+
+    // Reverts the form to the currently-viewed step's last-saved content (discarding unsaved
+    // typing), or clears back to a blank new-entry form if nothing's being edited.
+    function resetStepForm() {
+      if (editingStepIndex !== null) {
+        editDraftStep(editingStepIndex);
+      } else {
+        startNewStepEntry();
+      }
+    }
+
+    function renderStepPills() {
+      const container = document.getElementById('stepPillsRow');
+      if (!container) return;
+
+      if (draftSteps.length === 0) {
+        container.innerHTML = `<span class="text-xs font-bold text-amber-900/50 italic">No steps yet</span>`;
+        return;
+      }
+
+      container.innerHTML = draftSteps.map((step, idx) => {
+        const isActive = editingStepIndex === idx;
+        const cls = isActive
+          ? "w-7 h-7 rounded-full text-xs font-bold bg-[#4a280e] text-white shadow flex items-center justify-center"
+          : "w-7 h-7 rounded-full text-xs font-bold bg-white border border-amber-300 text-amber-950 hover:bg-amber-100 flex items-center justify-center";
+        return `<button type="button" onclick="jumpToStep(${idx})" class="${cls}" title="Step ${idx + 1}">${idx + 1}</button>`;
+      }).join('');
+    }
+
+    function updateStepNavIndicator() {
+      const prevBtn = document.getElementById('btnPrevStep');
+      const nextBtn = document.getElementById('btnNextStep');
+      const insertBtn = document.getElementById('btnInsertStep');
+      if (insertBtn) insertBtn.classList.toggle('hidden', editingStepIndex === null);
+
+      renderStepPills();
+
+      if (!prevBtn || !nextBtn) return;
+
+      if (draftSteps.length === 0 || editingStepIndex === null) {
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+      }
+      prevBtn.disabled = editingStepIndex === 0;
+      nextBtn.disabled = editingStepIndex === draftSteps.length - 1;
+    }
+
+    let isSavingRecipe = false;
 
     function saveCurrentProgress() {
+      // Guards against a double-click (or clicking Save again before the last save finished)
+      // firing two overlapping saves — that race was the cause of the duplicated-steps bug.
+      if (isSavingRecipe) return false;
+
       const title = document.getElementById('fieldTitle').value.trim();
       if (!title) {
         showAlert("Please provide a recipe name.");
@@ -1499,27 +2512,43 @@
         if (idx !== -1) masterRecipes[idx] = recipeData;
       } else {
         masterRecipes.push(recipeData);
-        currentEditingId = recipeData.id; 
+        currentEditingId = recipeData.id;
         document.getElementById('btnDeleteRecipe').classList.remove('hidden');
       }
 
       isFormDirty = false;
-      persistData();
+      isSavingRecipe = true;
+
+      const saveBtn = document.getElementById('btnSaveProgress');
+      saveBtn.disabled = true;
+      saveBtn.innerText = "Saving...";
+
+      persistRecipe(recipeData, function() {
+        isSavingRecipe = false;
+        saveBtn.disabled = false;
+        showSavedButtonState(saveBtn);
+      }, function() {
+        isSavingRecipe = false;
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Save";
+      });
+
       renderMainGrid();
       renderHubGrid();
 
-      const saveBtn = document.getElementById('btnSaveProgress');
+      return true;
+    }
+
+    function showSavedButtonState(saveBtn) {
       saveBtn.innerText = "Saved ✓";
       saveBtn.classList.remove('bg-[#4a280e]', 'hover:bg-[#311807]');
       saveBtn.classList.add('bg-green-700', 'hover:bg-green-800');
-      
-      setTimeout(() => { 
-        saveBtn.innerText = "Save"; 
+
+      setTimeout(() => {
+        saveBtn.innerText = "Save";
         saveBtn.classList.add('bg-[#4a280e]', 'hover:bg-[#311807]');
         saveBtn.classList.remove('bg-green-700', 'hover:bg-green-800');
       }, 2000);
-
-      return true;
     }
 
     function attemptCloseEditor() {
@@ -1551,7 +2580,7 @@
       if (!e.target.closest('#fieldCategory') && !e.target.closest('#categoryDropdown')) {
         document.getElementById('categoryDropdown')?.classList.add('hidden');
       }
-      if (!e.target.closest('#ingNameInput') && !e.target.closest('#ingDropdown')) {
+      if (!e.target.closest('#ingNameInput') && !e.target.closest('#ingDropdown') && !e.target.closest('#ingFilterBar')) {
         document.getElementById('ingDropdown')?.classList.add('hidden');
       }
     });
@@ -1562,12 +2591,16 @@
             if (Array.isArray(serverData.recipes)) masterRecipes = serverData.recipes;
             if (Array.isArray(serverData.categories) && serverData.categories.length > 0) categoriesList = serverData.categories;
             if (Array.isArray(serverData.ingredients) && serverData.ingredients.length > 0) masterIngredientsList = serverData.ingredients;
+            if (Array.isArray(serverData.units) && serverData.units.length > 0) unitsList = serverData.units;
           }
+          recipesLoaded = true;
           renderMainGrid();
           renderHubGrid();
         })
         .withFailureHandler(function(error) {
           console.error("Failed to load app data: ", error.message);
+          recipesLoaded = true;
+          renderMainGrid();
         })
         .getAppData();
     });

@@ -13,6 +13,7 @@ const DEFAULT_INGREDIENTS = [
 ];
 
 const INGREDIENT_CATEGORIES = ['basic', 'probably buy', 'must check'];
+const DEFAULT_UNITS = ['oz', 'tsp', 'tbsp', 'g', 'cups', 'lb', 'Items', 'jars', 'cans'];
 
 // Maps spelled-out/plural unit variants already in the sheet to the app's fixed unit set
 const UNIT_SYNONYMS = {
@@ -23,7 +24,8 @@ const UNIT_SYNONYMS = {
   'gram': 'g', 'grams': 'g', 'g': 'g',
   'cup': 'cups', 'cups': 'cups',
   'item': 'Items', 'items': 'Items',
-  'jar': 'jars', 'jars': 'jars'
+  'jar': 'jars', 'jars': 'jars',
+  'can': 'cans', 'cans': 'cans'
 };
 
 function normalizeUnit(raw) {
@@ -33,7 +35,7 @@ function normalizeUnit(raw) {
 
 function normalizeIngredientCategory(raw) {
   const key = (raw || '').toString().trim().toLowerCase();
-  return INGREDIENT_CATEGORIES.includes(key) ? key : (key || 'probably buy');
+  return INGREDIENT_CATEGORIES.includes(key) ? key : '';
 }
 
 // Serves the app's HTML when visiting the web app URL
@@ -49,8 +51,26 @@ function getAppData() {
   return {
     recipes: getRecipes(),
     categories: readSheetList('Categories', DEFAULT_CATEGORIES),
-    ingredients: readIngredientsList()
+    ingredients: readIngredientsList(),
+    units: readSheetList('Units', DEFAULT_UNITS)
   };
+}
+
+// Parses the "Ingredients Used" cell for one step. New rows store JSON ([{name,qty,unit}, ...])
+// so per-step amounts round-trip; older rows are a plain comma-separated list of names with no
+// amounts, which is parsed into the same shape with blank qty/unit.
+function parseStepIngredients(raw) {
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw !== 'string' || raw.trim() === '') return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+  } catch (e) {
+    // not JSON — fall through to legacy parsing
+  }
+
+  return raw.split(',').map(s => s.trim()).filter(Boolean).map(name => ({ name, qty: '', unit: '' }));
 }
 
 // Fetch all recipes from RecipeList, joined with their steps and ingredients
@@ -70,14 +90,12 @@ function getRecipes() {
   const stepsByRecipe = {};
   stepsData.forEach(row => {
     const recipeId = row[0];
-    let stepIngredients = row[3];
-    if (typeof stepIngredients === 'string') {
-      stepIngredients = stepIngredients ? stepIngredients.split(',').map(s => s.trim()) : [];
-    }
+    const stepIngredients = parseStepIngredients(row[3]);
     if (!stepsByRecipe[recipeId]) stepsByRecipe[recipeId] = [];
     stepsByRecipe[recipeId].push({
       text: row[2],
-      ingredients: Array.isArray(stepIngredients) ? stepIngredients : []
+      ingredients: stepIngredients,
+      picture: row[4] || ''
     });
   });
 
@@ -105,8 +123,22 @@ function getRecipes() {
   });
 }
 
+// Runs fn() while holding the script lock, so two overlapping saves can never interleave their
+// sheet writes (this was the root cause of duplicated/jumbled RecipeSteps rows). Waits up to 10s
+// for the lock before giving up, so a stuck caller fails loudly instead of corrupting data.
+function withScriptLock(fn) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    return fn();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 // Save (or update) one recipe across RecipeList, RecipeSteps, and RecipeIngredients
 function saveNewRecipe(recipeData) {
+  return withScriptLock(() => {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const listSheet = ss.getSheetByName("RecipeList");
   const stepsSheet = ss.getSheetByName("RecipeSteps");
@@ -127,53 +159,66 @@ function saveNewRecipe(recipeData) {
 
   clearRowsByRecipeId(stepsSheet, recipeId);
   if (recipeData.steps && recipeData.steps.length > 0) {
-    recipeData.steps.forEach((step, idx) => {
+    const stepRows = [];
+    recipeData.steps.forEach(step => {
       const instructionText = typeof step === 'string' ? step : (step.text || "");
       if (!instructionText.trim()) return; // skip empty steps to avoid junk rows
 
-      let ingText = "";
-      if (Array.isArray(step.ingredients)) ingText = step.ingredients.join(', ');
-      else if (typeof step.ingredients === 'string') ingText = step.ingredients;
+      const ingText = (Array.isArray(step.ingredients) && step.ingredients.length > 0)
+        ? JSON.stringify(step.ingredients)
+        : "";
 
-      stepsSheet.appendRow([recipeId, idx + 1, instructionText, ingText, step.picture || ""]);
+      stepRows.push([recipeId, stepRows.length + 1, instructionText, ingText, step.picture || ""]);
     });
+    if (stepRows.length > 0) {
+      stepsSheet.getRange(stepsSheet.getLastRow() + 1, 1, stepRows.length, 5).setValues(stepRows);
+    }
   }
 
   clearRowsByRecipeId(ingSheet, recipeId);
   if (recipeData.ingredients && recipeData.ingredients.length > 0) {
-    recipeData.ingredients.forEach(ing => {
-      ingSheet.appendRow([recipeId, recipeData.title, ing.name || "", ing.qty || 0, ing.unit || ""]);
-    });
+    const ingRows = recipeData.ingredients.map(ing => [recipeId, recipeData.title, ing.name || "", ing.qty || 0, ing.unit || ""]);
+    ingSheet.getRange(ingSheet.getLastRow() + 1, 1, ingRows.length, 5).setValues(ingRows);
   }
 
   return { success: true, recipeId: recipeId };
+  });
 }
 
 // Deletes a recipe (and its steps/ingredients) from the spreadsheet by ID
 function deleteRecipe(recipeId) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  clearRowsByRecipeId(ss.getSheetByName("RecipeList"), recipeId);
-  clearRowsByRecipeId(ss.getSheetByName("RecipeSteps"), recipeId);
-  const ingSheet = ss.getSheetByName("RecipeIngredients");
-  if (ingSheet) clearRowsByRecipeId(ingSheet, recipeId);
-  return { success: true };
+  return withScriptLock(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    clearRowsByRecipeId(ss.getSheetByName("RecipeList"), recipeId);
+    clearRowsByRecipeId(ss.getSheetByName("RecipeSteps"), recipeId);
+    const ingSheet = ss.getSheetByName("RecipeIngredients");
+    if (ingSheet) clearRowsByRecipeId(ingSheet, recipeId);
+    return { success: true };
+  });
 }
 
-// Bridge called from the frontend: saves all recipes plus the categories/ingredients master lists
-function saveAppData(dataObject) {
-  if (!dataObject) return { success: true };
+// Saves just the recipe categories list (used when a new category is added inline)
+function saveCategories(categories) {
+  return withScriptLock(() => {
+    writeSheetList('Categories', categories);
+    return { success: true };
+  });
+}
 
-  if (Array.isArray(dataObject.recipes)) {
-    dataObject.recipes.forEach(recipe => saveNewRecipe(recipe));
-  }
-  if (Array.isArray(dataObject.categories)) {
-    writeSheetList('Categories', dataObject.categories);
-  }
-  if (Array.isArray(dataObject.ingredients)) {
-    writeIngredientsList(dataObject.ingredients);
-  }
+// Saves just the measurement units list (used when a unit is added, renamed, or deleted)
+function saveUnits(units) {
+  return withScriptLock(() => {
+    writeSheetList('Units', units);
+    return { success: true };
+  });
+}
 
-  return { success: true };
+// Saves just the master ingredients list (used when a new ingredient is added inline)
+function saveIngredientsMasterList(ingredients) {
+  return withScriptLock(() => {
+    writeIngredientsList(ingredients);
+    return { success: true };
+  });
 }
 
 // Reads a single-column list sheet (e.g. Categories), falling back to defaults if it doesn't exist yet
@@ -212,7 +257,7 @@ function writeIngredientsList(items) {
 
   sheet.getRange(1, 1, 1, 3).setValues([["Ingredients", "Type", "Measurement"]]).setFontWeight("bold");
   if (items.length > 0) {
-    sheet.getRange(2, 1, items.length, 3).setValues(items.map(i => [i.name, i.category || 'probably buy', i.unit || '']));
+    sheet.getRange(2, 1, items.length, 3).setValues(items.map(i => [i.name, i.category || '', i.unit || '']));
   }
 }
 
@@ -242,11 +287,35 @@ function upsertRowByRecipeId(sheet, recipeId, rowData) {
 // Helper: clears old rows for a recipe before writing fresh ones
 function clearRowsByRecipeId(sheet, recipeId) {
   const data = sheet.getDataRange().getValues();
-  for (let i = data.length - 1; i >= 1; i--) {
-    if (data[i][0] == recipeId) {
-      sheet.deleteRow(i + 1);
-    }
+  if (data.length <= 1) return; // just a header (or empty) — nothing to clear
+
+  const numCols = data[0].length;
+  const kept = data.slice(1).filter(row => row[0] != recipeId);
+
+  // Batch clear + rewrite instead of deleting rows one at a time — deleteRow-per-row is the main
+  // reason saves felt slow, since each call is its own round trip to the Sheets API.
+  sheet.getRange(2, 1, data.length - 1, numCols).clearContent();
+  if (kept.length > 0) {
+    sheet.getRange(2, 1, kept.length, numCols).setValues(kept);
   }
+}
+
+// ONE-TIME CLEANUP for the two recipes corrupted by the save-race bug (now fixed via withScriptLock).
+// Run this once from the Apps Script editor, then it can be deleted.
+function cleanupDuplicateStepsOneTime() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("RecipeSteps");
+  if (!sheet) return;
+
+  clearRowsByRecipeId(sheet, "rec_1787268389521");
+  sheet.appendRow(["rec_1787268389521", 1, "Heat olive oil in Dutch oven over medium heat.", "olive oil", ""]);
+  sheet.appendRow(["rec_1787268389521", 2, "Add beef chuck and sear until browned on all sides.", "beef chuck", ""]);
+  sheet.appendRow(["rec_1787268389521", 3, "Add minced garlic and onions; sauté until fragrant.", "garlic, onions", ""]);
+
+  clearRowsByRecipeId(sheet, "rec_1787268390571");
+  sheet.appendRow(["rec_1787268390571", 1, "melt the butter", "Butter", ""]);
+  sheet.appendRow(["rec_1787268390571", 2, "cook the onions", "Onions", ""]);
+
+  Logger.log("Cleaned up duplicate steps for both affected recipes.");
 }
 
 // Run this function once (from the Apps Script editor) to set up sheet headers and sample data
