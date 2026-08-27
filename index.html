@@ -6,25 +6,115 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: #ffffff;
       min-height: 100vh;
       color: #000000;
       margin: 0;
+      background-color: #f6efdd;
+      background-image:
+        radial-gradient(ellipse 900px 460px at 50% -8%, rgba(255,255,255,0.55), transparent 60%),
+        repeating-linear-gradient(45deg, rgba(120,90,50,0.035) 0px, rgba(120,90,50,0.035) 1px, transparent 1px, transparent 3px),
+        repeating-linear-gradient(-45deg, rgba(120,90,50,0.028) 0px, rgba(120,90,50,0.028) 1px, transparent 1px, transparent 3px),
+        url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22180%22 height=%22180%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3CfeColorMatrix type=%22saturate%22 values=%220%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%220.05%22/%3E%3C/svg%3E');
+      background-attachment: fixed;
     }
 
     .font-title { font-family: 'Cinzel', serif; }
+
+    .tagline {
+      font-family: 'Caveat', cursive;
+      font-weight: 600;
+      font-size: 1.35rem;
+      color: #97621f;
+      margin: 0;
+    }
+    .header-divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      max-width: 360px;
+      margin: 16px auto 8px;
+    }
+    .header-divider-line { flex: 1; height: 0; border-top: 1.5px dashed #b8946a; }
+
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #4a280e;
+    }
+
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+
+    .search-toolbar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      background: #fdf8ef;
+      border: 1.5px solid #d8c19c;
+      border-radius: 14px;
+      padding: 16px 24px;
+      box-shadow: 0 3px 10px rgba(70,45,10,0.07), inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+    .search-input {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #4a280e;
+      background: #ffffff;
+      border: 1.3px solid #c9ad82;
+      border-radius: 9px;
+      padding: 0.55rem 0.9rem;
+      width: 260px;
+      text-align: center;
+    }
+    .search-input::placeholder { color: rgba(74,40,14,0.45); }
+    .search-input:focus {
+      outline: none;
+      border-color: #6b411b;
+      box-shadow: 0 0 0 3px rgba(107,65,27,0.15);
+    }
+
+    .sort-toggles { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .sort-toggle {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1.3px solid #c9ad82;
+      background: #ffffff;
+      color: #4a280e;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .sort-toggle.active {
+      background: #4a280e;
+      color: #fdf8ef;
+      border-color: #4a280e;
+      box-shadow: 0 2px 6px rgba(70,45,10,0.25);
+    }
 
     .graphic-nav-btn {
       background: none;
       border: none;
       padding: 0;
       cursor: pointer;
-      transition: transform 0.2s ease, filter 0.2s ease;
+      position: relative;
+      top: 0;
+      transition: top 0.2s ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -35,14 +125,14 @@
       width: auto;
       object-fit: contain;
       display: block;
+      mix-blend-mode: multiply;
     }
     .graphic-nav-btn:hover {
-      transform: translateY(-3px);
-      filter: brightness(1.05);
+      top: -3px;
     }
 
-    .btn-recipe-manager { height: 115px; }
-    .btn-ingredients-manager { height: 95px; }
+    .btn-recipe-manager { height: 100px; }
+    .btn-ingredients-manager { height: 100px; }
 
     .card-container {
       position: relative;
@@ -53,7 +143,7 @@
       cursor: pointer;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      background: #ffffff;
+      background: #f6efdd;
     }
     .card-container:hover {
       transform: translateY(-4px);
@@ -133,33 +223,39 @@
   <div class="max-w-6xl mx-auto space-y-4">
     
     <header class="text-center pt-1 pb-0">
-      <h1 class="text-5xl sm:text-6xl font-black font-title text-black tracking-widest uppercase">
+      <h1 class="text-5xl sm:text-6xl font-black font-title text-[#2b1707] tracking-widest uppercase">
         RecipE-Z
       </h1>
+      <p class="tagline">your family recipes, all made E-Z</p>
+      <div class="header-divider">
+        <span class="header-divider-line"></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a86022" stroke-width="1.6"><path d="M12 3c3 3 5 6 5 9a5 5 0 0 1-10 0c0-3 2-6 5-9z"/></svg>
+        <span class="header-divider-line"></span>
+      </div>
     </header>
 
-    <div class="flex flex-col sm:flex-row justify-center items-center gap-6 max-w-2xl mx-auto pt-2">
-      <button onclick="openRecipeManagerHub()" class="graphic-nav-btn btn-recipe-manager" title="Recipe Manager">
-        <img src="https://i.imgur.com/igSX2kh.png" alt="Recipe Manager" loading="eager">
-      </button>
-
-      <button onclick="openEditorToIngredients()" class="graphic-nav-btn btn-ingredients-manager" title="Ingredients Manager">
-        <img src="https://i.imgur.com/tf32W4V.png" alt="Ingredients Manager" loading="eager">
-      </button>
-    </div>
-
     <main class="max-w-5xl mx-auto pt-4">
-      <div class="flex justify-between items-center mb-6 px-2">
-        <h2 class="text-2xl font-bold font-title text-black">Your Recipe Cards</h2>
-        
-        <div class="flex gap-3">
-          <input type="text" id="mainSearchInput" oninput="filterMainGrid()" placeholder="Search recipes..." 
-                 class="px-3 py-1.5 rounded-lg text-sm bg-stone-100 text-stone-900 placeholder-stone-500 border border-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400">
-          
-          <select id="mainSortOption" onchange="filterMainGrid()" class="px-3 py-1.5 rounded-lg text-sm bg-stone-100 text-stone-900 border border-stone-300 focus:outline-none">
-            <option value="A-Z">Sort: A to Z</option>
-            <option value="Z-A">Sort: Z to A</option>
-          </select>
+      <div class="text-center mb-8 px-2">
+        <h2 class="section-title text-lg mb-5">Your Recipe Cards</h2>
+
+        <div class="toolbar-row">
+          <button onclick="openRecipeManagerHub()" class="graphic-nav-btn btn-recipe-manager" title="Recipe Manager">
+            <img src="https://i.imgur.com/igSX2kh.png" alt="Recipe Manager" loading="eager">
+          </button>
+
+          <div class="search-toolbar">
+            <input type="text" id="mainSearchInput" oninput="filterMainGrid()" placeholder="Search recipes..." class="search-input">
+            <div class="sort-toggles">
+              <button type="button" class="sort-toggle active" data-sort="A-Z" onclick="setMainSort('A-Z')">A&ndash;Z</button>
+              <button type="button" class="sort-toggle" data-sort="Z-A" onclick="setMainSort('Z-A')">Z&ndash;A</button>
+              <button type="button" class="sort-toggle" data-sort="Newest" onclick="setMainSort('Newest')">Newest</button>
+              <button type="button" class="sort-toggle" data-sort="Oldest" onclick="setMainSort('Oldest')">Oldest</button>
+            </div>
+          </div>
+
+          <button onclick="openIngredientsManager()" class="graphic-nav-btn btn-ingredients-manager" title="Ingredients Manager">
+            <img src="https://i.imgur.com/tf32W4V.png" alt="Ingredients Manager" loading="eager">
+          </button>
         </div>
       </div>
 
@@ -438,6 +534,73 @@
     </div>
   </div>
 
+  <!-- ================= INGREDIENTS MANAGER MODAL ================= -->
+  <div id="ingredientsManagerModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-start pt-8 p-4 z-40">
+    <div class="bg-[#f7eedc] border-2 border-[#a88d67] max-w-4xl w-full max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
+
+      <div class="p-5 border-b border-amber-900/20 bg-[#efe2c8] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <h2 class="text-2xl font-black font-title text-[#3b220c]">Ingredients Manager</h2>
+          <p class="text-xs text-amber-900/80 font-semibold">Manage your recurring ingredients, categories, and default units.</p>
+        </div>
+        <button onclick="closeIngredientsManager()" class="text-amber-950/70 hover:text-amber-950 text-2xl font-bold">&times;</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1 space-y-5">
+
+        <div class="bg-white border border-amber-900/20 rounded-xl p-4 space-y-3">
+          <h4 class="text-xs font-bold text-[#3b220c] uppercase tracking-wider" id="managerIngFormTitle">Add New Ingredient</h4>
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+            <div class="md:col-span-4">
+              <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Name *</label>
+              <input type="text" id="managerIngNameInput" placeholder="e.g. Butter" class="w-full fill-in-input">
+            </div>
+            <div class="md:col-span-4">
+              <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Category</label>
+              <div id="managerIngCategoryButtons" class="flex flex-wrap gap-1.5"></div>
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Default Unit</label>
+              <div id="managerIngUnitButtons" class="flex flex-wrap gap-1.5"></div>
+            </div>
+            <div class="md:col-span-1">
+              <button type="button" id="managerIngSaveBtn" onclick="saveManagerIngredient()" class="w-full bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider shadow">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+          <input type="text" id="managerIngSearchInput" oninput="renderIngredientsManagerList()" placeholder="Search ingredients..."
+                 class="px-3 py-1.5 rounded-lg text-sm bg-white text-stone-900 placeholder-stone-500 border border-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400 w-full sm:w-64">
+          <div id="managerIngFilterButtons" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <ul id="managerIngredientsList" class="space-y-2"></ul>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= INFO / ALERT MODAL ================= -->
+  <div id="infoModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-center p-4 z-[60]">
+    <div class="bg-[#fcf8ef] border-2 border-amber-700 max-w-sm w-full p-6 rounded-xl shadow-2xl text-center space-y-4">
+      <p id="infoModalMessage" class="text-sm text-amber-950 font-semibold"></p>
+      <button onclick="closeInfoModal()" class="bg-[#4a280e] hover:bg-[#311807] text-white font-bold py-2 px-6 rounded text-xs uppercase tracking-wider shadow">OK</button>
+    </div>
+  </div>
+
+  <!-- ================= GENERIC CONFIRM MODAL ================= -->
+  <div id="confirmModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-center p-4 z-[60]">
+    <div class="bg-[#fcf8ef] border-2 border-amber-700 max-w-sm w-full p-6 rounded-xl shadow-2xl text-center space-y-4">
+      <h4 class="text-xl font-black font-title text-[#3b220c]">Are you sure?</h4>
+      <p id="confirmModalMessage" class="text-xs text-amber-950 font-semibold"></p>
+      <div class="flex flex-col gap-2 pt-2">
+        <button id="confirmModalConfirmBtn" onclick="handleConfirmModalConfirm()" class="bg-red-800 hover:bg-red-900 text-white font-bold py-2 rounded text-xs uppercase tracking-wider shadow">Yes, Delete</button>
+        <button onclick="closeConfirmModal()" class="border border-amber-800/40 text-amber-950 font-bold py-1.5 rounded text-xs">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= UNSAVED CHANGES PROMPT MODAL ================= -->
   <div id="unsavedChangesModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-center p-4 z-50">
     <div class="bg-[#fcf8ef] border-2 border-amber-700 max-w-sm w-full p-6 rounded-xl shadow-2xl text-center space-y-4">
@@ -456,16 +619,33 @@
     const CARD_BG_URL = "https://i.imgur.com/cJbB04a.png";
     const FOOD_FALLBACK_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23e2ccab'/><circle cx='200' cy='150' r='60' fill='%23a16630'/><path d='M150,150 Q200,100 250,150 Q200,200 150,150' fill='%235c2e10'/></svg>";
 
-    let masterRecipes = JSON.parse(localStorage.getItem('recinez_recipes')) || [
+    // Placeholder content shown instantly while getAppData() loads the real data from the spreadsheet
+    let masterRecipes = [
       { id: '1', title: 'Wintry Beef Stew', category: 'Dinner', equipment: 'Dutch Oven', prepTime: '30 mins', servings: '6', mainPicture: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?q=80&w=600&auto=format&fit=crop', ingredients: [{ name: 'Beef Chuck', qty: 2.0, unit: 'lb' }, { name: 'Carrots', qty: 3.0, unit: 'Items' }], steps: [{ text: 'Brown the beef chuck in the Dutch oven.', ingredients: ['Beef Chuck'] }] },
       { id: '2', title: 'Garden Salad', category: 'Lunch', equipment: 'Salad Bowl', prepTime: '10 mins', servings: '2', mainPicture: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=600&auto=format&fit=crop', ingredients: [{ name: 'Tomatoes', qty: 2.0, unit: 'Items' }, { name: 'Olive Oil', qty: 1.0, unit: 'tbsp' }], steps: [{ text: 'Chop the tomatoes and toss with olive oil.', ingredients: ['Tomatoes', 'Olive Oil'] }] }
     ];
-    let categoriesList = JSON.parse(localStorage.getItem('recinez_categories')) || ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snacks', 'Appetizers', 'Side Dish', 'Beverages'];
-    let masterIngredientsList = JSON.parse(localStorage.getItem('recinez_ingredients')) || ['Butter', 'Tomatoes', 'Beef Chuck', 'Carrots', 'Olive Oil', 'Garlic', 'Onions', 'Salt', 'Black Pepper', 'Flour'];
+    let categoriesList = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snacks', 'Appetizers', 'Side Dish', 'Beverages'];
+    let masterIngredientsList = [
+      { name: 'Butter', category: 'basic', unit: 'oz' },
+      { name: 'Tomatoes', category: 'basic', unit: 'Items' },
+      { name: 'Beef Chuck', category: 'basic', unit: 'lb' },
+      { name: 'Carrots', category: 'basic', unit: 'Items' },
+      { name: 'Olive Oil', category: 'basic', unit: 'tbsp' },
+      { name: 'Garlic', category: 'basic', unit: 'Items' },
+      { name: 'Onions', category: 'basic', unit: 'Items' },
+      { name: 'Salt', category: 'basic', unit: 'tsp' },
+      { name: 'Black Pepper', category: 'basic', unit: 'tsp' },
+      { name: 'Flour', category: 'basic', unit: 'cups' }
+    ];
+
+    const INGREDIENT_CATEGORIES = ['basic', 'probably buy', 'must check'];
+    const UNIT_OPTIONS = ['oz', 'tsp', 'tbsp', 'g', 'cups', 'lb', 'Items', 'jars'];
 
     let currentEditingId = null;
+    let currentEditingCreatedAt = null;
     let isFormDirty = false;
     let currentEditorStep = 1;
+    let mainSortMode = 'A-Z';
 
     let draftIngredients = [];
     let draftSteps = [];
@@ -473,6 +653,11 @@
     let editingIngIndex = null;
     let editingStepIndex = null;
     let selectedStepIngredients = [];
+
+    let managerSelectedCategory = 'probably buy';
+    let managerSelectedUnit = 'oz';
+    let managerFilterCategory = 'All';
+    let managerEditingIndex = null;
 
     window.onload = function() {
       renderMainGrid();
@@ -491,9 +676,53 @@
         })
         .withFailureHandler(function(error) {
           console.error("Sync error: ", error.message);
-          alert("Could not save to spreadsheet: " + error.message);
+          showAlert("Could not save to spreadsheet: " + error.message);
         })
         .saveAppData(dataPayload);
+    }
+
+    // Apps Script serves this page inside a cross-origin iframe, where browsers block native confirm()/alert() dialogs.
+    // Use this in-page modal instead of confirm() for anything that needs a yes/no from the user.
+    let confirmModalCallback = null;
+
+    function showConfirmModal(message, onConfirm, confirmLabel = "Yes, Delete") {
+      document.getElementById('confirmModalMessage').innerText = message;
+      document.getElementById('confirmModalConfirmBtn').innerText = confirmLabel;
+      confirmModalCallback = onConfirm;
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.add('hidden');
+      confirmModalCallback = null;
+    }
+
+    function handleConfirmModalConfirm() {
+      const callback = confirmModalCallback;
+      closeConfirmModal();
+      if (callback) callback();
+    }
+
+    // In-page replacement for alert(), for the same iframe-sandbox reason as showConfirmModal above
+    function showAlert(message) {
+      document.getElementById('infoModalMessage').innerText = message;
+      document.getElementById('infoModal').classList.remove('hidden');
+    }
+
+    function closeInfoModal() {
+      document.getElementById('infoModal').classList.add('hidden');
+    }
+
+    function deleteRecipeById(id) {
+      google.script.run
+        .withSuccessHandler(function() {
+          console.log("Deleted from spreadsheet");
+        })
+        .withFailureHandler(function(error) {
+          console.error("Delete error: ", error.message);
+          showAlert("Could not delete from spreadsheet: " + error.message);
+        })
+        .deleteRecipe(id);
     }
 
     function exportRecipesJSON() {
@@ -523,17 +752,22 @@
           if (parsed.recipes && Array.isArray(parsed.recipes)) {
             masterRecipes = parsed.recipes;
             if (parsed.categories) categoriesList = parsed.categories;
-            if (parsed.ingredients) masterIngredientsList = parsed.ingredients;
+            if (parsed.ingredients) {
+              // Backups exported before ingredients had categories/units are just plain name strings; normalize them
+              masterIngredientsList = parsed.ingredients.map(i =>
+                typeof i === 'string' ? { name: i, category: 'probably buy', unit: '' } : i
+              );
+            }
             
             persistData();
             renderMainGrid();
             renderHubGrid();
-            alert("Backup successfully imported!");
+            showAlert("Backup successfully imported!");
           } else {
-            alert("Invalid backup file format.");
+            showAlert("Invalid backup file format.");
           }
         } catch (err) {
-          alert("Error reading JSON file.");
+          showAlert("Error reading JSON file.");
         }
         event.target.value = '';
       };
@@ -543,10 +777,18 @@
     function renderMainGrid() {
       const container = document.getElementById('mainCardsGrid');
       const query = document.getElementById('mainSearchInput').value.toLowerCase();
-      const sortVal = document.getElementById('mainSortOption').value;
 
       let filtered = masterRecipes.filter(r => r.title.toLowerCase().includes(query));
-      filtered.sort((a, b) => sortVal === 'A-Z' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title));
+
+      if (mainSortMode === 'A-Z') {
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+      } else if (mainSortMode === 'Z-A') {
+        filtered.sort((a, b) => b.title.localeCompare(a.title));
+      } else if (mainSortMode === 'Newest') {
+        filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      } else if (mainSortMode === 'Oldest') {
+        filtered.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      }
 
       if (filtered.length === 0) {
         container.innerHTML = `<div class="col-span-full text-center py-12 text-amber-950 font-bold">No recipe cards found.</div>`;
@@ -560,12 +802,21 @@
       renderMainGrid();
     }
 
-    function createCardHTML(recipe, onclickHandler, isLazy = false) {
+    function setMainSort(mode) {
+      mainSortMode = mode;
+      document.querySelectorAll('.sort-toggle').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sort === mode);
+      });
+      renderMainGrid();
+    }
+
+    function createCardHTML(recipe, onclickHandler, isLazy = false, deleteHandler = null) {
       const imgSrc = recipe.mainPicture && recipe.mainPicture.trim() !== '' ? recipe.mainPicture : FOOD_FALLBACK_SVG;
       const loadingAttr = isLazy ? 'loading="lazy"' : '';
-      
+
       return `
         <div onclick="${onclickHandler}" class="card-container">
+          ${deleteHandler ? `<button type="button" onclick="${deleteHandler}" class="absolute top-2 right-2 z-20 bg-red-700/90 hover:bg-red-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow" title="Delete Recipe">&times;</button>` : ''}
           <img src="${CARD_BG_URL}" class="card-bg-img" alt="Card Graphic" ${loadingAttr}>
           <div class="card-content">
             
@@ -644,17 +895,187 @@
     }
 
     function renderHubGrid() {
-      document.getElementById('hubRecipesGrid').innerHTML = masterRecipes.map(r => createCardHTML(r, `openEditFromHub('${r.id}')`, false)).join('');
+      document.getElementById('hubRecipesGrid').innerHTML = masterRecipes.map(r => createCardHTML(r, `openEditFromHub('${r.id}')`, false, `quickDeleteRecipe('${r.id}', event)`)).join('');
     }
 
-    function openEditorToIngredients() {
-      closeRecipeManagerHub();
-      startNewRecipeForm();
-      switchEditorTab(2);
+    // --- INGREDIENTS MANAGER ---
+    function openIngredientsManager() {
+      managerEditingIndex = null;
+      managerSelectedCategory = 'probably buy';
+      managerSelectedUnit = 'oz';
+      managerFilterCategory = 'All';
+      document.getElementById('managerIngFormTitle').innerText = 'Add New Ingredient';
+      document.getElementById('managerIngNameInput').value = '';
+      document.getElementById('managerIngSaveBtn').innerText = 'Save';
+      document.getElementById('managerIngSearchInput').value = '';
+
+      renderManagerCategoryButtons();
+      renderManagerUnitButtons();
+      renderManagerFilterButtons();
+      renderIngredientsManagerList();
+
+      document.getElementById('ingredientsManagerModal').classList.remove('hidden');
+    }
+
+    function closeIngredientsManager() {
+      document.getElementById('ingredientsManagerModal').classList.add('hidden');
+    }
+
+    function renderManagerCategoryButtons() {
+      const container = document.getElementById('managerIngCategoryButtons');
+      container.innerHTML = INGREDIENT_CATEGORIES.map(cat => {
+        const isSelected = managerSelectedCategory === cat;
+        const cls = isSelected
+          ? "px-2.5 py-1 rounded-full text-xs font-bold capitalize bg-[#4a280e] text-white shadow"
+          : "px-2.5 py-1 rounded-full text-xs font-bold capitalize bg-amber-100/70 hover:bg-amber-200 text-amber-950 border border-amber-300";
+        return `<button type="button" onclick="selectManagerCategory('${cat}')" class="${cls}">${cat}</button>`;
+      }).join('');
+    }
+
+    function selectManagerCategory(cat) {
+      managerSelectedCategory = cat;
+      renderManagerCategoryButtons();
+    }
+
+    function renderManagerUnitButtons() {
+      const container = document.getElementById('managerIngUnitButtons');
+      container.innerHTML = UNIT_OPTIONS.map(u => {
+        const isSelected = managerSelectedUnit === u;
+        const cls = isSelected
+          ? "px-2.5 py-1 rounded text-xs font-bold bg-[#4a280e] text-white shadow"
+          : "px-2.5 py-1 rounded text-xs font-bold border border-amber-900/30 bg-white text-amber-950";
+        return `<button type="button" onclick="selectManagerUnit('${u}')" class="${cls}">${u}</button>`;
+      }).join('');
+    }
+
+    function selectManagerUnit(u) {
+      managerSelectedUnit = u;
+      renderManagerUnitButtons();
+    }
+
+    function renderManagerFilterButtons() {
+      const container = document.getElementById('managerIngFilterButtons');
+      const options = ['All', ...INGREDIENT_CATEGORIES];
+      container.innerHTML = options.map(cat => {
+        const isSelected = managerFilterCategory === cat;
+        const cls = isSelected
+          ? "px-3 py-1.5 rounded-lg text-xs font-bold capitalize bg-[#4a280e] text-white shadow"
+          : "px-3 py-1.5 rounded-lg text-xs font-bold capitalize bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300";
+        return `<button type="button" onclick="setManagerFilter('${cat}')" class="${cls}">${cat}</button>`;
+      }).join('');
+    }
+
+    function setManagerFilter(cat) {
+      managerFilterCategory = cat;
+      renderManagerFilterButtons();
+      renderIngredientsManagerList();
+    }
+
+    function saveManagerIngredient() {
+      const name = document.getElementById('managerIngNameInput').value.trim();
+      if (!name) {
+        showAlert("Please enter an ingredient name.");
+        return;
+      }
+
+      const duplicateIdx = masterIngredientsList.findIndex(i => i.name.toLowerCase() === name.toLowerCase());
+      if (duplicateIdx !== -1 && duplicateIdx !== managerEditingIndex) {
+        showAlert(`"${name}" is already on your ingredients list.`);
+        return;
+      }
+
+      const entry = { name, category: managerSelectedCategory, unit: managerSelectedUnit };
+
+      if (managerEditingIndex !== null) {
+        masterIngredientsList[managerEditingIndex] = entry;
+      } else {
+        masterIngredientsList.push(entry);
+      }
+
+      persistData();
+
+      managerEditingIndex = null;
+      document.getElementById('managerIngFormTitle').innerText = 'Add New Ingredient';
+      document.getElementById('managerIngNameInput').value = '';
+      document.getElementById('managerIngSaveBtn').innerText = 'Save';
+      managerSelectedCategory = 'probably buy';
+      managerSelectedUnit = 'oz';
+      renderManagerCategoryButtons();
+      renderManagerUnitButtons();
+      renderIngredientsManagerList();
+    }
+
+    function editManagerIngredient(idx) {
+      const ing = masterIngredientsList[idx];
+      managerEditingIndex = idx;
+      document.getElementById('managerIngFormTitle').innerText = `Editing "${ing.name}"`;
+      document.getElementById('managerIngNameInput').value = ing.name;
+      managerSelectedCategory = ing.category || 'probably buy';
+      managerSelectedUnit = ing.unit || 'oz';
+      renderManagerCategoryButtons();
+      renderManagerUnitButtons();
+      document.getElementById('managerIngSaveBtn').innerText = 'Update';
+    }
+
+    function deleteManagerIngredient(idx) {
+      const ing = masterIngredientsList[idx];
+      showConfirmModal(`Delete "${ing.name}" from your ingredients list? This won't remove it from recipes that already use it.`, function() {
+        masterIngredientsList.splice(idx, 1);
+        persistData();
+        renderIngredientsManagerList();
+      });
+    }
+
+    function renderIngredientsManagerList() {
+      const listEl = document.getElementById('managerIngredientsList');
+      const query = document.getElementById('managerIngSearchInput').value.toLowerCase();
+
+      let filtered = masterIngredientsList
+        .map((ing, idx) => ({ ing, idx }))
+        .filter(({ ing }) => ing.name.toLowerCase().includes(query));
+
+      if (managerFilterCategory !== 'All') {
+        filtered = filtered.filter(({ ing }) => ing.category === managerFilterCategory);
+      }
+
+      filtered.sort((a, b) => a.ing.name.localeCompare(b.ing.name));
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<li class="text-amber-900/50 italic text-xs text-center py-6">No ingredients found.</li>`;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(({ ing, idx }) => `
+        <li class="flex justify-between items-center bg-white p-3 rounded-lg border border-amber-900/15">
+          <div class="flex items-center gap-3 flex-wrap">
+            <span class="font-bold text-[#3b220c] text-sm">${ing.name}</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">${ing.category}</span>
+            <span class="text-xs text-amber-900/70 font-semibold">${ing.unit || 'no default unit'}</span>
+          </div>
+          <div class="flex gap-1">
+            <button type="button" onclick="editManagerIngredient(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold" title="Edit">✎</button>
+            <button type="button" onclick="deleteManagerIngredient(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold" title="Delete">&times;</button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    function quickDeleteRecipe(id, event) {
+      event.stopPropagation();
+      const recipe = masterRecipes.find(r => r.id === id);
+      if (!recipe) return;
+
+      showConfirmModal(`Delete "${recipe.title}"? This cannot be undone.`, function() {
+        masterRecipes = masterRecipes.filter(r => r.id !== id);
+        deleteRecipeById(id);
+        renderMainGrid();
+        renderHubGrid();
+      });
     }
 
     function startNewRecipeForm() {
       currentEditingId = null;
+      currentEditingCreatedAt = null;
       draftIngredients = [];
       draftSteps = [];
       resetEditorFields();
@@ -672,6 +1093,7 @@
       currentEditingId = id;
       const recipe = masterRecipes.find(r => r.id === id);
       if (!recipe) return;
+      currentEditingCreatedAt = recipe.createdAt || null;
 
       document.getElementById('fieldTitle').value = recipe.title || '';
       document.getElementById('fieldCategory').value = recipe.category || '';
@@ -697,15 +1119,15 @@
 
     function promptDeleteCurrentRecipe() {
       if (!currentEditingId) return;
-      if (confirm("Are you sure you want to delete this recipe card?")) {
+      showConfirmModal("Are you sure you want to delete this recipe card?", function() {
         masterRecipes = masterRecipes.filter(r => r.id !== currentEditingId);
-        persistData();
+        deleteRecipeById(currentEditingId);
         renderMainGrid();
         renderHubGrid();
         isFormDirty = false;
         document.getElementById('recipeEditorModal').classList.add('hidden');
         openRecipeManagerHub();
-      }
+      });
     }
 
     function resetEditorFields() {
@@ -827,10 +1249,14 @@
       const val = document.getElementById('ingNameInput').value.toLowerCase();
       const dropdown = document.getElementById('ingDropdown');
 
-      const filtered = masterIngredientsList.filter(i => i.toLowerCase().includes(val));
-      let html = filtered.map(i => `<div onclick="selectIngredientName('${i}')" class="px-3 py-2 hover:bg-amber-100 cursor-pointer text-amber-950 font-medium">${i}</div>`).join('');
+      const filtered = masterIngredientsList.filter(i => i.name.toLowerCase().includes(val));
+      let html = filtered.map(i => `
+        <div onclick="selectIngredientName('${i.name}')" class="px-3 py-2 hover:bg-amber-100 cursor-pointer text-amber-950 font-medium flex justify-between items-center gap-2">
+          <span>${i.name}</span>
+          <span class="text-[10px] text-amber-900/50 uppercase tracking-wider">${i.category}</span>
+        </div>`).join('');
 
-      if (val && !masterIngredientsList.some(i => i.toLowerCase() === val)) {
+      if (val && !masterIngredientsList.some(i => i.name.toLowerCase() === val)) {
         html += `<div onclick="selectIngredientName('${document.getElementById('ingNameInput').value}')" class="px-3 py-2 hover:bg-amber-100 cursor-pointer text-amber-900 font-bold border-t border-amber-200">+ Add "${document.getElementById('ingNameInput').value}"</div>`;
       }
 
@@ -838,12 +1264,12 @@
       dropdown.classList.remove('hidden');
     }
 
+    // Filling in an existing ingredient's name auto-selects its default unit (still editable below).
+    // Brand-new names aren't registered to the master list yet — that happens on Save, using whatever unit ends up chosen.
     function selectIngredientName(name) {
       document.getElementById('ingNameInput').value = name;
-      if (!masterIngredientsList.includes(name)) {
-        masterIngredientsList.push(name);
-        persistData();
-      }
+      const existing = masterIngredientsList.find(i => i.name.toLowerCase() === name.toLowerCase());
+      if (existing) selectUnit(existing.unit || 'oz');
       document.getElementById('ingDropdown').classList.add('hidden');
     }
 
@@ -880,11 +1306,17 @@
       const qty = parseFloat(document.getElementById('ingQtyInput').value) || 0;
 
       if (!name) {
-        alert("Please enter an ingredient name.");
+        showAlert("Please enter an ingredient name.");
         return;
       }
 
       markFormDirty();
+
+      const existsInMaster = masterIngredientsList.some(i => i.name.toLowerCase() === name.toLowerCase());
+      if (!existsInMaster) {
+        masterIngredientsList.push({ name, category: 'probably buy', unit: selectedUnit });
+        persistData();
+      }
 
       if (editingIngIndex !== null) {
         draftIngredients[editingIngIndex] = { name, qty, unit: selectedUnit };
@@ -966,7 +1398,7 @@
     function saveStepItem() {
       const text = document.getElementById('stepTextInput').value.trim();
       if (!text) {
-        alert("Please enter step instructions.");
+        showAlert("Please enter step instructions.");
         return;
       }
 
@@ -1042,10 +1474,12 @@
     function saveCurrentProgress() {
       const title = document.getElementById('fieldTitle').value.trim();
       if (!title) {
-        alert("Please provide a recipe name.");
+        showAlert("Please provide a recipe name.");
         switchEditorTab(1);
         return false;
       }
+
+      currentEditingCreatedAt = currentEditingCreatedAt || Date.now();
 
       const recipeData = {
         id: currentEditingId || Date.now().toString(),
@@ -1055,6 +1489,7 @@
         prepTime: document.getElementById('fieldPrepTime').value.trim(),
         servings: document.getElementById('fieldServings').value.trim(),
         mainPicture: document.getElementById('fieldImageURL').value.trim(),
+        createdAt: currentEditingCreatedAt,
         ingredients: [...draftIngredients],
         steps: [...draftSteps]
       };
@@ -1122,19 +1557,19 @@
     });
     window.addEventListener('DOMContentLoaded', function() {
       google.script.run
-        .withSuccessHandler(function(serverRecipes) {
-          if (serverRecipes && Array.isArray(serverRecipes)) {
-            masterRecipes = serverRecipes;
+        .withSuccessHandler(function(serverData) {
+          if (serverData) {
+            if (Array.isArray(serverData.recipes)) masterRecipes = serverData.recipes;
+            if (Array.isArray(serverData.categories) && serverData.categories.length > 0) categoriesList = serverData.categories;
+            if (Array.isArray(serverData.ingredients) && serverData.ingredients.length > 0) masterIngredientsList = serverData.ingredients;
           }
           renderMainGrid();
-          if (typeof renderHubGrid === 'function') {
-            renderHubGrid();
-          }
+          renderHubGrid();
         })
         .withFailureHandler(function(error) {
-          console.error("Failed to load recipes: ", error.message);
+          console.error("Failed to load app data: ", error.message);
         })
-        .getRecipes();
+        .getAppData();
     });
   </script>
 </body>

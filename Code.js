@@ -1,62 +1,95 @@
-// Serves the HTML file when visiting the web app URL
+const DEFAULT_CATEGORIES = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snacks', 'Appetizers', 'Side Dish', 'Beverages'];
+const DEFAULT_INGREDIENTS = [
+  { name: 'Butter', category: 'basic', unit: 'oz' },
+  { name: 'Tomatoes', category: 'basic', unit: 'Items' },
+  { name: 'Beef Chuck', category: 'basic', unit: 'lb' },
+  { name: 'Carrots', category: 'basic', unit: 'Items' },
+  { name: 'Olive Oil', category: 'basic', unit: 'tbsp' },
+  { name: 'Garlic', category: 'basic', unit: 'Items' },
+  { name: 'Onions', category: 'basic', unit: 'Items' },
+  { name: 'Salt', category: 'basic', unit: 'tsp' },
+  { name: 'Black Pepper', category: 'basic', unit: 'tsp' },
+  { name: 'Flour', category: 'basic', unit: 'cups' }
+];
+
+const INGREDIENT_CATEGORIES = ['basic', 'probably buy', 'must check'];
+
+// Maps spelled-out/plural unit variants already in the sheet to the app's fixed unit set
+const UNIT_SYNONYMS = {
+  'tablespoon': 'tbsp', 'tablespoons': 'tbsp', 'tbsp': 'tbsp',
+  'teaspoon': 'tsp', 'teaspoons': 'tsp', 'tsp': 'tsp',
+  'ounce': 'oz', 'ounces': 'oz', 'oz': 'oz',
+  'pound': 'lb', 'pounds': 'lb', 'lb': 'lb', 'lbs': 'lb',
+  'gram': 'g', 'grams': 'g', 'g': 'g',
+  'cup': 'cups', 'cups': 'cups',
+  'item': 'Items', 'items': 'Items',
+  'jar': 'jars', 'jars': 'jars'
+};
+
+function normalizeUnit(raw) {
+  const key = (raw || '').toString().trim().toLowerCase();
+  return UNIT_SYNONYMS[key] || raw || '';
+}
+
+function normalizeIngredientCategory(raw) {
+  const key = (raw || '').toString().trim().toLowerCase();
+  return INGREDIENT_CATEGORIES.includes(key) ? key : (key || 'probably buy');
+}
+
+// Serves the app's HTML when visiting the web app URL
 function doGet() {
-  return HtmlService.createTemplateFromFile('Index')
-    .evaluate()
-    .setTitle('RecipEZ - Recipe Keeper')
+  return HtmlService.createHtmlOutputFromFile('index')
+    .setTitle('RecipE-Z - Recipe Keeper')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
-// Includes external HTML files (like CSS or JS partials if needed)
-function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+// Fetch everything the app needs on load: recipes (with steps + ingredients), categories, and the master ingredients list
+function getAppData() {
+  return {
+    recipes: getRecipes(),
+    categories: readSheetList('Categories', DEFAULT_CATEGORIES),
+    ingredients: readIngredientsList()
+  };
 }
 
-// Fetch all recipes from RecipeList sheet
+// Fetch all recipes from RecipeList, joined with their steps and ingredients
 function getRecipes() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  // Read RecipeList
-  const listSheet = ss.getSheetByName("RecipeList");
-  const listData = listSheet.getDataRange().getValues();
-  listData.shift(); // Remove headers
-  
-  // Read RecipeSteps
-  const stepsSheet = ss.getSheetByName("RecipeSteps");
-  const stepsData = stepsSheet.getDataRange().getValues();
-  stepsData.shift(); // Remove headers
-  
-  // Map steps by Recipe ID
+
+  const listData = ss.getSheetByName("RecipeList").getDataRange().getValues();
+  listData.shift(); // remove headers
+
+  const stepsData = ss.getSheetByName("RecipeSteps").getDataRange().getValues();
+  stepsData.shift();
+
+  const ingredientsSheet = ss.getSheetByName("RecipeIngredients");
+  const ingredientsData = ingredientsSheet ? ingredientsSheet.getDataRange().getValues() : [];
+  if (ingredientsData.length > 0) ingredientsData.shift();
+
   const stepsByRecipe = {};
   stepsData.forEach(row => {
     const recipeId = row[0];
+    let stepIngredients = row[3];
+    if (typeof stepIngredients === 'string') {
+      stepIngredients = stepIngredients ? stepIngredients.split(',').map(s => s.trim()) : [];
+    }
     if (!stepsByRecipe[recipeId]) stepsByRecipe[recipeId] = [];
     stepsByRecipe[recipeId].push({
-      stepNumber: row[1],
-      instruction: row[2],
-      ingredients: row[3],
-      stepPicture: row[4]
+      text: row[2],
+      ingredients: Array.isArray(stepIngredients) ? stepIngredients : []
     });
   });
 
-  // Build combined recipe objects
-  return listData.map(row => {
-    const id = row[0];
-    const recipeSteps = stepsByRecipe[id] || [];
-    
-    const formattedSteps = recipeSteps.map(step => {
-      let ing = step.ingredients;
-      if (typeof ing === 'string') {
-        ing = ing ? ing.split(',').map(s => s.trim()) : [];
-      }
-      return {
-        stepNumber: step.stepNumber,
-        instruction: step.instruction,
-        ingredients: Array.isArray(ing) ? ing : [],
-        stepPicture: step.stepPicture
-      };
-    });
+  const ingredientsByRecipe = {};
+  ingredientsData.forEach(row => {
+    const recipeId = row[0];
+    if (!ingredientsByRecipe[recipeId]) ingredientsByRecipe[recipeId] = [];
+    ingredientsByRecipe[recipeId].push({ name: row[2], qty: row[3], unit: row[4] });
+  });
 
+  return listData.map(row => {
+    const id = String(row[0]); // Sheets stores numeric-looking IDs as numbers; normalize so ID comparisons in the frontend work
     return {
       id: id,
       title: row[1],
@@ -65,55 +98,182 @@ function getRecipes() {
       equipment: row[4],
       prepTime: row[5],
       servings: row[6],
-      steps: formattedSteps
+      createdAt: Number(row[7]) || 0,
+      ingredients: ingredientsByRecipe[id] || [],
+      steps: stepsByRecipe[id] || []
     };
   });
 }
 
-// Fetch master ingredients list from Ingredients sheet
-function getIngredients() {
+// Save (or update) one recipe across RecipeList, RecipeSteps, and RecipeIngredients
+function saveNewRecipe(recipeData) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName("Ingredients");
-  const data = sheet.getDataRange().getValues();
-  
-  const ingredients = data.flat().filter(item => item && item.toString().trim() !== "" && item !== "INGREDIENTS");
-  return ingredients;
+  const listSheet = ss.getSheetByName("RecipeList");
+  const stepsSheet = ss.getSheetByName("RecipeSteps");
+  const ingSheet = ss.getSheetByName("RecipeIngredients") || ss.insertSheet("RecipeIngredients");
+
+  const recipeId = recipeData.id || ("rec_" + new Date().getTime());
+
+  upsertRowByRecipeId(listSheet, recipeId, [
+    recipeId,
+    recipeData.title,
+    recipeData.mainPicture || "",
+    recipeData.category || "General",
+    recipeData.equipment || "",
+    recipeData.prepTime || "",
+    recipeData.servings || "",
+    recipeData.createdAt || Date.now()
+  ]);
+
+  clearRowsByRecipeId(stepsSheet, recipeId);
+  if (recipeData.steps && recipeData.steps.length > 0) {
+    recipeData.steps.forEach((step, idx) => {
+      const instructionText = typeof step === 'string' ? step : (step.text || "");
+      if (!instructionText.trim()) return; // skip empty steps to avoid junk rows
+
+      let ingText = "";
+      if (Array.isArray(step.ingredients)) ingText = step.ingredients.join(', ');
+      else if (typeof step.ingredients === 'string') ingText = step.ingredients;
+
+      stepsSheet.appendRow([recipeId, idx + 1, instructionText, ingText, step.picture || ""]);
+    });
+  }
+
+  clearRowsByRecipeId(ingSheet, recipeId);
+  if (recipeData.ingredients && recipeData.ingredients.length > 0) {
+    recipeData.ingredients.forEach(ing => {
+      ingSheet.appendRow([recipeId, recipeData.title, ing.name || "", ing.qty || 0, ing.unit || ""]);
+    });
+  }
+
+  return { success: true, recipeId: recipeId };
 }
 
-// Save a new recipe to RecipeList
-function addRecipe(recipeName) {
-  if (!recipeName || recipeName.trim() === "") return { success: false, message: "Recipe name empty" };
-  
+// Deletes a recipe (and its steps/ingredients) from the spreadsheet by ID
+function deleteRecipe(recipeId) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName("RecipeList");
-  sheet.appendRow([recipeName.trim()]);
+  clearRowsByRecipeId(ss.getSheetByName("RecipeList"), recipeId);
+  clearRowsByRecipeId(ss.getSheetByName("RecipeSteps"), recipeId);
+  const ingSheet = ss.getSheetByName("RecipeIngredients");
+  if (ingSheet) clearRowsByRecipeId(ingSheet, recipeId);
   return { success: true };
 }
-// Run this function once to set up the headers and sample data automatically!
+
+// Bridge called from the frontend: saves all recipes plus the categories/ingredients master lists
+function saveAppData(dataObject) {
+  if (!dataObject) return { success: true };
+
+  if (Array.isArray(dataObject.recipes)) {
+    dataObject.recipes.forEach(recipe => saveNewRecipe(recipe));
+  }
+  if (Array.isArray(dataObject.categories)) {
+    writeSheetList('Categories', dataObject.categories);
+  }
+  if (Array.isArray(dataObject.ingredients)) {
+    writeIngredientsList(dataObject.ingredients);
+  }
+
+  return { success: true };
+}
+
+// Reads a single-column list sheet (e.g. Categories), falling back to defaults if it doesn't exist yet
+function readSheetList(sheetName, fallback) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  if (!sheet) return fallback;
+  const items = sheet.getDataRange().getValues().flat().filter(v => v && v.toString().trim() !== "");
+  return items.length > 0 ? items : fallback;
+}
+
+// Reads the Ingredients sheet (Ingredients | Type | Measurement, with a header row) as master ingredient objects
+function readIngredientsList() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Ingredients');
+  if (!sheet) return DEFAULT_INGREDIENTS;
+
+  const rows = sheet.getDataRange().getValues();
+  rows.shift(); // header row
+
+  const items = rows
+    .filter(row => row[0] && row[0].toString().trim() !== "")
+    .map(row => ({
+      name: row[0],
+      category: normalizeIngredientCategory(row[1]),
+      unit: normalizeUnit(row[2])
+    }));
+
+  return items.length > 0 ? items : DEFAULT_INGREDIENTS;
+}
+
+// Overwrites the Ingredients sheet with the given master ingredient objects, creating it if needed
+function writeIngredientsList(items) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Ingredients');
+  if (!sheet) sheet = ss.insertSheet('Ingredients');
+  sheet.clear();
+
+  sheet.getRange(1, 1, 1, 3).setValues([["Ingredients", "Type", "Measurement"]]).setFontWeight("bold");
+  if (items.length > 0) {
+    sheet.getRange(2, 1, items.length, 3).setValues(items.map(i => [i.name, i.category || 'probably buy', i.unit || '']));
+  }
+}
+
+// Overwrites a single-column list sheet with the given items, creating it if needed
+function writeSheetList(sheetName, items) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) sheet = ss.insertSheet(sheetName);
+  sheet.clear();
+  if (items.length > 0) {
+    sheet.getRange(1, 1, items.length, 1).setValues(items.map(i => [i]));
+  }
+}
+
+// Helper: updates an existing row or appends a new one if it's a new recipe
+function upsertRowByRecipeId(sheet, recipeId, rowData) {
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] == recipeId) {
+      sheet.getRange(i + 1, 1, 1, rowData.length).setValues([rowData]);
+      return;
+    }
+  }
+  sheet.appendRow(rowData);
+}
+
+// Helper: clears old rows for a recipe before writing fresh ones
+function clearRowsByRecipeId(sheet, recipeId) {
+  const data = sheet.getDataRange().getValues();
+  for (let i = data.length - 1; i >= 1; i--) {
+    if (data[i][0] == recipeId) {
+      sheet.deleteRow(i + 1);
+    }
+  }
+}
+
+// Run this function once (from the Apps Script editor) to set up sheet headers and sample data
 function setupRecipEZSchema() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  
+
   // 1. Setup RecipeList Tab
   let recipeListSheet = ss.getSheetByName("RecipeList");
   if (!recipeListSheet) {
     recipeListSheet = ss.insertSheet("RecipeList");
   } else {
-    recipeListSheet.clear(); // Clear existing text list to set up table
+    recipeListSheet.clear();
   }
-  
-  recipeListSheet.getRange(1, 1, 1, 7).setValues([[
-    "Recipe ID", "Title", "Main Picture", "Category", "Equipment Needed", "Prep Time", "Serving Size"
+
+  recipeListSheet.getRange(1, 1, 1, 8).setValues([[
+    "Recipe ID", "Title", "Main Picture", "Category", "Equipment Needed", "Prep Time", "Serving Size", "Created At"
   ]]).setFontWeight("bold").setBackground("#e6f4ea");
-  
-  // Add sample recipe row
+
   recipeListSheet.appendRow([
-    "rec_001", 
-    "Wintry Beef Stew", 
-    "https://images.unsplash.com/photo-1547592180-85f173990554", 
-    "Soups & Stews", 
-    "Dutch Oven, Chef's Knife, Cutting Board", 
-    "30 mins", 
-    "6 servings"
+    "rec_001",
+    "Wintry Beef Stew",
+    "https://images.unsplash.com/photo-1547592180-85f173990554",
+    "Soups & Stews",
+    "Dutch Oven, Chef's Knife, Cutting Board",
+    "30 mins",
+    "6 servings",
+    new Date().getTime()
   ]);
 
   // 2. Setup RecipeSteps Tab
@@ -123,167 +283,30 @@ function setupRecipEZSchema() {
   } else {
     recipeStepsSheet.clear();
   }
-  
+
   recipeStepsSheet.getRange(1, 1, 1, 5).setValues([[
     "Recipe ID", "Step Number", "Instruction", "Ingredients Used", "Step Picture"
   ]]).setFontWeight("bold").setBackground("#e6f4ea");
-  
-  // Add sample steps connected to rec_001
-  recipeStepsSheet.appendRow([
-    "rec_001", 1, "Heat olive oil in Dutch oven over medium heat.", "2 tbsp olive oil", ""
-  ]);
-  recipeStepsSheet.appendRow([
-    "rec_001", 2, "Add beef chuck and sear until browned on all sides.", "2 lbs beef chuck, 1 tsp salt, 1/2 tsp pepper", ""
-  ]);
-  recipeStepsSheet.appendRow([
-    "rec_001", 3, "Add minced garlic and onions; sauté until fragrant.", "3 cloves minced garlic, 1 large onion", ""
-  ]);
+
+  recipeStepsSheet.appendRow(["rec_001", 1, "Heat olive oil in Dutch oven over medium heat.", "Olive Oil", ""]);
+  recipeStepsSheet.appendRow(["rec_001", 2, "Add beef chuck and sear until browned on all sides.", "Beef Chuck, Salt, Black Pepper", ""]);
+  recipeStepsSheet.appendRow(["rec_001", 3, "Add minced garlic and onions; saute until fragrant.", "Garlic, Onions", ""]);
+
+  // 3. Setup RecipeIngredients Tab
+  let recipeIngredientsSheet = ss.getSheetByName("RecipeIngredients");
+  if (!recipeIngredientsSheet) {
+    recipeIngredientsSheet = ss.insertSheet("RecipeIngredients");
+  } else {
+    recipeIngredientsSheet.clear();
+  }
+
+  recipeIngredientsSheet.getRange(1, 1, 1, 5).setValues([[
+    "Recipe ID", "Recipe Title", "Ingredient", "Quantity", "Unit"
+  ]]).setFontWeight("bold").setBackground("#e6f4ea");
+
+  recipeIngredientsSheet.appendRow(["rec_001", "Wintry Beef Stew", "Beef Chuck", 2, "lb"]);
+  recipeIngredientsSheet.appendRow(["rec_001", "Wintry Beef Stew", "Olive Oil", 2, "tbsp"]);
+  recipeIngredientsSheet.appendRow(["rec_001", "Wintry Beef Stew", "Onions", 1, "Items"]);
 
   Logger.log("RecipEZ setup complete!");
-}
-// Saves a new recipe from the Recipe Manager form
-function saveNewRecipe(recipeData) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const listSheet = ss.getSheetByName("RecipeList");
-  const stepsSheet = ss.getSheetByName("RecipeSteps");
-  const ingSheet = ss.getSheetByName("RecipeIngredients");
-  
-  // Generate unique ID if not present
-  const recipeId = recipeData.id || ("rec_" + new Date().getTime());
-  
-  // 1. Append or Update RecipeList
-  upsertRowByRecipeId(listSheet, recipeId, [
-    recipeId,
-    recipeData.title,
-    recipeData.mainPicture || "",
-    recipeData.category || "General",
-    recipeData.equipment || "",
-    recipeData.prepTime || "",
-    recipeData.servings || ""
-  ]);
-  
-  // 2. Clear and Update RecipeSteps (filtering out blank junk rows)
-  clearRowsByRecipeId(stepsSheet, recipeId);
-  if (recipeData.steps && recipeData.steps.length > 0) {
-    recipeData.steps.forEach((step, idx) => {
-      // Get instruction text safely
-      const instructionText = typeof step === 'string' ? step : (step.text || step.instruction || "");
-      
-      // Skip completely empty steps to prevent junk rows
-      if (!instructionText.trim()) return;
-
-      // Format ingredients safely into a string
-      let rawIngs = step.ingredients || "";
-      let ingText = "";
-      if (Array.isArray(rawIngs)) {
-        ingText = rawIngs.join(', ');
-      } else if (typeof rawIngs === 'string') {
-        ingText = rawIngs;
-      }
-
-      stepsSheet.appendRow([
-        recipeId,
-        idx + 1,
-        instructionText,
-        ingText,
-        step.picture || ""
-      ]);
-    });
-  }
-
-  // 3. Clear and Update RecipeIngredients
-  clearRowsByRecipeId(ingSheet, recipeId);
-  if (recipeData.ingredients && recipeData.ingredients.length > 0) {
-    recipeData.ingredients.forEach(ing => {
-      ingSheet.appendRow([
-        recipeId,
-        recipeData.title,
-        ing.name || "",
-        ing.qty || 0,
-        ing.unit || ""
-      ]);
-    });
-  }
-  
-  return { success: true, recipeId: recipeId };
-}
-// Handles incoming POST requests from your website
-function doPost(e) {
-  try {
-    var data = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    
-    if (data.action === 'saveRecipe') {
-      var recipe = data.recipe;
-      
-      // 1. Update RecipeList
-      var listSheet = ss.getSheetByName('RecipeList');
-      upsertRowByRecipeId(listSheet, recipe.recipeId, [
-        recipe.recipeId, recipe.title, recipe.mainPicture, recipe.category, recipe.equipmentNeeded, recipe.prepTime, recipe.servingSize
-      ]);
-      
-      // 2. Update RecipeSteps
-      var stepsSheet = ss.getSheetByName('RecipeSteps');
-      clearRowsByRecipeId(stepsSheet, recipe.recipeId);
-      if (recipe.steps) {
-        recipe.steps.forEach(function(step) {
-          stepsSheet.appendRow([recipe.recipeId, step.stepNumber, step.instruction, step.ingredientsUsed, step.stepPicture]);
-        });
-      }
-      
-      // 3. Update RecipeIngredients
-      var ingSheet = ss.getSheetByName('RecipeIngredients');
-      clearRowsByRecipeId(ingSheet, recipe.recipeId);
-      if (recipe.ingredients) {
-        recipe.ingredients.forEach(function(ing) {
-          ingSheet.appendRow([recipe.recipeId, recipe.title, ing.ingredient, ing.quantity, ing.measurement]);
-        });
-      }
-      
-      return ContentService.createTextOutput(JSON.stringify({status: 'success'}))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({status: 'error', message: err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-// Handles simple test checks (fixes the doGet error)
-function doGet(e) {
-  // This tells Google Apps Script to serve your index.html file when someone visits your web app URL
-  return HtmlService.createHtmlOutputFromFile('index')
-    .setTitle('Recipe-Z')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-}
-
-// Helper: Updates an existing row or appends a new one if it's a new recipe
-function upsertRowByRecipeId(sheet, recipeId, rowData) {
-  var data = sheet.getDataRange().getValues();
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][0] == recipeId) {
-      sheet.getRange(i + 1, 1, 1, rowData.length).setValues([rowData]);
-      return;
-    }
-  }
-  sheet.appendRow(rowData);
-}
-
-// Helper: Clears old rows for a recipe before writing fresh ones
-function clearRowsByRecipeId(sheet, recipeId) {
-  var data = sheet.getDataRange().getValues();
-  for (var i = data.length - 1; i >= 1; i--) {
-    if (data[i][0] == recipeId) {
-      sheet.deleteRow(i + 1);
-    }
-  }
-}
-// Bridge function to save app data from the frontend into your existing setup
-function saveAppData(dataObject) {
-  if (dataObject && dataObject.recipes) {
-    dataObject.recipes.forEach(recipe => {
-      saveNewRecipe(recipe);
-    });
-  }
-  return { success: true };
 }
