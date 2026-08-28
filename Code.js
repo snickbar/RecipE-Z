@@ -87,6 +87,10 @@ function getRecipes() {
   const ingredientsData = ingredientsSheet ? ingredientsSheet.getDataRange().getValues() : [];
   if (ingredientsData.length > 0) ingredientsData.shift();
 
+  const notesSheet = ss.getSheetByName("RecipeNotes");
+  const notesData = notesSheet ? notesSheet.getDataRange().getValues() : [];
+  if (notesData.length > 0) notesData.shift();
+
   const stepsByRecipe = {};
   stepsData.forEach(row => {
     const recipeId = row[0];
@@ -97,6 +101,13 @@ function getRecipes() {
       ingredients: stepIngredients,
       picture: row[4] || ''
     });
+  });
+
+  const notesByRecipe = {};
+  notesData.forEach(row => {
+    const recipeId = row[0];
+    if (!notesByRecipe[recipeId]) notesByRecipe[recipeId] = [];
+    notesByRecipe[recipeId].push({ text: row[2], picture: row[3] || '' });
   });
 
   const ingredientsByRecipe = {};
@@ -118,7 +129,8 @@ function getRecipes() {
       servings: row[6],
       createdAt: Number(row[7]) || 0,
       ingredients: ingredientsByRecipe[id] || [],
-      steps: stepsByRecipe[id] || []
+      steps: stepsByRecipe[id] || [],
+      notes: notesByRecipe[id] || []
     };
   });
 }
@@ -143,6 +155,7 @@ function saveNewRecipe(recipeData) {
   const listSheet = ss.getSheetByName("RecipeList");
   const stepsSheet = ss.getSheetByName("RecipeSteps");
   const ingSheet = ss.getSheetByName("RecipeIngredients") || ss.insertSheet("RecipeIngredients");
+  const notesSheet = ss.getSheetByName("RecipeNotes") || ss.insertSheet("RecipeNotes");
 
   const recipeId = recipeData.id || ("rec_" + new Date().getTime());
 
@@ -181,6 +194,19 @@ function saveNewRecipe(recipeData) {
     ingSheet.getRange(ingSheet.getLastRow() + 1, 1, ingRows.length, 5).setValues(ingRows);
   }
 
+  clearRowsByRecipeId(notesSheet, recipeId);
+  if (recipeData.notes && recipeData.notes.length > 0) {
+    const noteRows = [];
+    recipeData.notes.forEach(note => {
+      const noteText = typeof note === 'string' ? note : (note.text || "");
+      if (!noteText.trim()) return; // skip empty notes to avoid junk rows
+      noteRows.push([recipeId, noteRows.length + 1, noteText, note.picture || ""]);
+    });
+    if (noteRows.length > 0) {
+      notesSheet.getRange(notesSheet.getLastRow() + 1, 1, noteRows.length, 4).setValues(noteRows);
+    }
+  }
+
   return { success: true, recipeId: recipeId };
   });
 }
@@ -193,6 +219,8 @@ function deleteRecipe(recipeId) {
     clearRowsByRecipeId(ss.getSheetByName("RecipeSteps"), recipeId);
     const ingSheet = ss.getSheetByName("RecipeIngredients");
     if (ingSheet) clearRowsByRecipeId(ingSheet, recipeId);
+    const notesSheet = ss.getSheetByName("RecipeNotes");
+    if (notesSheet) clearRowsByRecipeId(notesSheet, recipeId);
     return { success: true };
   });
 }
@@ -210,6 +238,292 @@ function saveUnits(units) {
   return withScriptLock(() => {
     writeSheetList('Units', units);
     return { success: true };
+  });
+}
+
+// Sends pasted, unstructured recipe text to Claude and gets back structured fields matching this
+// app's own recipe shape. The API key lives in Script Properties (Project Settings), never in this
+// file, since Code.js is committed to a public-ish GitHub repo.
+function smartImportRecipe(rawText) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+  if (!apiKey) {
+    return { success: false, error: 'No Anthropic API key configured. Add ANTHROPIC_API_KEY under Project Settings > Script Properties.' };
+  }
+  if (!rawText || !rawText.trim()) {
+    return { success: false, error: 'No recipe text provided.' };
+  }
+
+  const ingredientSchema = {
+    type: 'object',
+    properties: {
+      name: { type: 'string' },
+      qty: { type: 'number' },
+      unit: { type: 'string' }
+    },
+    required: ['name', 'qty', 'unit']
+  };
+
+  const tool = {
+    name: 'record_parsed_recipe',
+    description: 'Records a recipe parsed from unstructured text into structured fields.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        category: { type: 'string', description: 'e.g. Breakfast, Lunch, Dinner, Dessert, Snacks, Appetizers, Side Dish, Beverages' },
+        equipment: { type: 'string', description: 'Comma-separated equipment needed, if mentioned' },
+        prepTime: { type: 'string' },
+        servings: { type: 'string' },
+        ingredients: { type: 'array', items: ingredientSchema },
+        steps: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              text: { type: 'string' },
+              ingredients: { type: 'array', items: ingredientSchema, description: 'Which of the recipe ingredients (with the amount used) this specific step involves' }
+            },
+            required: ['text', 'ingredients']
+          }
+        },
+        notes: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Any extra tips, substitutions, storage/make-ahead instructions, or asides mentioned in the ' +
+            'text that are not part of the main step-by-step instructions — e.g. "can be frozen for up to 3 months" ' +
+            'or "tastes best the next day."'
+        }
+      },
+      required: ['title', 'ingredients', 'steps']
+    }
+  };
+
+  const payload = {
+    model: 'claude-opus-5',
+    max_tokens: 4096,
+    tools: [tool],
+    tool_choice: { type: 'tool', name: 'record_parsed_recipe' },
+    messages: [{
+      role: 'user',
+      content: 'Parse the following recipe into structured data. Prefer standard unit abbreviations ' +
+        '(oz, tsp, tbsp, g, cups, lb, Items, jars, cans) where the text is ambiguous or uses a full word. ' +
+        'If a field is not mentioned in the text, omit it or leave it blank rather than guessing. ' +
+        'Split the instructions into individual steps, and for each step list only the ingredients ' +
+        'and amounts actually used in that step. Pull out any tips, substitutions, or notes that aren\'t ' +
+        'part of the main steps into the notes field, each as its own separate note.\n\nRecipe text:\n\n' + rawText
+    }]
+  };
+
+  const response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+
+  let result;
+  try {
+    result = JSON.parse(response.getContentText());
+  } catch (e) {
+    return { success: false, error: 'Unexpected response from Claude API.' };
+  }
+
+  if (result.error) {
+    return { success: false, error: result.error.message || 'Claude API error.' };
+  }
+
+  const toolUseBlock = (result.content || []).find(block => block.type === 'tool_use');
+  if (!toolUseBlock) {
+    return { success: false, error: 'Could not parse that recipe — try pasting more of it, or check the formatting.' };
+  }
+
+  return { success: true, recipe: toolUseBlock.input };
+}
+
+// Sends the master ingredients list to Claude and asks it to find groups of names that are really
+// the same real-world ingredient — misspellings, singular/plural, abbreviations — so the user can
+// review and merge them. Used by "Smart Cleanup" in the Ingredients Manager.
+function smartCleanupIngredients() {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+  if (!apiKey) {
+    return { success: false, error: 'No Anthropic API key configured. Add ANTHROPIC_API_KEY under Project Settings > Script Properties.' };
+  }
+
+  const ingredients = readIngredientsList();
+  if (!ingredients || ingredients.length < 2) {
+    return { success: true, groups: [] };
+  }
+
+  const tool = {
+    name: 'record_duplicate_groups',
+    description: 'Records groups of ingredient names from the list that refer to the exact same real-world ingredient.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        groups: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              members: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Ingredient names, copied exactly as given, that all refer to the same real-world ingredient (2 or more).'
+              },
+              suggestedKeep: { type: 'string', description: 'Which member is the best canonical name to keep — correctly spelled, standard form.' },
+              reason: { type: 'string', description: 'Brief reason these are the same ingredient, e.g. "misspelling", "singular/plural", "abbreviation".' }
+            },
+            required: ['members', 'suggestedKeep', 'reason']
+          }
+        }
+      },
+      required: ['groups']
+    }
+  };
+
+  const payload = {
+    model: 'claude-opus-5',
+    max_tokens: 4096,
+    tools: [tool],
+    tool_choice: { type: 'tool', name: 'record_duplicate_groups' },
+    messages: [{
+      role: 'user',
+      content: 'Here is the master ingredients list from a recipe app:\n\n' +
+        ingredients.map(i => '- ' + i.name).join('\n') +
+        '\n\nFind groups of names that refer to the EXACT SAME real-world ingredient — misspellings, ' +
+        'singular/plural variants, abbreviations, or trivial formatting differences (e.g. "Tomatoe" / "Tomato", ' +
+        '"Bell Pepper" / "Bell Peppers", "EVOO" / "Extra Virgin Olive Oil"). Do NOT group ingredients that are ' +
+        'genuinely different even if similar-sounding — e.g. "Red Bell Pepper" and "Green Bell Pepper" are ' +
+        'different ingredients, as are "Chicken Breast" and "Chicken Thigh", or "Butter" and "Peanut Butter". ' +
+        'When in doubt, do not group them. Only include groups of 2 or more names. If there are no duplicates, ' +
+        'return an empty groups array.'
+    }]
+  };
+
+  const response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+
+  let result;
+  try {
+    result = JSON.parse(response.getContentText());
+  } catch (e) {
+    return { success: false, error: 'Unexpected response from Claude API.' };
+  }
+
+  if (result.error) {
+    return { success: false, error: result.error.message || 'Claude API error.' };
+  }
+
+  const toolUseBlock = (result.content || []).find(block => block.type === 'tool_use');
+  if (!toolUseBlock) {
+    return { success: false, error: 'Could not analyze the ingredients list — try again.' };
+  }
+
+  return { success: true, groups: toolUseBlock.input.groups || [] };
+}
+
+// Merges chosen groups of duplicate ingredient names into one canonical name each — across the
+// Ingredients master list, and every recipe's RecipeIngredients and RecipeSteps rows that reference
+// the old names. mergeOps: [{ keep: "Tomato", remove: ["Tomatoe", "tomatoes"] }, ...]
+function mergeIngredients(mergeOps) {
+  return withScriptLock(() => {
+    if (!mergeOps || mergeOps.length === 0) return { success: true, recipesUpdated: 0 };
+
+    // Case-insensitive rename map: lowercased old name -> canonical name
+    const renameMap = {};
+    mergeOps.forEach(op => {
+      (op.remove || []).forEach(oldName => {
+        const key = String(oldName || '').toLowerCase();
+        if (key && key !== op.keep.toLowerCase()) renameMap[key] = op.keep;
+      });
+    });
+    if (Object.keys(renameMap).length === 0) return { success: true, recipesUpdated: 0 };
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // 1. Drop the merged-away names from the Ingredients master list
+    const master = readIngredientsList().filter(i => !renameMap[String(i.name).toLowerCase()]);
+    writeIngredientsList(master);
+
+    const recipesUpdated = new Set();
+
+    // 2. Rename matching rows in RecipeIngredients. If renaming makes two rows in the same recipe
+    // share the same (name, unit) — e.g. "Tomato" 2 cups and "Tomatoes" 1 cup both becoming
+    // "Tomato" — combine them into one row instead of leaving a duplicate ingredient line.
+    const ingSheet = ss.getSheetByName('RecipeIngredients');
+    if (ingSheet) {
+      const data = ingSheet.getDataRange().getValues();
+      if (data.length > 1) {
+        const header = data[0];
+        const rows = data.slice(1);
+        const consolidated = [];
+        const indexByKey = {};
+
+        rows.forEach(row => {
+          const canonical = renameMap[String(row[2] || '').toLowerCase()];
+          if (canonical) {
+            row[2] = canonical;
+            recipesUpdated.add(row[0]);
+          }
+
+          const key = row[0] + '|' + String(row[2]).toLowerCase() + '|' + String(row[4]).toLowerCase();
+          if (indexByKey[key] !== undefined) {
+            consolidated[indexByKey[key]][3] = (Number(consolidated[indexByKey[key]][3]) || 0) + (Number(row[3]) || 0);
+          } else {
+            indexByKey[key] = consolidated.length;
+            consolidated.push(row);
+          }
+        });
+
+        ingSheet.getRange(2, 1, data.length - 1, header.length).clearContent();
+        if (consolidated.length > 0) {
+          ingSheet.getRange(2, 1, consolidated.length, header.length).setValues(consolidated);
+        }
+      }
+    }
+
+    // 3. Rename matching ingredient references inside each step's "Ingredients Used" JSON
+    const stepsSheet = ss.getSheetByName('RecipeSteps');
+    if (stepsSheet) {
+      const data = stepsSheet.getDataRange().getValues();
+      let changed = false;
+      for (let r = 1; r < data.length; r++) {
+        const stepIngredients = parseStepIngredients(data[r][3]);
+        if (stepIngredients.length === 0) continue;
+
+        let rowChanged = false;
+        const updated = stepIngredients.map(ing => {
+          const name = typeof ing === 'string' ? ing : ing.name;
+          const canonical = renameMap[String(name || '').toLowerCase()];
+          if (!canonical) return ing;
+          rowChanged = true;
+          return typeof ing === 'string' ? canonical : Object.assign({}, ing, { name: canonical });
+        });
+
+        if (rowChanged) {
+          data[r][3] = JSON.stringify(updated);
+          changed = true;
+          recipesUpdated.add(data[r][0]);
+        }
+      }
+      if (changed) {
+        stepsSheet.getRange(1, 1, data.length, data[0].length).setValues(data);
+      }
+    }
+
+    return { success: true, recipesUpdated: recipesUpdated.size };
   });
 }
 
@@ -376,6 +690,20 @@ function setupRecipEZSchema() {
   recipeIngredientsSheet.appendRow(["rec_001", "Wintry Beef Stew", "Beef Chuck", 2, "lb"]);
   recipeIngredientsSheet.appendRow(["rec_001", "Wintry Beef Stew", "Olive Oil", 2, "tbsp"]);
   recipeIngredientsSheet.appendRow(["rec_001", "Wintry Beef Stew", "Onions", 1, "Items"]);
+
+  // 4. Setup RecipeNotes Tab
+  let recipeNotesSheet = ss.getSheetByName("RecipeNotes");
+  if (!recipeNotesSheet) {
+    recipeNotesSheet = ss.insertSheet("RecipeNotes");
+  } else {
+    recipeNotesSheet.clear();
+  }
+
+  recipeNotesSheet.getRange(1, 1, 1, 4).setValues([[
+    "Recipe ID", "Note Number", "Note Text", "Note Picture"
+  ]]).setFontWeight("bold").setBackground("#e6f4ea");
+
+  recipeNotesSheet.appendRow(["rec_001", 1, "Tastes even better the next day once the flavors have settled.", ""]);
 
   Logger.log("RecipEZ setup complete!");
 }

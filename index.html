@@ -563,6 +563,9 @@
 
       <h2 class="detail-section-title">Preparation Steps</h2>
       <ol id="detailStepsList" class="detail-steps"></ol>
+
+      <h2 class="detail-section-title" id="detailNotesTitle" style="display:none;">Extra Notes</h2>
+      <ul id="detailNotesList" class="detail-steps"></ul>
     </div>
 
     <!-- TAB: PRINT MODE -->
@@ -592,6 +595,9 @@
         <ul id="printIngredientsList" class="print-ing-grid"></ul>
         <h2 class="print-section-title">Preparation Steps</h2>
         <ol id="printStepsList" class="print-steps"></ol>
+
+        <h2 class="print-section-title" id="printNotesTitle" style="display:none;">Extra Notes</h2>
+        <ul id="printNotesList" class="print-steps"></ul>
       </div>
     </div>
 
@@ -650,6 +656,11 @@
         Add New Recipe
       </button>
 
+      <button type="button" onclick="openSmartImportModal()" class="w-full mb-6 bg-white border-2 border-amber-800/40 hover:border-amber-800 text-amber-950 font-bold py-3 rounded-xl text-sm uppercase tracking-wider shadow flex items-center justify-center gap-2 transition-colors">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 4.5L18 9l-4.1 1.5L12 15l-1.9-4.5L6 9l4.1-1.5L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/></svg>
+        Smart Import a Recipe
+      </button>
+
       <div id="hubRecipesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       </div>
     </div>
@@ -669,6 +680,7 @@
         <button id="tabBtnDetails" onclick="switchEditorTab(1)" class="uni-tab active">1. Details</button>
         <button id="tabBtnIngredients" onclick="switchEditorTab(2)" class="uni-tab">2. Ingredients</button>
         <button id="tabBtnSteps" onclick="switchEditorTab(3)" class="uni-tab">3. Steps</button>
+        <button id="tabBtnNotes" onclick="switchEditorTab(4)" class="uni-tab">4. Notes</button>
       </div>
       <div class="uni-close-wrap">
         <button class="uni-close" onclick="attemptCloseEditor()" title="Close">&times;</button>
@@ -848,6 +860,39 @@
           </div>
         </div>
 
+        <!-- STEP 4: EXTRA NOTES -->
+        <div id="section4Notes" class="hidden space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+
+            <div class="md:col-span-7 space-y-4 bg-[#f4ebd9]/50 p-4 rounded-xl border border-amber-900/15">
+              <div>
+                <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1" id="noteTextLabel">Note *</label>
+                <textarea id="noteTextInput" rows="5" oninput="markFormDirty()" placeholder="Any tips, substitutions, or extra notes about this recipe..." class="w-full fill-in-input resize-none"></textarea>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Note Photo (optional)</label>
+                <input type="url" id="notePictureURL" oninput="markFormDirty()" placeholder="Paste Image URL (https://...)" class="w-full fill-in-input mb-2">
+                <div class="text-xs text-amber-900/70 font-semibold text-center">- OR -</div>
+                <input type="file" id="notePictureFile" onchange="handleNotePictureUpload(event)" accept="image/*" class="mt-2 text-xs text-amber-950 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-amber-200 file:text-amber-900 hover:file:bg-amber-300">
+              </div>
+
+              <button type="button" id="btnSaveNote" onclick="saveNoteItem()" class="w-full bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider shadow">
+                + Save & Add Another Note
+              </button>
+            </div>
+
+            <div class="md:col-span-5 bg-white border border-amber-900/20 rounded-xl p-4 flex flex-col justify-between max-h-96">
+              <div>
+                <h4 class="text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-2 border-b border-amber-900/10 pb-1">Extra Notes</h4>
+                <ul id="draftNotesList" class="space-y-2 overflow-y-auto max-h-72 pr-1 text-xs">
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </div>
 
       <div class="editor-footer">
@@ -923,7 +968,13 @@
         <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           <input type="text" id="managerIngSearchInput" oninput="renderIngredientsManagerList()" placeholder="Search ingredients..."
                  class="px-3 py-1.5 rounded-lg text-sm bg-white text-stone-900 placeholder-stone-500 border border-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-400 w-full sm:w-64">
-          <div id="managerIngFilterButtons" class="flex flex-wrap gap-1.5"></div>
+          <div class="flex items-center gap-3">
+            <div id="managerIngFilterButtons" class="flex flex-wrap gap-1.5"></div>
+            <button type="button" id="btnSmartCleanup" onclick="runSmartCleanup()" class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] shadow flex items-center gap-1.5 whitespace-nowrap">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 4V2m0 8v2m6.5-9.5l-1.4 1.4M9.9 9.1l-1.4 1.4m11.6.1l-1.4-1.4M9.9 4.9L8.5 3.5M3 21l9-9m1.5-1.5L21 3"/></svg>
+              Smart Cleanup
+            </button>
+          </div>
         </div>
         <ul id="managerIngredientsList" class="space-y-2"></ul>
       </div>
@@ -955,6 +1006,41 @@
     <div class="bg-[#fcf8ef] border-2 border-amber-700 max-w-sm w-full p-6 rounded-xl shadow-2xl text-center space-y-4">
       <p id="infoModalMessage" class="text-sm text-amber-950 font-semibold"></p>
       <button onclick="closeInfoModal()" class="bg-[#4a280e] hover:bg-[#311807] text-white font-bold py-2 px-6 rounded text-xs uppercase tracking-wider shadow">OK</button>
+    </div>
+  </div>
+
+  <!-- ================= SMART IMPORT MODAL ================= -->
+  <div id="smartImportModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-center p-4 z-[55]">
+    <div class="bg-[#fcf8ef] border-2 border-[#a88d67] max-w-xl w-full rounded-2xl shadow-2xl p-6 space-y-4 text-left">
+      <div class="flex justify-between items-center">
+        <h3 class="text-xl font-black font-title text-[#3b220c]">Smart Import</h3>
+        <button onclick="closeSmartImportModal()" class="text-amber-950/70 hover:text-amber-950 text-2xl font-bold">&times;</button>
+      </div>
+      <p class="text-xs text-amber-900/80 font-semibold">Paste a recipe below — ingredients, steps, whatever you've got — and it'll be organized into a new recipe for you to review before saving.</p>
+      <textarea id="smartImportText" rows="10" placeholder="Paste your recipe here..." class="w-full fill-in-input resize-none"></textarea>
+      <button type="button" id="smartImportBtn" onclick="runSmartImport()" class="w-full bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold py-3 rounded-lg text-xs uppercase tracking-wider shadow">
+        Parse Recipe
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= SMART CLEANUP MODAL ================= -->
+  <div id="smartCleanupModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-center p-4 z-[55]">
+    <div class="bg-[#fcf8ef] border-2 border-[#a88d67] max-w-2xl w-full rounded-2xl shadow-2xl p-6 space-y-4 text-left max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center flex-shrink-0">
+        <h3 class="text-xl font-black font-title text-[#3b220c]">Smart Cleanup</h3>
+        <button onclick="closeSmartCleanupModal()" class="text-amber-950/70 hover:text-amber-950 text-2xl font-bold">&times;</button>
+      </div>
+      <p id="cleanupIntroText" class="text-xs text-amber-900/80 font-semibold flex-shrink-0">Pick which name to keep in each group below, or uncheck "Merge" if they're actually different ingredients.</p>
+      <div id="cleanupGroupsList" class="space-y-3 overflow-y-auto pr-1 flex-1"></div>
+      <div id="cleanupActions" class="flex gap-2 pt-2 flex-shrink-0">
+        <button type="button" id="btnApplyCleanup" onclick="applySmartCleanup()" class="flex-1 bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider shadow">
+          Apply Merges
+        </button>
+        <button type="button" onclick="closeSmartCleanupModal()" class="px-4 border border-amber-800/40 text-amber-950 font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider">
+          Cancel
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1006,9 +1092,11 @@
 
     let draftIngredients = [];
     let draftSteps = [];
+    let draftNotes = [];
     let selectedUnit = 'oz';
     let editingIngIndex = null;
     let editingStepIndex = null;
+    let editingNoteIndex = null;
     let selectedStepIngredients = [];
 
     let managerSelectedCategory = 'probably buy';
@@ -1258,6 +1346,24 @@
       } else {
         stepsEl.innerHTML = `<li class="text-amber-900/60 italic text-xs">No steps specified.</li>`;
       }
+
+      const notesTitleEl = document.getElementById('detailNotesTitle');
+      const notesEl = document.getElementById('detailNotesList');
+      if (recipe.notes && recipe.notes.length > 0) {
+        notesTitleEl.style.display = '';
+        notesEl.innerHTML = recipe.notes.map((note, idx) => `
+          <li class="detail-step">
+            <div class="detail-step-num">${idx + 1}</div>
+            <div>
+              <div class="detail-step-body">${note.text}</div>
+              ${note.picture ? `<img src="${note.picture}" alt="Note photo" style="max-width:100%;margin-top:8px;border-radius:8px;">` : ''}
+            </div>
+          </li>
+        `).join('');
+      } else {
+        notesTitleEl.style.display = 'none';
+        notesEl.innerHTML = '';
+      }
     }
 
     function renderDetailPrintTab() {
@@ -1280,6 +1386,16 @@
       stepsEl.innerHTML = (recipe.steps && recipe.steps.length > 0)
         ? recipe.steps.map((st, idx) => `<li class="print-step"><span class="print-step-num">${idx + 1}.</span><span>${st.text}</span></li>`).join('')
         : `<li>No steps specified.</li>`;
+
+      const notesTitleEl = document.getElementById('printNotesTitle');
+      const notesEl = document.getElementById('printNotesList');
+      if (recipe.notes && recipe.notes.length > 0) {
+        notesTitleEl.style.display = '';
+        notesEl.innerHTML = recipe.notes.map((note, idx) => `<li class="print-step"><span class="print-step-num">${idx + 1}.</span><span>${note.text}</span></li>`).join('');
+      } else {
+        notesTitleEl.style.display = 'none';
+        notesEl.innerHTML = '';
+      }
 
       document.getElementById('printIncludePhoto').checked = true;
       togglePrintPhoto();
@@ -1624,6 +1740,132 @@
       });
     }
 
+    // --- SMART CLEANUP ---
+    let cleanupGroups = [];
+
+    function runSmartCleanup() {
+      const btn = document.getElementById('btnSmartCleanup');
+      btn.disabled = true;
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = 'Scanning…';
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+          if (!result || !result.success) {
+            showAlert('Smart Cleanup failed: ' + (result && result.error ? result.error : 'unknown error'));
+            return;
+          }
+          if (!result.groups || result.groups.length === 0) {
+            showAlert('No duplicate ingredients found — your list looks clean!');
+            return;
+          }
+          cleanupGroups = result.groups.map(g => ({
+            members: g.members,
+            reason: g.reason || '',
+            keep: (g.suggestedKeep && g.members.includes(g.suggestedKeep)) ? g.suggestedKeep : g.members[0],
+            skip: false
+          }));
+          renderCleanupGroups();
+          document.getElementById('smartCleanupModal').classList.remove('hidden');
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+          showAlert('Smart Cleanup failed: ' + error.message);
+        })
+        .smartCleanupIngredients();
+    }
+
+    function closeSmartCleanupModal() {
+      document.getElementById('smartCleanupModal').classList.add('hidden');
+    }
+
+    function renderCleanupGroups() {
+      const container = document.getElementById('cleanupGroupsList');
+      container.innerHTML = cleanupGroups.map((g, gi) => `
+        <div class="border border-amber-900/20 rounded-xl p-3 bg-white ${g.skip ? 'opacity-50' : ''}">
+          <div class="flex justify-between items-center gap-2 mb-2">
+            <span class="text-[11px] text-amber-900/70 italic">${g.reason}</span>
+            <label class="text-[11px] font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0">
+              <input type="checkbox" ${g.skip ? '' : 'checked'} onchange="toggleCleanupGroupSkip(${gi})">
+              Merge this group
+            </label>
+          </div>
+          <div class="space-y-1">
+            ${g.members.map(m => `
+              <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="radio" name="cleanupKeep${gi}" ${m === g.keep ? 'checked' : ''} ${g.skip ? 'disabled' : ''} onchange="setCleanupGroupKeep(${gi}, '${m.replace(/'/g, "\\'")}')">
+                <span class="text-[#3b220c]">${m}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleCleanupGroupSkip(gi) {
+      cleanupGroups[gi].skip = !cleanupGroups[gi].skip;
+      renderCleanupGroups();
+    }
+
+    function setCleanupGroupKeep(gi, name) {
+      cleanupGroups[gi].keep = name;
+    }
+
+    function applySmartCleanup() {
+      const ops = cleanupGroups
+        .filter(g => !g.skip)
+        .map(g => ({ keep: g.keep, remove: g.members.filter(m => m !== g.keep) }))
+        .filter(op => op.remove.length > 0);
+
+      if (ops.length === 0) {
+        closeSmartCleanupModal();
+        return;
+      }
+
+      const applyBtn = document.getElementById('btnApplyCleanup');
+      applyBtn.disabled = true;
+      applyBtn.innerText = 'Merging…';
+
+      google.script.run
+        .withSuccessHandler(function(mergeResult) {
+          google.script.run
+            .withSuccessHandler(function(serverData) {
+              if (serverData) {
+                if (Array.isArray(serverData.recipes)) masterRecipes = serverData.recipes;
+                if (Array.isArray(serverData.categories) && serverData.categories.length > 0) categoriesList = serverData.categories;
+                if (Array.isArray(serverData.ingredients) && serverData.ingredients.length > 0) masterIngredientsList = serverData.ingredients;
+                if (Array.isArray(serverData.units) && serverData.units.length > 0) unitsList = serverData.units;
+              }
+              applyBtn.disabled = false;
+              applyBtn.innerText = 'Apply Merges';
+              closeSmartCleanupModal();
+              renderIngredientsManagerList();
+              renderMainGrid();
+              renderHubGrid();
+              const recipeNote = mergeResult && mergeResult.recipesUpdated
+                ? ` Updated ${mergeResult.recipesUpdated} recipe${mergeResult.recipesUpdated === 1 ? '' : 's'} that used them.`
+                : '';
+              showAlert(`Merged ${ops.length} group${ops.length === 1 ? '' : 's'} of ingredients.${recipeNote}`);
+            })
+            .withFailureHandler(function(error) {
+              applyBtn.disabled = false;
+              applyBtn.innerText = 'Apply Merges';
+              closeSmartCleanupModal();
+              showAlert('Merge applied, but refreshing the page data failed — please reload the app: ' + error.message);
+            })
+            .getAppData();
+        })
+        .withFailureHandler(function(error) {
+          applyBtn.disabled = false;
+          applyBtn.innerText = 'Apply Merges';
+          showAlert('Could not apply merges: ' + error.message);
+        })
+        .mergeIngredients(ops);
+    }
+
     // --- MEASUREMENT TYPES (units) ---
     function saveManagerUnit() {
       const name = document.getElementById('managerUnitNewInput').value.trim();
@@ -1768,7 +2010,9 @@
       ingDropdownFilterCategory = 'All';
       draftIngredients = [];
       draftSteps = [];
+      draftNotes = [];
       resetEditorFields();
+      resetNoteForm();
       document.getElementById('editorModalTitle').innerText = "Add New Recipe";
       document.getElementById('btnDeleteRecipe').classList.add('hidden');
       switchEditorTab(1);
@@ -1778,7 +2022,102 @@
       renderDraftIngredients();
       renderStepIngredientSelectors();
       renderDraftSteps();
+      renderDraftNotes();
       document.getElementById('recipeEditorModal').classList.remove('hidden');
+    }
+
+    // --- SMART IMPORT ---
+    function openSmartImportModal() {
+      document.getElementById('smartImportText').value = '';
+      document.getElementById('smartImportBtn').disabled = false;
+      document.getElementById('smartImportBtn').innerText = 'Parse Recipe';
+      document.getElementById('smartImportModal').classList.remove('hidden');
+    }
+
+    function closeSmartImportModal() {
+      document.getElementById('smartImportModal').classList.add('hidden');
+    }
+
+    function runSmartImport() {
+      const text = document.getElementById('smartImportText').value.trim();
+      if (!text) {
+        showAlert('Please paste a recipe to import.');
+        return;
+      }
+
+      const btn = document.getElementById('smartImportBtn');
+      btn.disabled = true;
+      btn.innerText = 'Parsing…';
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.innerText = 'Parse Recipe';
+          if (!result || !result.success) {
+            showAlert('Could not parse that recipe: ' + (result && result.error ? result.error : 'unknown error'));
+            return;
+          }
+          closeSmartImportModal();
+          loadParsedRecipeIntoEditor(result.recipe);
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.innerText = 'Parse Recipe';
+          showAlert('Smart import failed: ' + error.message);
+        })
+        .smartImportRecipe(text);
+    }
+
+    // Opens a blank recipe form, then fills it with the parsed result so the user reviews and
+    // edits before anything is actually saved. New ingredient names/units get registered into the
+    // master lists (category defaults to "probably buy"), same as manually typing a new one.
+    function loadParsedRecipeIntoEditor(parsed) {
+      startNewRecipeForm();
+
+      document.getElementById('fieldTitle').value = parsed.title || '';
+      document.getElementById('fieldCategory').value = parsed.category || '';
+      document.getElementById('fieldEquipment').value = parsed.equipment || '';
+      document.getElementById('fieldPrepTime').value = parsed.prepTime || '';
+      document.getElementById('fieldServings').value = parsed.servings || '';
+      markFormDirty();
+
+      draftIngredients = (parsed.ingredients || []).map(ing => ({
+        name: ing.name, qty: parseFloat(ing.qty) || 0, unit: ing.unit || ''
+      }));
+
+      let ingredientsChanged = false;
+      let unitsChanged = false;
+      draftIngredients.forEach(ing => {
+        if (!masterIngredientsList.some(m => m.name.toLowerCase() === ing.name.toLowerCase())) {
+          masterIngredientsList.push({ name: ing.name, category: 'probably buy', unit: ing.unit || '' });
+          ingredientsChanged = true;
+        }
+        if (ing.unit && !unitsList.some(u => u.toLowerCase() === ing.unit.toLowerCase())) {
+          unitsList.push(ing.unit);
+          unitsChanged = true;
+        }
+      });
+      if (ingredientsChanged) persistIngredientsList();
+      if (unitsChanged) persistUnits();
+
+      draftSteps = (parsed.steps || []).map(step => ({
+        text: step.text || '',
+        ingredients: (step.ingredients || []).map(ing => ({
+          name: ing.name, qty: parseFloat(ing.qty) || 0, unit: ing.unit || ''
+        })),
+        picture: ''
+      }));
+
+      draftNotes = (parsed.notes || [])
+        .map(note => (typeof note === 'string' ? note : (note && note.text) || '').trim())
+        .filter(Boolean)
+        .map(text => ({ text, picture: '' }));
+
+      renderDraftIngredients();
+      renderStepIngredientSelectors();
+      renderDraftSteps();
+      renderDraftNotes();
+      switchEditorTab(1);
     }
 
     function openEditFromHub(id) {
@@ -1799,6 +2138,8 @@
       // Clean up any step ingredient references left stale by an ingredient being renamed
       // (different casing) since the step was last saved — see normalizeStepIngredients above.
       draftSteps = recipe.steps ? recipe.steps.map(step => ({ ...step, ingredients: normalizeStepIngredients(step.ingredients) })) : [];
+      draftNotes = recipe.notes ? recipe.notes.map(note => ({ ...note })) : [];
+      resetNoteForm();
 
       document.getElementById('editorModalTitle').innerText = "Edit Recipe";
       document.getElementById('btnDeleteRecipe').classList.remove('hidden');
@@ -1811,6 +2152,7 @@
       renderDraftIngredients();
       renderStepIngredientSelectors();
       renderDraftSteps();
+      renderDraftNotes();
       document.getElementById('recipeEditorModal').classList.remove('hidden');
     }
 
@@ -1894,24 +2236,108 @@
       }
     }
 
+    // --- NOTE FUNCTIONS ---
+    function handleNotePictureUpload(e) {
+      markFormDirty();
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          document.getElementById('notePictureURL').value = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function resetNoteForm() {
+      editingNoteIndex = null;
+      document.getElementById('noteTextInput').value = '';
+      document.getElementById('notePictureURL').value = '';
+      document.getElementById('notePictureFile').value = '';
+      document.getElementById('btnSaveNote').innerText = "+ Save & Add Another Note";
+      document.getElementById('noteTextLabel').innerText = "Note *";
+    }
+
+    function saveNoteItem() {
+      const text = document.getElementById('noteTextInput').value.trim();
+      if (!text) {
+        showAlert("Please enter a note.");
+        return;
+      }
+
+      const picture = document.getElementById('notePictureURL').value.trim();
+      markFormDirty();
+
+      if (editingNoteIndex !== null) {
+        draftNotes[editingNoteIndex] = { text, picture };
+      } else {
+        draftNotes.push({ text, picture });
+      }
+
+      resetNoteForm();
+      renderDraftNotes();
+    }
+
+    function renderDraftNotes() {
+      const listEl = document.getElementById('draftNotesList');
+      if (!listEl) return;
+
+      if (draftNotes.length === 0) {
+        listEl.innerHTML = `<li class="text-amber-900/50 italic text-xs">No notes added yet.</li>`;
+        return;
+      }
+
+      listEl.innerHTML = draftNotes.map((note, idx) => `
+        <li class="flex justify-between items-start gap-2 bg-amber-50 p-2 rounded border border-amber-200">
+          <div class="min-w-0">
+            <span class="text-[#3b220c]">${note.text}</span>
+            ${note.picture ? `<div class="text-[10px] text-amber-900/70 font-semibold mt-0.5">📷 Has photo</div>` : ''}
+          </div>
+          <div class="flex gap-1 flex-shrink-0">
+            <button type="button" onclick="editDraftNote(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold">✎</button>
+            <button type="button" onclick="removeDraftNote(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold">&times;</button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    function editDraftNote(idx) {
+      const note = draftNotes[idx];
+      editingNoteIndex = idx;
+      document.getElementById('noteTextInput').value = note.text;
+      document.getElementById('notePictureURL').value = note.picture || '';
+      document.getElementById('btnSaveNote').innerText = "Update Note";
+      document.getElementById('noteTextLabel').innerText = "Note (editing) *";
+    }
+
+    function removeDraftNote(idx) {
+      markFormDirty();
+      draftNotes.splice(idx, 1);
+      renderDraftNotes();
+    }
+
     function switchEditorTab(step) {
       currentEditorStep = step;
 
       const sec1 = document.getElementById('section1Details');
       const sec2 = document.getElementById('section2Ingredients');
       const sec3 = document.getElementById('section3Steps');
+      const sec4 = document.getElementById('section4Notes');
       const btnTab1 = document.getElementById('tabBtnDetails');
       const btnTab2 = document.getElementById('tabBtnIngredients');
       const btnTab3 = document.getElementById('tabBtnSteps');
+      const btnTab4 = document.getElementById('tabBtnNotes');
       const btnNext = document.getElementById('btnNext');
 
       sec1.classList.add('hidden');
       sec2.classList.add('hidden');
       sec3.classList.add('hidden');
+      sec4.classList.add('hidden');
 
       btnTab1.classList.remove('active');
       btnTab2.classList.remove('active');
       btnTab3.classList.remove('active');
+      btnTab4.classList.remove('active');
 
       if (step === 1) {
         sec1.classList.remove('hidden');
@@ -1921,16 +2347,23 @@
         sec2.classList.remove('hidden');
         btnTab2.classList.add('active');
         btnNext.innerHTML = "<span>Next: Steps</span> →";
-      } else {
+      } else if (step === 3) {
         sec3.classList.remove('hidden');
         btnTab3.classList.add('active');
-        btnNext.innerHTML = "<span>Finish</span> ✓";
+        btnNext.innerHTML = "<span>Next: Notes</span> →";
         renderStepIngredientSelectors();
+      } else {
+        sec4.classList.remove('hidden');
+        btnTab4.classList.add('active');
+        btnNext.innerHTML = "<span>Finish</span> ✓";
+        renderDraftNotes();
       }
     }
 
     function handleFooterBack() {
-      if (currentEditorStep === 3) {
+      if (currentEditorStep === 4) {
+        switchEditorTab(3);
+      } else if (currentEditorStep === 3) {
         switchEditorTab(2);
       } else if (currentEditorStep === 2) {
         switchEditorTab(1);
@@ -1944,6 +2377,8 @@
         switchEditorTab(2);
       } else if (currentEditorStep === 2) {
         switchEditorTab(3);
+      } else if (currentEditorStep === 3) {
+        switchEditorTab(4);
       } else {
         saveCurrentProgress();
       }
@@ -2504,7 +2939,8 @@
         mainPicture: document.getElementById('fieldImageURL').value.trim(),
         createdAt: currentEditingCreatedAt,
         ingredients: [...draftIngredients],
-        steps: [...draftSteps]
+        steps: [...draftSteps],
+        notes: [...draftNotes]
       };
 
       if (currentEditingId) {
