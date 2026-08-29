@@ -329,9 +329,15 @@
       cursor: pointer; background: transparent; color: #97621f; text-decoration: underline;
     }
 
-    @media (max-width: 640px) {
-      .cooking-timers-bar { order: 4; flex-basis: 100%; justify-content: center; }
+    .timer-popover-status { font-size: 12px; font-weight: 700; color: #3b220c; text-align: center; }
+    .timer-popover-actions { display: flex; flex-direction: column; gap: 6px; }
+    .timer-action-btn {
+      padding: 7px 10px; border-radius: 6px; border: 1px solid #d8c19c;
+      background: #fff; font-size: 12px; font-weight: 800; color: #4a280e; cursor: pointer;
     }
+    .timer-action-btn:hover { background: #f4ebd9; }
+    .timer-action-cancel { color: #c0392b; border-color: #e2b3ac; }
+    .timer-action-cancel:hover { background: #fbeceb; }
 
     .detail-body { max-width: 980px; margin: 0 auto; padding: 36px 32px 60px; width: 100%; text-align: center; overflow-wrap: break-word; }
 
@@ -540,8 +546,10 @@
          squeezing the tab labels unreadably small. Wrap it onto two rows instead. */
       .uni-toolbar { padding: 8px 10px; flex-wrap: wrap; row-gap: 8px; }
       .uni-home { order: 1; min-width: 0; }
-      .uni-close-wrap { order: 2; min-width: 0; }
-      .uni-tabs { order: 3; flex-basis: 100%; gap: 6px; }
+      .cooking-timers-bar.hidden { display: none; }
+      .cooking-timers-bar:not(.hidden) { order: 2; display: flex; }
+      .uni-close-wrap { order: 3; min-width: 0; }
+      .uni-tabs { order: 4; flex-basis: 100%; gap: 6px; }
       .uni-tab { min-width: 0; flex: 1 1 auto; padding: 8px 6px; font-size: 10px; }
       .uni-page-title { font-size: 15px; order: 1; flex: 1; }
       .uni-home-btn, .uni-close { width: 36px; height: 36px; }
@@ -643,22 +651,7 @@
           <span class="cooking-timer-icon">⏱</span>
           <span class="cooking-timer-display" id="timer2Display">--:--</span>
         </div>
-        <div id="timerSetPopover" class="timer-popover hidden" onclick="event.stopPropagation()">
-          <div class="timer-popover-presets">
-            <button type="button" onclick="quickSetTimer(5)">5m</button>
-            <button type="button" onclick="quickSetTimer(10)">10m</button>
-            <button type="button" onclick="quickSetTimer(15)">15m</button>
-            <button type="button" onclick="quickSetTimer(30)">30m</button>
-            <button type="button" onclick="quickSetTimer(60)">1h</button>
-          </div>
-          <div class="timer-popover-custom">
-            <input type="number" id="timerHoursInput" min="0" max="23" placeholder="HH" class="timer-input">
-            <span>:</span>
-            <input type="number" id="timerMinutesInput" min="0" max="59" placeholder="MM" class="timer-input">
-            <button type="button" onclick="startCustomTimer()">Start</button>
-          </div>
-          <button type="button" class="timer-popover-cancel" onclick="closeTimerPopover()">Cancel</button>
-        </div>
+        <div id="timerSetPopover" class="timer-popover hidden" onclick="event.stopPropagation()"></div>
       </div>
       <div class="uni-close-wrap">
         <button class="uni-close" onclick="closeRecipeDetailView()" title="Close">&times;</button>
@@ -1744,16 +1737,17 @@
         display.textContent = formatTimerTime(t.remaining);
         el.classList.add(t.state); // 'running' or 'paused'
       }
+      // Keep an open popover in sync (e.g. the countdown ticking, or switching to "Time's up!") —
+      // but never while 'edit' is showing live inputs, or a background tick would wipe them out.
+      if (activeTimerPopoverId === id && t.state !== 'edit') renderTimerPopoverContent(id);
     }
 
-    // Idle -> opens the set popover. Running -> pauses. Paused -> resumes. Done -> dismisses.
+    // Every tap opens (or closes, if already open) a popover with explicit, labeled actions for
+    // that timer's current state — no more guessing what a tap on the pill itself will do.
     function toggleTimerPopover(id, event) {
       event.stopPropagation();
-      const t = cookingTimers[id];
-      if (t.state === 'idle') openTimerPopover(id);
-      else if (t.state === 'running') pauseTimer(id);
-      else if (t.state === 'paused') resumeTimer(id);
-      else if (t.state === 'done') resetTimer(id);
+      if (activeTimerPopoverId === id) { closeTimerPopover(); return; }
+      openTimerPopover(id);
     }
 
     function openTimerPopover(id) {
@@ -1761,8 +1755,7 @@
       const popover = document.getElementById('timerSetPopover');
       document.getElementById('timer' + id).appendChild(popover);
       popover.classList.remove('hidden');
-      document.getElementById('timerHoursInput').value = '';
-      document.getElementById('timerMinutesInput').value = '';
+      renderTimerPopoverContent(id);
     }
 
     function closeTimerPopover() {
@@ -1770,29 +1763,110 @@
       activeTimerPopoverId = null;
     }
 
-    function quickSetTimer(minutes) {
-      if (activeTimerPopoverId === null) return;
-      beginTimer(activeTimerPopoverId, minutes * 60);
+    function renderTimerPopoverContent(id) {
+      const t = cookingTimers[id];
+      const popover = document.getElementById('timerSetPopover');
+
+      if (t.state === 'idle') {
+        popover.innerHTML = `
+          <div class="timer-popover-presets">
+            <button type="button" onclick="quickSetTimer(${id}, 5)">5m</button>
+            <button type="button" onclick="quickSetTimer(${id}, 10)">10m</button>
+            <button type="button" onclick="quickSetTimer(${id}, 15)">15m</button>
+            <button type="button" onclick="quickSetTimer(${id}, 30)">30m</button>
+            <button type="button" onclick="quickSetTimer(${id}, 60)">1h</button>
+          </div>
+          <div class="timer-popover-custom">
+            <input type="number" id="timerHoursInput" min="0" max="23" placeholder="HH" class="timer-input">
+            <span>:</span>
+            <input type="number" id="timerMinutesInput" min="0" max="59" placeholder="MM" class="timer-input">
+            <button type="button" onclick="startCustomTimer(${id})">Start</button>
+          </div>
+          <button type="button" class="timer-popover-cancel" onclick="closeTimerPopover()">Close</button>
+        `;
+      } else if (t.state === 'running' || t.state === 'paused') {
+        popover.innerHTML = `
+          <div class="timer-popover-status">${t.state === 'running' ? 'Running' : 'Paused'} &mdash; ${formatTimerTime(t.remaining)}</div>
+          <div class="timer-popover-actions">
+            ${t.state === 'running'
+              ? `<button type="button" class="timer-action-btn" onclick="pauseTimer(${id})">⏸ Pause</button>`
+              : `<button type="button" class="timer-action-btn" onclick="resumeTimer(${id})">▶ Resume</button>`}
+            <button type="button" class="timer-action-btn" onclick="openTimerEditMode(${id})">✎ Edit Time</button>
+            <button type="button" class="timer-action-btn timer-action-cancel" onclick="resetTimer(${id})">✕ Cancel Timer</button>
+          </div>
+        `;
+      } else if (t.state === 'edit') {
+        popover.innerHTML = `
+          <div class="timer-popover-presets">
+            <button type="button" onclick="quickSetTimer(${id}, 5)">5m</button>
+            <button type="button" onclick="quickSetTimer(${id}, 10)">10m</button>
+            <button type="button" onclick="quickSetTimer(${id}, 15)">15m</button>
+            <button type="button" onclick="quickSetTimer(${id}, 30)">30m</button>
+            <button type="button" onclick="quickSetTimer(${id}, 60)">1h</button>
+          </div>
+          <div class="timer-popover-custom">
+            <input type="number" id="timerHoursInput" min="0" max="23" placeholder="HH" class="timer-input">
+            <span>:</span>
+            <input type="number" id="timerMinutesInput" min="0" max="59" placeholder="MM" class="timer-input">
+            <button type="button" onclick="startCustomTimer(${id})">Set</button>
+          </div>
+          <button type="button" class="timer-popover-cancel" onclick="cancelTimerEdit(${id})">Back</button>
+        `;
+      } else if (t.state === 'done') {
+        popover.innerHTML = `
+          <div class="timer-popover-status">Time's up!</div>
+          <div class="timer-popover-actions">
+            <button type="button" class="timer-action-btn" onclick="restartTimer(${id})">↻ Restart Same Time</button>
+            <button type="button" class="timer-action-btn timer-action-cancel" onclick="resetTimer(${id})">✕ Dismiss</button>
+          </div>
+        `;
+      }
+    }
+
+    // "Edit Time" on a running/paused timer swaps the popover to the picker without losing the
+    // timer's current state until a new duration is actually chosen.
+    function openTimerEditMode(id) {
+      cookingTimers[id]._editingFrom = cookingTimers[id].state;
+      cookingTimers[id].state = 'edit';
+      renderTimerPopoverContent(id);
+    }
+
+    function cancelTimerEdit(id) {
+      const t = cookingTimers[id];
+      t.state = t._editingFrom || 'idle';
+      delete t._editingFrom;
+      renderTimerPopoverContent(id);
+    }
+
+    function quickSetTimer(id, minutes) {
+      beginTimer(id, minutes * 60);
       closeTimerPopover();
     }
 
-    function startCustomTimer() {
-      if (activeTimerPopoverId === null) return;
+    function startCustomTimer(id) {
       const h = parseInt(document.getElementById('timerHoursInput').value, 10) || 0;
       const m = parseInt(document.getElementById('timerMinutesInput').value, 10) || 0;
       const totalSeconds = (h * 3600) + (m * 60);
       if (totalSeconds <= 0) { showAlert('Enter a time first.'); return; }
-      beginTimer(activeTimerPopoverId, totalSeconds);
+      beginTimer(id, totalSeconds);
       closeTimerPopover();
     }
 
     function beginTimer(id, totalSeconds) {
       const t = cookingTimers[id];
       clearInterval(t.intervalId);
+      delete t._editingFrom;
       t.remaining = totalSeconds;
+      t.total = totalSeconds;
       t.state = 'running';
       t.intervalId = setInterval(() => tickTimer(id), 1000);
       renderTimer(id);
+    }
+
+    function restartTimer(id) {
+      beginTimer(id, cookingTimers[id].total || 0);
+      stopTimerAlarmIfNoneDone();
+      closeTimerPopover();
     }
 
     function tickTimer(id) {
@@ -1828,12 +1902,18 @@
       clearInterval(t.intervalId);
       t.intervalId = null;
       t.remaining = 0;
+      t.total = 0;
       t.state = 'idle';
       renderTimer(id);
+      closeTimerPopover();
       stopTimerAlarmIfNoneDone();
     }
 
-    // Beeps every 1.5s (Web Audio, no audio file needed) until every "done" timer is dismissed.
+    // Beeps every 1.5s (Web Audio, no audio file needed), capped at a handful of beeps so it
+    // can't buzz forever if no one's nearby — the pill keeps flashing red until dismissed either way.
+    const TIMER_ALARM_MAX_BEEPS = 6;
+    let timerAlarmBeepCount = 0;
+
     function beepOnce() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1852,7 +1932,15 @@
     function playTimerAlarm() {
       beepOnce();
       if (!timerAlarmIntervalId) {
-        timerAlarmIntervalId = setInterval(beepOnce, 1500);
+        timerAlarmBeepCount = 1;
+        timerAlarmIntervalId = setInterval(() => {
+          beepOnce();
+          timerAlarmBeepCount++;
+          if (timerAlarmBeepCount >= TIMER_ALARM_MAX_BEEPS) {
+            clearInterval(timerAlarmIntervalId);
+            timerAlarmIntervalId = null;
+          }
+        }, 1500);
       }
     }
 
