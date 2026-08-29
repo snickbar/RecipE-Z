@@ -17,8 +17,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 
   <style>
     body {
@@ -375,6 +373,28 @@
       background: #fff; color: #4a280e; cursor: pointer;
     }
     .photo-editor-tool-btn:hover { background: #f4ebd9; }
+
+    /* Drag-to-pan crop frame — plain CSS transforms, no third-party library */
+    .photo-editor-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      background: #1a1108;
+      border-radius: 8px;
+      touch-action: none;
+      cursor: grab;
+    }
+    .photo-editor-frame:active { cursor: grabbing; }
+    .photo-editor-frame img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      max-width: none;
+      max-height: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
 
     .detail-body { max-width: 980px; margin: 0 auto; padding: 36px 32px 60px; width: 100%; text-align: center; overflow-wrap: break-word; }
 
@@ -1248,9 +1268,10 @@
       </div>
 
       <div id="photoEditorWorkArea" class="hidden">
-        <div id="photoEditorImageWrap" style="height: 320px; background:#1a1108; overflow:hidden; border-radius: 8px;">
-          <img id="photoEditorImage" src="" style="max-width:100%;" alt="Editing preview">
+        <div id="photoEditorFrame" class="photo-editor-frame">
+          <img id="photoEditorImage" src="" alt="Editing preview" draggable="false">
         </div>
+        <p class="text-center text-[10px] text-amber-900/50 font-semibold pt-1">Drag the photo to reposition it</p>
 
         <div class="grid grid-cols-4 gap-2 pt-3">
           <button type="button" onclick="photoEditorRotate(-90)" class="photo-editor-tool-btn" title="Rotate Left">
@@ -2899,7 +2920,10 @@
     }
 
     // --- RECIPE PHOTO EDITOR (crop / rotate / shrink / delete / replace) ---
-    let photoCropper = null;
+    // Built entirely from plain CSS transforms + canvas, no third-party library — Google's Apps
+    // Script serving pipeline has already shown it can silently corrupt or block external CDN
+    // content, so this stays fully self-contained.
+    let photoEditorState = null; // { rotation, zoom, panX, panY, baseScale, naturalW, naturalH, dragging, ... }
 
     function renderMainPhotoThumb() {
       const url = document.getElementById('fieldImageURL').value.trim();
@@ -2916,15 +2940,36 @@
       }
     }
 
-    function initPhotoCropper() {
-      if (photoCropper) { photoCropper.destroy(); photoCropper = null; }
-      photoCropper = new Cropper(document.getElementById('photoEditorImage'), {
-        viewMode: 1,
-        autoCropArea: 1,
-        background: false,
-        responsive: true,
-        guides: true
-      });
+    // "Cover" fit (like CSS object-fit:cover) for whichever dimension the current rotation makes
+    // effective — rotating 90/270 swaps which of the image's natural dimensions maps to the
+    // frame's width vs height.
+    function photoEditorComputeBaseScale() {
+      const s = photoEditorState;
+      const rect = document.getElementById('photoEditorFrame').getBoundingClientRect();
+      const swapped = (s.rotation === 90 || s.rotation === 270);
+      const effW = swapped ? s.naturalH : s.naturalW;
+      const effH = swapped ? s.naturalW : s.naturalH;
+      s.baseScale = Math.max(rect.width / effW, rect.height / effH);
+    }
+
+    function photoEditorApplyTransform() {
+      const s = photoEditorState;
+      const totalScale = s.baseScale * s.zoom;
+      document.getElementById('photoEditorImage').style.transform =
+        `translate(-50%, -50%) translate(${s.panX}px, ${s.panY}px) rotate(${s.rotation}deg) scale(${totalScale})`;
+    }
+
+    function initPhotoEditorImage() {
+      const img = document.getElementById('photoEditorImage');
+      photoEditorState = {
+        rotation: 0, zoom: 1, panX: 0, panY: 0,
+        naturalW: img.naturalWidth, naturalH: img.naturalHeight,
+        baseScale: 1, dragging: false
+      };
+      img.style.width = img.naturalWidth + 'px';
+      img.style.height = img.naturalHeight + 'px';
+      photoEditorComputeBaseScale();
+      photoEditorApplyTransform();
     }
 
     // Opens showing whatever photo is already on the recipe, or an empty "upload to start" state.
@@ -2953,20 +2998,65 @@
       applyBtn.classList.remove('hidden');
 
       const img = document.getElementById('photoEditorImage');
-      img.onload = initPhotoCropper;
+      img.onload = initPhotoEditorImage;
       img.src = url;
     }
 
     function closePhotoEditor() {
-      if (photoCropper) { photoCropper.destroy(); photoCropper = null; }
+      photoEditorState = null;
       document.getElementById('photoEditorModal').classList.add('hidden');
     }
 
-    function photoEditorRotate(deg) { if (photoCropper) photoCropper.rotate(deg); }
-    function photoEditorZoom(delta) { if (photoCropper) photoCropper.zoom(delta); }
+    function photoEditorRotate(deg) {
+      if (!photoEditorState) return;
+      const s = photoEditorState;
+      s.rotation = ((s.rotation + deg) % 360 + 360) % 360;
+      s.panX = 0;
+      s.panY = 0;
+      photoEditorComputeBaseScale();
+      photoEditorApplyTransform();
+    }
+
+    function photoEditorZoom(delta) {
+      if (!photoEditorState) return;
+      const s = photoEditorState;
+      s.zoom = Math.min(4, Math.max(1, s.zoom + delta));
+      photoEditorApplyTransform();
+    }
+
+    function photoEditorDragStart(clientX, clientY) {
+      if (!photoEditorState) return;
+      const s = photoEditorState;
+      s.dragging = true;
+      s.dragStartX = clientX;
+      s.dragStartY = clientY;
+      s.panStartX = s.panX;
+      s.panStartY = s.panY;
+    }
+    function photoEditorDragMove(clientX, clientY) {
+      const s = photoEditorState;
+      if (!s || !s.dragging) return;
+      s.panX = s.panStartX + (clientX - s.dragStartX);
+      s.panY = s.panStartY + (clientY - s.dragStartY);
+      photoEditorApplyTransform();
+    }
+    function photoEditorDragEnd() {
+      if (photoEditorState) photoEditorState.dragging = false;
+    }
+
+    (function setupPhotoEditorDrag() {
+      const frame = document.getElementById('photoEditorFrame');
+      if (!frame) return;
+      frame.addEventListener('mousedown', function(e) { e.preventDefault(); photoEditorDragStart(e.clientX, e.clientY); });
+      window.addEventListener('mousemove', function(e) { photoEditorDragMove(e.clientX, e.clientY); });
+      window.addEventListener('mouseup', photoEditorDragEnd);
+      frame.addEventListener('touchstart', function(e) { const t = e.touches[0]; photoEditorDragStart(t.clientX, t.clientY); }, { passive: true });
+      frame.addEventListener('touchmove', function(e) { const t = e.touches[0]; photoEditorDragMove(t.clientX, t.clientY); e.preventDefault(); }, { passive: false });
+      frame.addEventListener('touchend', photoEditorDragEnd);
+    })();
 
     // Loading a new file (whether starting from empty or replacing an existing photo) swaps the
-    // cropper's source image in place — the user can immediately crop/rotate/shrink the new one.
+    // editor's source image in place — the user can immediately crop/rotate/shrink the new one.
     function photoEditorFileSelected(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -2979,7 +3069,7 @@
         document.getElementById('photoEditorApplyBtn').classList.remove('hidden');
 
         const img = document.getElementById('photoEditorImage');
-        img.onload = initPhotoCropper;
+        img.onload = initPhotoEditorImage;
         img.src = evt.target.result;
       };
       reader.readAsDataURL(file);
@@ -2987,33 +3077,40 @@
     }
 
     function photoEditorDelete() {
-      if (photoCropper) { photoCropper.destroy(); photoCropper = null; }
+      photoEditorState = null;
       document.getElementById('fieldImageURL').value = '';
       markFormDirty();
       renderMainPhotoThumb();
       closePhotoEditor();
     }
 
-    // Crops, rotates, and downscales (per the shrink slider) in one pass via Cropper's own output
-    // sizing, then re-compresses to a reasonably small JPEG before it ever becomes a data URI.
+    // Renders exactly what's visible in the frame (pan/zoom/rotation) onto an output canvas sized
+    // by the shrink slider, by replaying the same transform math used for the live CSS preview.
     function photoEditorApply() {
-      if (!photoCropper) { closePhotoEditor(); return; }
+      if (!photoEditorState) { closePhotoEditor(); return; }
+      const s = photoEditorState;
+      const img = document.getElementById('photoEditorImage');
+      const rect = document.getElementById('photoEditorFrame').getBoundingClientRect();
 
       const shrinkPct = parseInt(document.getElementById('photoEditorShrink').value, 10) || 100;
-      const cropData = photoCropper.getData(true);
-      const targetWidth = Math.max(50, Math.round(cropData.width * (shrinkPct / 100)));
+      const outW = Math.max(80, Math.round(1200 * (shrinkPct / 100)));
+      const outH = Math.round(outW * (rect.height / rect.width));
 
-      let canvas;
-      try {
-        canvas = photoCropper.getCroppedCanvas({ width: targetWidth, imageSmoothingQuality: 'high' });
-      } catch (e) {
-        canvas = null;
-      }
+      const canvas = document.createElement('canvas');
+      canvas.width = outW;
+      canvas.height = outH;
+      const ctx = canvas.getContext('2d');
 
-      if (!canvas) {
-        showAlert("Couldn't process this image. Try \"Upload / Replace Photo\" to pick a fresh copy instead.");
-        return;
-      }
+      const outputRatio = outW / rect.width;
+      const totalScale = s.baseScale * s.zoom;
+
+      ctx.save();
+      ctx.translate(outW / 2, outH / 2);
+      ctx.translate(s.panX * outputRatio, s.panY * outputRatio);
+      ctx.rotate(s.rotation * Math.PI / 180);
+      ctx.scale(totalScale * outputRatio, totalScale * outputRatio);
+      ctx.drawImage(img, -s.naturalW / 2, -s.naturalH / 2, s.naturalW, s.naturalH);
+      ctx.restore();
 
       let dataUrl;
       try {
