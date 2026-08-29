@@ -2018,10 +2018,9 @@
           try {
             new Notification('RecipE-Z Timer ' + id, {
               body: "Time's up!",
-              tag: 'recipez-timer-' + id,
-              icon: 'https://drive.google.com/thumbnail?id=1Q_WuLXcJkOVJW6ag8L8Z_2iEEevE_4wv&sz=w192'
+              tag: 'recipez-timer-' + id
             });
-          } catch (e) { /* Notification construction can fail on some mobile browsers — ignore */ }
+          } catch (e) { /* Notification construction can fail on some mobile browsers, ignore */ }
         }
       }, seconds * 1000);
     }
