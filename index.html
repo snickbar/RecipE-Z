@@ -125,7 +125,7 @@
     }
     .graphic-nav-btn img {
       height: 100%;
-      width: auto;
+      width: 100%;
       object-fit: contain;
       display: block;
       mix-blend-mode: multiply;
@@ -134,8 +134,18 @@
       top: -3px;
     }
 
-    .btn-recipe-manager { height: 100px; }
-    .btn-ingredients-manager { height: 100px; }
+    /* Hides the browser's native number-input spinner so only our custom ▲▼ steppers show */
+    .qty-no-spinner::-webkit-outer-spin-button,
+    .qty-no-spinner::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .qty-no-spinner {
+      -moz-appearance: textfield;
+    }
+
+    .btn-recipe-manager { height: 100px; width: 280px; }
+    .btn-ingredients-manager { height: 100px; width: 280px; }
 
     .card-container {
       position: relative;
@@ -485,10 +495,8 @@
       </div>
     </header>
 
-    <main class="max-w-5xl mx-auto pt-4">
-      <div class="text-center mb-8 px-2">
-        <h2 class="section-title text-lg mb-5">Your Recipe Cards</h2>
-
+    <main class="max-w-5xl mx-auto pt-1">
+      <div class="text-center mb-4 px-2">
         <div class="toolbar-row">
           <button onclick="openRecipeManagerHub()" class="graphic-nav-btn btn-recipe-manager" title="Recipe Manager">
             <img src="https://i.imgur.com/igSX2kh.png" alt="Recipe Manager" loading="eager">
@@ -496,7 +504,7 @@
 
           <div class="search-toolbar">
             <input type="text" id="mainSearchInput" oninput="filterMainGrid()" placeholder="Search recipes..." class="search-input">
-            <div class="sort-toggles">
+            <div class="sort-toggles" id="mainSortToggles">
               <button type="button" class="sort-toggle active" data-sort="A-Z" onclick="setMainSort('A-Z')">A&ndash;Z</button>
               <button type="button" class="sort-toggle" data-sort="Z-A" onclick="setMainSort('Z-A')">Z&ndash;A</button>
               <button type="button" class="sort-toggle" data-sort="Newest" onclick="setMainSort('Newest')">Newest</button>
@@ -661,6 +669,13 @@
         Smart Import a Recipe
       </button>
 
+      <div class="sort-toggles" id="hubSortToggles" style="margin-bottom: 1.25rem;">
+        <button type="button" class="sort-toggle active" data-sort="A-Z" onclick="setHubSort('A-Z')">A&ndash;Z</button>
+        <button type="button" class="sort-toggle" data-sort="Z-A" onclick="setHubSort('Z-A')">Z&ndash;A</button>
+        <button type="button" class="sort-toggle" data-sort="Newest" onclick="setHubSort('Newest')">Newest</button>
+        <button type="button" class="sort-toggle" data-sort="Oldest" onclick="setHubSort('Oldest')">Oldest</button>
+      </div>
+
       <div id="hubRecipesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       </div>
     </div>
@@ -753,10 +768,14 @@
                   </div>
 
                   <div class="flex items-center border border-amber-800/30 rounded-lg bg-white overflow-hidden px-1">
-                    <input type="number" id="ingQtyInput" step="0.01" min="0" value="0.00" class="w-16 text-center text-sm font-bold text-[#3b220c] focus:outline-none py-1">
-                    <div class="flex flex-col text-[10px] leading-none px-1">
-                      <button type="button" onclick="stepIngredientQty(0.01)" class="hover:text-amber-700 font-black">▲</button>
-                      <button type="button" onclick="stepIngredientQty(-0.01)" class="hover:text-amber-700 font-black">▼</button>
+                    <div class="flex flex-col text-[10px] leading-none px-1" title="Whole number">
+                      <button type="button" onclick="stepIngredientQtyWhole(1)" class="hover:text-amber-700 font-black">▲</button>
+                      <button type="button" onclick="stepIngredientQtyWhole(-1)" class="hover:text-amber-700 font-black">▼</button>
+                    </div>
+                    <input type="number" id="ingQtyInput" step="0.01" min="0" value="0.00" class="qty-no-spinner w-16 text-center text-sm font-bold text-[#3b220c] focus:outline-none py-1">
+                    <div class="flex flex-col text-[10px] leading-none px-1" title="Fraction">
+                      <button type="button" onclick="stepIngredientQty(1)" class="hover:text-amber-700 font-black">▲</button>
+                      <button type="button" onclick="stepIngredientQty(-1)" class="hover:text-amber-700 font-black">▼</button>
                     </div>
                   </div>
                 </div>
@@ -773,6 +792,11 @@
                 <div id="unitButtonsContainer" class="flex flex-wrap gap-1.5">
                   <!-- Rendered dynamically from UNIT_OPTIONS -->
                 </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Note (optional)</label>
+                <input type="text" id="ingNoteInput" oninput="markFormDirty()" placeholder="e.g., fresh is best, shredded, low-sodium..." class="w-full fill-in-input">
               </div>
 
               <div class="pt-2">
@@ -1089,6 +1113,7 @@
     let isFormDirty = false;
     let currentEditorStep = 1;
     let mainSortMode = 'A-Z';
+    let hubSortMode = 'A-Z';
 
     let draftIngredients = [];
     let draftSteps = [];
@@ -1233,7 +1258,7 @@
 
     function setMainSort(mode) {
       mainSortMode = mode;
-      document.querySelectorAll('.sort-toggle').forEach(btn => {
+      document.querySelectorAll('#mainSortToggles .sort-toggle').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.sort === mode);
       });
       renderMainGrid();
@@ -1326,7 +1351,10 @@
       const ingEl = document.getElementById('detailIngredientsList');
       if (recipe.ingredients && recipe.ingredients.length > 0) {
         ingEl.innerHTML = recipe.ingredients.map(ing => `
-          <li class="detail-ing-row"><span class="ing-name">${ing.name}</span><span class="ing-qty">${ing.qty} ${ing.unit}</span></li>
+          <li class="detail-ing-row">
+            <span class="ing-name">${ing.name}${ing.note ? `<div class="text-amber-900/60 italic" style="font-size:11px;">${ing.note}</div>` : ''}</span>
+            <span class="ing-qty">${ing.qty} ${ing.unit}</span>
+          </li>
         `).join('');
       } else {
         ingEl.innerHTML = `<li class="text-amber-900/60 italic text-xs">No ingredients specified.</li>`;
@@ -1379,7 +1407,7 @@
 
       const ingEl = document.getElementById('printIngredientsList');
       ingEl.innerHTML = (recipe.ingredients && recipe.ingredients.length > 0)
-        ? recipe.ingredients.map(ing => `<li class="print-ing-row"><span>${ing.name}</span><span>${ing.qty} ${ing.unit}</span></li>`).join('')
+        ? recipe.ingredients.map(ing => `<li class="print-ing-row"><span>${ing.name}${ing.note ? ` <em>(${ing.note})</em>` : ''}</span><span>${ing.qty} ${ing.unit}</span></li>`).join('')
         : `<li>No ingredients specified.</li>`;
 
       const stepsEl = document.getElementById('printStepsList');
@@ -1435,7 +1463,7 @@
           <div class="shopping-checkbox ${isChecked ? 'checked' : ''}">
             ${isChecked ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fdf8ef" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>' : ''}
           </div>
-          <div class="shopping-item-name">${item.name}</div>
+          <div class="shopping-item-name">${item.name}${item.note ? `<div class="text-amber-900/60 italic" style="font-size:11px;">${item.note}</div>` : ''}</div>
           ${item.category ? `<div class="shopping-item-tag">${SHOPPING_CATEGORY_LABELS[item.category] || item.category}</div>` : ''}
           <div class="shopping-item-qty">${item.qty} ${item.unit}</div>
         </div>
@@ -1572,7 +1600,25 @@
     }
 
     function renderHubGrid() {
-      document.getElementById('hubRecipesGrid').innerHTML = masterRecipes.map(r => createCardHTML(r, `openEditFromHub('${r.id}')`, false, `quickDeleteRecipe('${r.id}', event)`)).join('');
+      const sorted = [...masterRecipes];
+      if (hubSortMode === 'A-Z') {
+        sorted.sort((a, b) => a.title.localeCompare(b.title));
+      } else if (hubSortMode === 'Z-A') {
+        sorted.sort((a, b) => b.title.localeCompare(a.title));
+      } else if (hubSortMode === 'Newest') {
+        sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      } else if (hubSortMode === 'Oldest') {
+        sorted.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      }
+      document.getElementById('hubRecipesGrid').innerHTML = sorted.map(r => createCardHTML(r, `openEditFromHub('${r.id}')`, false, `quickDeleteRecipe('${r.id}', event)`)).join('');
+    }
+
+    function setHubSort(mode) {
+      hubSortMode = mode;
+      document.querySelectorAll('#hubSortToggles .sort-toggle').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sort === mode);
+      });
+      renderHubGrid();
     }
 
     // --- INGREDIENTS MANAGER ---
@@ -2082,7 +2128,7 @@
       markFormDirty();
 
       draftIngredients = (parsed.ingredients || []).map(ing => ({
-        name: ing.name, qty: parseFloat(ing.qty) || 0, unit: ing.unit || ''
+        name: ing.name, qty: parseFloat(ing.qty) || 0, unit: ing.unit || '', note: ing.note || ''
       }));
 
       let ingredientsChanged = false;
@@ -2212,15 +2258,46 @@
       document.getElementById('categoryDropdown').classList.add('hidden');
     }
 
+    // Downscales/recompresses an uploaded photo before it ever becomes a data URI, so saves don't
+    // spend time pushing multi-MB phone-camera images through base64 + the Drive upload. Caps the
+    // longest edge at 1600px and re-encodes as JPEG at 0.82 quality — plenty for recipe cards.
+    function resizeImageFile(file, maxDim, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = function(evt) {
+          const img = new Image();
+          img.onerror = reject;
+          img.onload = function() {
+            let { width, height } = img;
+            if (width > maxDim || height > maxDim) {
+              if (width >= height) {
+                height = Math.round(height * (maxDim / width));
+                width = maxDim;
+              } else {
+                width = Math.round(width * (maxDim / height));
+                height = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
     function handleStepPictureUpload(e) {
       markFormDirty();
       const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          document.getElementById('stepPictureURL').value = evt.target.result;
-        };
-        reader.readAsDataURL(file);
+        resizeImageFile(file, 1600, 0.82).then(dataUrl => {
+          document.getElementById('stepPictureURL').value = dataUrl;
+        });
       }
     }
 
@@ -2228,11 +2305,9 @@
       markFormDirty();
       const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          document.getElementById('fieldImageURL').value = evt.target.result;
-        };
-        reader.readAsDataURL(file);
+        resizeImageFile(file, 1600, 0.82).then(dataUrl => {
+          document.getElementById('fieldImageURL').value = dataUrl;
+        });
       }
     }
 
@@ -2241,11 +2316,9 @@
       markFormDirty();
       const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          document.getElementById('notePictureURL').value = evt.target.result;
-        };
-        reader.readAsDataURL(file);
+        resizeImageFile(file, 1600, 0.82).then(dataUrl => {
+          document.getElementById('notePictureURL').value = dataUrl;
+        });
       }
     }
 
@@ -2460,11 +2533,45 @@
       input.value = Math.max(0, current + val).toFixed(2);
     }
 
-    function stepIngredientQty(val) {
+    // Common cooking fractions within a whole number, ascending — quarters and thirds merged
+    // (0, 1/4, 1/3, 1/2, 2/3, 3/4), so the qty stepper moves through 1.25, 1.33, 1.5, 1.66, 1.75, 2...
+    // instead of a flat 0.01 increment.
+    const QTY_FRACTION_STOPS = [0, 0.25, 0.33, 0.5, 0.66, 0.75];
+
+    // Left-hand arrows: move by a full 1.0, leaving whatever fraction is already in the box alone
+    // (e.g. 1.33 -> 2.33). Never goes below 0.
+    function stepIngredientQtyWhole(direction) {
       const input = document.getElementById('ingQtyInput');
       const current = parseFloat(input.value) || 0;
-      const updated = Math.max(0, current + val);
-      input.value = updated.toFixed(2);
+      input.value = Math.max(0, current + direction).toFixed(2);
+    }
+
+    // Shared by both the Step 2 "Amount" stepper and the Step 3 per-step amount stepper: finds the
+    // next common-fraction stop in the given direction (e.g. 2.00 -> 1.75 -> 1.66 -> 1.5 -> ...).
+    function nextQtyFractionStop(current, direction) {
+      const EPS = 0.001;
+      const whole = Math.floor(current + EPS);
+      const candidates = [];
+      for (let w = whole - 1; w <= whole + 1; w++) {
+        QTY_FRACTION_STOPS.forEach(f => candidates.push(w + f));
+      }
+      candidates.sort((a, b) => a - b);
+
+      let next;
+      if (direction > 0) {
+        next = candidates.find(c => c > current + EPS);
+      } else {
+        next = [...candidates].reverse().find(c => c < current - EPS);
+      }
+      if (next === undefined) next = current;
+
+      return Math.max(0, next);
+    }
+
+    function stepIngredientQty(direction) {
+      const input = document.getElementById('ingQtyInput');
+      const current = parseFloat(input.value) || 0;
+      input.value = nextQtyFractionStop(current, direction).toFixed(2);
     }
 
     function clearIngredientQty() {
@@ -2498,6 +2605,7 @@
     function saveIngredientItem() {
       const name = document.getElementById('ingNameInput').value.trim();
       const qty = parseFloat(document.getElementById('ingQtyInput').value) || 0;
+      const note = document.getElementById('ingNoteInput').value.trim();
 
       if (!name) {
         showAlert("Please enter an ingredient name.");
@@ -2513,15 +2621,16 @@
       }
 
       if (editingIngIndex !== null) {
-        draftIngredients[editingIngIndex] = { name, qty, unit: selectedUnit };
+        draftIngredients[editingIngIndex] = { name, qty, unit: selectedUnit, note };
         editingIngIndex = null;
         document.getElementById('btnSaveIngredient').innerText = "+ Save & Add Another";
       } else {
-        draftIngredients.push({ name, qty, unit: selectedUnit });
+        draftIngredients.push({ name, qty, unit: selectedUnit, note });
       }
 
       document.getElementById('ingNameInput').value = '';
       document.getElementById('ingQtyInput').value = '0.00';
+      document.getElementById('ingNoteInput').value = '';
       renderDraftIngredients();
     }
 
@@ -2538,6 +2647,7 @@
           <div>
             <span class="font-bold text-[#3b220c]">${item.name}</span>
             <span class="text-amber-900/70 ml-1">(${item.qty} ${item.unit})</span>
+            ${item.note ? `<div class="text-amber-900/60 italic" style="font-size:11px;">${item.note}</div>` : ''}
           </div>
           <div class="flex gap-1">
             <button type="button" onclick="editDraftIngredient(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold">✎</button>
@@ -2552,6 +2662,7 @@
       editingIngIndex = idx;
       document.getElementById('ingNameInput').value = item.name;
       document.getElementById('ingQtyInput').value = item.qty.toFixed(2);
+      document.getElementById('ingNoteInput').value = item.note || '';
       selectUnit(item.unit);
       document.getElementById('btnSaveIngredient').innerText = "Update Ingredient";
     }
@@ -2571,7 +2682,9 @@
         return;
       }
 
-      container.innerHTML = draftIngredients.map(ing => {
+      const sortedIngredients = [...draftIngredients].sort((a, b) => a.name.localeCompare(b.name));
+
+      container.innerHTML = sortedIngredients.map(ing => {
         const isSelected = selectedStepIngredients.some(i => i.name === ing.name);
         const btnClass = isSelected
           ? "px-2.5 py-1 rounded-full text-xs font-bold bg-[#4a280e] text-white shadow cursor-pointer transition-all"
@@ -2650,8 +2763,16 @@
                 <span class="text-xs font-bold text-amber-950">${ing.name}</span>
                 ${hint}
               </div>
-              <div class="flex items-center gap-1.5">
-                <input type="number" step="0.01" min="0" ${remaining !== null ? `max="${remaining}"` : ''} value="${ing.qty}" onchange="updateStepIngredientQty('${ing.name.replace(/'/g, "\\'")}', this.value)" class="w-16 text-center text-xs font-bold border border-amber-800/30 rounded px-1 py-0.5 focus:outline-none focus:border-amber-600">
+              <div class="flex items-center gap-1">
+                <div class="flex flex-col text-[9px] leading-none" title="Whole number">
+                  <button type="button" onclick="stepStepIngredientQtyWhole('${ing.name.replace(/'/g, "\\'")}', 1)" class="hover:text-amber-700 font-black">▲</button>
+                  <button type="button" onclick="stepStepIngredientQtyWhole('${ing.name.replace(/'/g, "\\'")}', -1)" class="hover:text-amber-700 font-black">▼</button>
+                </div>
+                <input type="number" step="0.01" min="0" ${remaining !== null ? `max="${remaining}"` : ''} value="${ing.qty}" onchange="updateStepIngredientQty('${ing.name.replace(/'/g, "\\'")}', this.value)" class="qty-no-spinner w-14 text-center text-xs font-bold border border-amber-800/30 rounded px-1 py-0.5 focus:outline-none focus:border-amber-600">
+                <div class="flex flex-col text-[9px] leading-none" title="Fraction">
+                  <button type="button" onclick="stepStepIngredientQty('${ing.name.replace(/'/g, "\\'")}', 1)" class="hover:text-amber-700 font-black">▲</button>
+                  <button type="button" onclick="stepStepIngredientQty('${ing.name.replace(/'/g, "\\'")}', -1)" class="hover:text-amber-700 font-black">▼</button>
+                </div>
                 <span class="text-[10px] text-amber-900/60 font-semibold w-10">${ing.unit || ''}</span>
               </div>
             </div>
@@ -2698,6 +2819,22 @@
       renderStepIngredientAmounts();
     }
 
+    // Left-hand arrows on a step's per-ingredient amount: move by a full 1.0, leaving the fraction alone.
+    function stepStepIngredientQtyWhole(name, direction) {
+      const entry = selectedStepIngredients.find(i => i.name.toLowerCase() === name.toLowerCase());
+      if (!entry) return;
+      const current = parseFloat(entry.qty) || 0;
+      updateStepIngredientQty(name, Math.max(0, current + direction));
+    }
+
+    // Right-hand arrows on a step's per-ingredient amount: step through the common-fraction ladder.
+    function stepStepIngredientQty(name, direction) {
+      const entry = selectedStepIngredients.find(i => i.name.toLowerCase() === name.toLowerCase());
+      if (!entry) return;
+      const current = parseFloat(entry.qty) || 0;
+      updateStepIngredientQty(name, nextQtyFractionStop(current, direction));
+    }
+
     function saveStepItem() {
       const text = document.getElementById('stepTextInput').value.trim();
       if (!text) {
@@ -2740,20 +2877,13 @@
       renderDraftSteps();
     }
 
-    // Inserts the form's current content as a brand-new step right after the one being viewed,
-    // without touching that step's own saved content — for splitting one step into two.
+    // Inserts a brand-new, blank step right after the one being viewed, without touching that
+    // step's own saved content — then opens the blank step for editing.
     function insertNewStepAfterCurrent() {
       if (editingStepIndex === null) return;
 
-      const text = document.getElementById('stepTextInput').value.trim();
-      if (!text) {
-        showAlert("Please enter step instructions.");
-        return;
-      }
-
-      const picture = document.getElementById('stepPictureURL').value.trim();
       const insertAt = editingStepIndex + 1;
-      draftSteps.splice(insertAt, 0, { text, ingredients: [...selectedStepIngredients], picture });
+      draftSteps.splice(insertAt, 0, { text: '', ingredients: [], picture: '' });
       markFormDirty();
       renderDraftSteps();
       editDraftStep(insertAt);

@@ -41,7 +41,7 @@ function normalizeIngredientCategory(raw) {
 // Serves the app's HTML when visiting the web app URL
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('index')
-    .setTitle('RecipE-Z - Recipe Keeper')
+    .setTitle('RecipE-Z')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
@@ -114,7 +114,7 @@ function getRecipes() {
   ingredientsData.forEach(row => {
     const recipeId = row[0];
     if (!ingredientsByRecipe[recipeId]) ingredientsByRecipe[recipeId] = [];
-    ingredientsByRecipe[recipeId].push({ name: row[2], qty: row[3], unit: row[4] });
+    ingredientsByRecipe[recipeId].push({ name: row[2], qty: row[3], unit: row[4], note: row[5] || '' });
   });
 
   return listData.map(row => {
@@ -148,6 +148,80 @@ function withScriptLock(fn) {
   }
 }
 
+// Finds (or creates once) the Drive folder that holds uploaded recipe photos, remembering its ID
+// in Script Properties so repeat lookups don't need broader Drive search permissions.
+function getOrCreateRecipeImagesFolder() {
+  const props = PropertiesService.getScriptProperties();
+  const existingId = props.getProperty('IMAGES_FOLDER_ID');
+  if (existingId) {
+    try {
+      return DriveApp.getFolderById(existingId);
+    } catch (e) {
+      // folder was deleted/moved out from under us; fall through and make a new one
+    }
+  }
+  const folder = DriveApp.createFolder('RecipE-Z Images');
+  props.setProperty('IMAGES_FOLDER_ID', folder.getId());
+  return folder;
+}
+
+// Uploaded photos arrive as base64 data URIs, which blow past Sheets' 50,000-char cell limit for
+// anything but a tiny thumbnail. If the value is a data URI, save it to Drive as a real file and
+// return a hotlinkable URL instead; anything else (a pasted URL, or empty) passes through as-is.
+function saveImageIfDataUri(dataUri, filenamePrefix) {
+  if (!dataUri || typeof dataUri !== 'string' || dataUri.indexOf('data:image') !== 0) {
+    return dataUri || '';
+  }
+  const match = dataUri.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/);
+  if (!match) return dataUri;
+
+  const mimeType = match[1];
+  const ext = mimeType.split('/')[1].split('+')[0];
+  const bytes = Utilities.base64Decode(match[2]);
+  const blob = Utilities.newBlob(bytes, mimeType, filenamePrefix + '_' + new Date().getTime() + '.' + ext);
+
+  const folder = getOrCreateRecipeImagesFolder();
+  const file = folder.createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w1600';
+}
+
+// One-time fix for recipes saved before the image URL format changed: drive.google.com/uc?export=view
+// links intermittently fail to render as <img> (Google serves an interstitial instead of the image),
+// while drive.google.com/thumbnail links render reliably. Rewrites any old-format links in place across
+// RecipeList, RecipeSteps, and RecipeNotes. Safe to run more than once — it's a no-op after the first run.
+function migrateDriveImageUrls() {
+  return withScriptLock(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const oldPrefix = 'https://drive.google.com/uc?export=view&id=';
+    let updatedCount = 0;
+
+    function fixColumn(sheetName, colIndex) {
+      const sheet = ss.getSheetByName(sheetName);
+      if (!sheet) return;
+      const range = sheet.getDataRange();
+      const values = range.getValues();
+      let changed = false;
+      for (let i = 1; i < values.length; i++) {
+        const cell = values[i][colIndex];
+        if (typeof cell === 'string' && cell.indexOf(oldPrefix) === 0) {
+          const fileId = cell.substring(oldPrefix.length);
+          values[i][colIndex] = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1600';
+          changed = true;
+          updatedCount++;
+        }
+      }
+      if (changed) range.setValues(values);
+    }
+
+    fixColumn('RecipeList', 2);   // Main Picture
+    fixColumn('RecipeSteps', 4);  // Step Picture
+    fixColumn('RecipeNotes', 3);  // Note Picture
+
+    return { success: true, updatedCount: updatedCount };
+  });
+}
+
 // Save (or update) one recipe across RecipeList, RecipeSteps, and RecipeIngredients
 function saveNewRecipe(recipeData) {
   return withScriptLock(() => {
@@ -157,12 +231,18 @@ function saveNewRecipe(recipeData) {
   const ingSheet = ss.getSheetByName("RecipeIngredients") || ss.insertSheet("RecipeIngredients");
   const notesSheet = ss.getSheetByName("RecipeNotes") || ss.insertSheet("RecipeNotes");
 
+  // Sheets created before per-ingredient notes existed only have 5 columns — add the header once,
+  // in place, without touching any existing rows.
+  if (ingSheet.getRange(1, 6).getValue() !== "Note") {
+    ingSheet.getRange(1, 6).setValue("Note");
+  }
+
   const recipeId = recipeData.id || ("rec_" + new Date().getTime());
 
   upsertRowByRecipeId(listSheet, recipeId, [
     recipeId,
     recipeData.title,
-    recipeData.mainPicture || "",
+    saveImageIfDataUri(recipeData.mainPicture, recipeId + '_main'),
     recipeData.category || "General",
     recipeData.equipment || "",
     recipeData.prepTime || "",
@@ -181,7 +261,8 @@ function saveNewRecipe(recipeData) {
         ? JSON.stringify(step.ingredients)
         : "";
 
-      stepRows.push([recipeId, stepRows.length + 1, instructionText, ingText, step.picture || ""]);
+      const stepPicture = saveImageIfDataUri(step.picture, recipeId + '_step' + (stepRows.length + 1));
+      stepRows.push([recipeId, stepRows.length + 1, instructionText, ingText, stepPicture]);
     });
     if (stepRows.length > 0) {
       stepsSheet.getRange(stepsSheet.getLastRow() + 1, 1, stepRows.length, 5).setValues(stepRows);
@@ -190,8 +271,8 @@ function saveNewRecipe(recipeData) {
 
   clearRowsByRecipeId(ingSheet, recipeId);
   if (recipeData.ingredients && recipeData.ingredients.length > 0) {
-    const ingRows = recipeData.ingredients.map(ing => [recipeId, recipeData.title, ing.name || "", ing.qty || 0, ing.unit || ""]);
-    ingSheet.getRange(ingSheet.getLastRow() + 1, 1, ingRows.length, 5).setValues(ingRows);
+    const ingRows = recipeData.ingredients.map(ing => [recipeId, recipeData.title, ing.name || "", ing.qty || 0, ing.unit || "", ing.note || ""]);
+    ingSheet.getRange(ingSheet.getLastRow() + 1, 1, ingRows.length, 6).setValues(ingRows);
   }
 
   clearRowsByRecipeId(notesSheet, recipeId);
@@ -200,7 +281,8 @@ function saveNewRecipe(recipeData) {
     recipeData.notes.forEach(note => {
       const noteText = typeof note === 'string' ? note : (note.text || "");
       if (!noteText.trim()) return; // skip empty notes to avoid junk rows
-      noteRows.push([recipeId, noteRows.length + 1, noteText, note.picture || ""]);
+      const notePicture = saveImageIfDataUri(note.picture, recipeId + '_note' + (noteRows.length + 1));
+      noteRows.push([recipeId, noteRows.length + 1, noteText, notePicture]);
     });
     if (noteRows.length > 0) {
       notesSheet.getRange(notesSheet.getLastRow() + 1, 1, noteRows.length, 4).setValues(noteRows);
@@ -683,13 +765,13 @@ function setupRecipEZSchema() {
     recipeIngredientsSheet.clear();
   }
 
-  recipeIngredientsSheet.getRange(1, 1, 1, 5).setValues([[
-    "Recipe ID", "Recipe Title", "Ingredient", "Quantity", "Unit"
+  recipeIngredientsSheet.getRange(1, 1, 1, 6).setValues([[
+    "Recipe ID", "Recipe Title", "Ingredient", "Quantity", "Unit", "Note"
   ]]).setFontWeight("bold").setBackground("#e6f4ea");
 
-  recipeIngredientsSheet.appendRow(["rec_001", "Wintry Beef Stew", "Beef Chuck", 2, "lb"]);
-  recipeIngredientsSheet.appendRow(["rec_001", "Wintry Beef Stew", "Olive Oil", 2, "tbsp"]);
-  recipeIngredientsSheet.appendRow(["rec_001", "Wintry Beef Stew", "Onions", 1, "Items"]);
+  recipeIngredientsSheet.appendRow(["rec_001", "Wintry Beef Stew", "Beef Chuck", 2, "lb", ""]);
+  recipeIngredientsSheet.appendRow(["rec_001", "Wintry Beef Stew", "Olive Oil", 2, "tbsp", ""]);
+  recipeIngredientsSheet.appendRow(["rec_001", "Wintry Beef Stew", "Onions", 1, "Items", ""]);
 
   // 4. Setup RecipeNotes Tab
   let recipeNotesSheet = ss.getSheetByName("RecipeNotes");
