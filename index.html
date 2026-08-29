@@ -2947,7 +2947,16 @@
       } else if (currentEditorStep === 3) {
         switchEditorTab(4);
       } else {
-        saveCurrentProgress();
+        finishAndCloseEditor();
+      }
+    }
+
+    // "Finish" on the last step saves (in the background, same as the Save button) and closes the
+    // editor right away rather than leaving it open on a "Saving..." button — the editor sits on
+    // top of the Recipe Manager hub, so closing it lands you right back there.
+    function finishAndCloseEditor() {
+      if (saveCurrentProgress()) {
+        document.getElementById('recipeEditorModal').classList.add('hidden');
       }
     }
 
