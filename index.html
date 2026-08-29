@@ -17,6 +17,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 
   <style>
     body {
@@ -338,6 +340,41 @@
     .timer-action-btn:hover { background: #f4ebd9; }
     .timer-action-cancel { color: #c0392b; border-color: #e2b3ac; }
     .timer-action-cancel:hover { background: #fbeceb; }
+
+    /* Clickable recipe-photo thumbnail (opens the crop/rotate/shrink/delete/replace editor) */
+    .photo-thumb {
+      position: relative;
+      width: 100%;
+      height: 160px;
+      border: 2px dashed #c9ad82;
+      border-radius: 10px;
+      background: #fdf8ef;
+      cursor: pointer;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s ease;
+    }
+    .photo-thumb:hover { border-color: #a86022; }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-thumb-placeholder {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      color: #97621f; font-weight: 700; font-size: 0.8rem; text-align: center; padding: 0 12px;
+    }
+    .photo-thumb-edit-badge {
+      position: absolute; bottom: 8px; right: 8px;
+      width: 28px; height: 28px; border-radius: 999px;
+      background: #4a280e; color: #fdf8ef;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .photo-editor-tool-btn {
+      display: flex; align-items: center; justify-content: center;
+      padding: 10px; border-radius: 8px; border: 1px solid #d8c19c;
+      background: #fff; color: #4a280e; cursor: pointer;
+    }
+    .photo-editor-tool-btn:hover { background: #f4ebd9; }
 
     .detail-body { max-width: 980px; margin: 0 auto; padding: 36px 32px 60px; width: 100%; text-align: center; overflow-wrap: break-word; }
 
@@ -850,9 +887,17 @@
 
           <div>
             <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Recipe Photo</label>
-            <input type="url" id="fieldImageURL" oninput="markFormDirty()" placeholder="Paste Image URL (https://...)" class="w-full fill-in-input mb-2">
-            <div class="text-xs text-amber-900/70 font-semibold text-center">- OR -</div>
-            <input type="file" id="fieldImageFile" onchange="handleFileUpload(event)" accept="image/*" class="mt-2 text-xs text-amber-950 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-amber-200 file:text-amber-900 hover:file:bg-amber-300">
+            <div id="mainPhotoThumb" onclick="openPhotoEditor()" class="photo-thumb" title="Click to edit photo">
+              <img id="mainPhotoThumbImg" src="" class="hidden" alt="Recipe photo">
+              <div id="mainPhotoThumbPlaceholder" class="photo-thumb-placeholder">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="1.5"/><path d="M21 15l-5-5L5 19"/></svg>
+                <span>Tap to add a photo</span>
+              </div>
+              <div class="photo-thumb-edit-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </div>
+            </div>
+            <input type="url" id="fieldImageURL" class="hidden">
           </div>
         </div>
 
@@ -1189,6 +1234,63 @@
       <div class="flex flex-col gap-2 pt-2">
         <button id="confirmModalConfirmBtn" onclick="handleConfirmModalConfirm()" class="bg-red-800 hover:bg-red-900 text-white font-bold py-2 rounded text-xs uppercase tracking-wider shadow">Yes, Delete</button>
         <button onclick="closeConfirmModal()" class="border border-amber-800/40 text-amber-950 font-bold py-1.5 rounded text-xs">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PHOTO EDITOR MODAL ================= -->
+  <div id="photoEditorModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-center p-4 z-[70]">
+    <div class="bg-[#fcf8ef] border-2 border-amber-700 max-w-md w-full p-5 rounded-xl shadow-2xl space-y-4">
+      <h4 class="text-lg font-black font-title text-[#3b220c] text-center">Edit Recipe Photo</h4>
+
+      <div id="photoEditorEmptyState" class="text-center py-10 px-4 text-amber-900/60 text-sm font-semibold">
+        No photo yet &mdash; tap "Upload Photo" below to add one.
+      </div>
+
+      <div id="photoEditorWorkArea" class="hidden">
+        <div id="photoEditorImageWrap" style="height: 320px; background:#1a1108; overflow:hidden; border-radius: 8px;">
+          <img id="photoEditorImage" src="" style="max-width:100%;" alt="Editing preview">
+        </div>
+
+        <div class="grid grid-cols-4 gap-2 pt-3">
+          <button type="button" onclick="photoEditorRotate(-90)" class="photo-editor-tool-btn" title="Rotate Left">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 1 2.64 6.36"/><path d="M3 21v-6h6"/></svg>
+          </button>
+          <button type="button" onclick="photoEditorRotate(90)" class="photo-editor-tool-btn" title="Rotate Right">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 0-2.64 6.36"/><path d="M21 21v-6h-6"/></svg>
+          </button>
+          <button type="button" onclick="photoEditorZoom(0.1)" class="photo-editor-tool-btn" title="Zoom In">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
+          </button>
+          <button type="button" onclick="photoEditorZoom(-0.1)" class="photo-editor-tool-btn" title="Zoom Out">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M8 11h6"/></svg>
+          </button>
+        </div>
+
+        <div class="pt-3">
+          <label class="block text-xs font-bold text-[#3b220c] uppercase tracking-wider mb-1">Shrink Output Size</label>
+          <div class="flex items-center gap-2">
+            <input type="range" id="photoEditorShrink" min="25" max="100" value="100" step="5" class="flex-1" oninput="document.getElementById('photoEditorShrinkLabel').innerText = this.value + '%'">
+            <span id="photoEditorShrinkLabel" class="text-xs font-bold text-amber-900 w-10 text-right">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <input type="file" id="photoEditorFileInput" accept="image/*" class="hidden" onchange="photoEditorFileSelected(event)">
+
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <button type="button" onclick="document.getElementById('photoEditorFileInput').click()" class="bg-amber-200/70 hover:bg-amber-300 text-amber-950 font-bold py-2 rounded-lg text-xs uppercase tracking-wider col-span-2">
+          Upload / Replace Photo
+        </button>
+        <button type="button" id="photoEditorDeleteBtn" onclick="photoEditorDelete()" class="border border-red-700/50 text-red-800 hover:bg-red-50 font-bold py-2 rounded-lg text-xs uppercase tracking-wider">
+          Delete Photo
+        </button>
+        <button type="button" onclick="closePhotoEditor()" class="border border-amber-800/40 text-amber-950 font-bold py-2 rounded-lg text-xs uppercase tracking-wider">
+          Cancel
+        </button>
+        <button type="button" id="photoEditorApplyBtn" onclick="photoEditorApply()" class="hidden bg-[#4a280e] hover:bg-[#311807] text-[#f7eedc] font-bold py-2 rounded-lg text-xs uppercase tracking-wider shadow col-span-2">
+          Apply Changes
+        </button>
       </div>
     </div>
   </div>
@@ -2673,6 +2775,7 @@
       document.getElementById('fieldPrepTime').value = recipe.prepTime || '';
       document.getElementById('fieldServings').value = recipe.servings || '';
       document.getElementById('fieldImageURL').value = recipe.mainPicture || '';
+      renderMainPhotoThumb();
 
       draftIngredients = recipe.ingredients ? [...recipe.ingredients] : [];
       // Clean up any step ingredient references left stale by an ingredient being renamed
@@ -2716,7 +2819,7 @@
       document.getElementById('fieldPrepTime').value = '';
       document.getElementById('fieldServings').value = '';
       document.getElementById('fieldImageURL').value = '';
-      document.getElementById('fieldImageFile').value = '';
+      renderMainPhotoThumb();
       isFormDirty = false;
     }
 
@@ -2795,14 +2898,137 @@
       }
     }
 
-    function handleFileUpload(e) {
-      markFormDirty();
-      const file = e.target.files[0];
-      if (file) {
-        resizeImageFile(file, 1600, 0.82).then(dataUrl => {
-          document.getElementById('fieldImageURL').value = dataUrl;
-        });
+    // --- RECIPE PHOTO EDITOR (crop / rotate / shrink / delete / replace) ---
+    let photoCropper = null;
+
+    function renderMainPhotoThumb() {
+      const url = document.getElementById('fieldImageURL').value.trim();
+      const img = document.getElementById('mainPhotoThumbImg');
+      const placeholder = document.getElementById('mainPhotoThumbPlaceholder');
+      if (url) {
+        img.src = url;
+        img.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      } else {
+        img.src = '';
+        img.classList.add('hidden');
+        placeholder.classList.remove('hidden');
       }
+    }
+
+    function initPhotoCropper() {
+      if (photoCropper) { photoCropper.destroy(); photoCropper = null; }
+      photoCropper = new Cropper(document.getElementById('photoEditorImage'), {
+        viewMode: 1,
+        autoCropArea: 1,
+        background: false,
+        responsive: true,
+        guides: true
+      });
+    }
+
+    // Opens showing whatever photo is already on the recipe, or an empty "upload to start" state.
+    function openPhotoEditor() {
+      const url = document.getElementById('fieldImageURL').value.trim();
+      document.getElementById('photoEditorModal').classList.remove('hidden');
+      document.getElementById('photoEditorShrink').value = 100;
+      document.getElementById('photoEditorShrinkLabel').innerText = '100%';
+
+      const emptyState = document.getElementById('photoEditorEmptyState');
+      const workArea = document.getElementById('photoEditorWorkArea');
+      const deleteBtn = document.getElementById('photoEditorDeleteBtn');
+      const applyBtn = document.getElementById('photoEditorApplyBtn');
+
+      if (!url) {
+        emptyState.classList.remove('hidden');
+        workArea.classList.add('hidden');
+        deleteBtn.classList.add('hidden');
+        applyBtn.classList.add('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      workArea.classList.remove('hidden');
+      deleteBtn.classList.remove('hidden');
+      applyBtn.classList.remove('hidden');
+
+      const img = document.getElementById('photoEditorImage');
+      img.onload = initPhotoCropper;
+      img.src = url;
+    }
+
+    function closePhotoEditor() {
+      if (photoCropper) { photoCropper.destroy(); photoCropper = null; }
+      document.getElementById('photoEditorModal').classList.add('hidden');
+    }
+
+    function photoEditorRotate(deg) { if (photoCropper) photoCropper.rotate(deg); }
+    function photoEditorZoom(delta) { if (photoCropper) photoCropper.zoom(delta); }
+
+    // Loading a new file (whether starting from empty or replacing an existing photo) swaps the
+    // cropper's source image in place — the user can immediately crop/rotate/shrink the new one.
+    function photoEditorFileSelected(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById('photoEditorEmptyState').classList.add('hidden');
+        document.getElementById('photoEditorWorkArea').classList.remove('hidden');
+        document.getElementById('photoEditorDeleteBtn').classList.remove('hidden');
+        document.getElementById('photoEditorApplyBtn').classList.remove('hidden');
+
+        const img = document.getElementById('photoEditorImage');
+        img.onload = initPhotoCropper;
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+
+    function photoEditorDelete() {
+      if (photoCropper) { photoCropper.destroy(); photoCropper = null; }
+      document.getElementById('fieldImageURL').value = '';
+      markFormDirty();
+      renderMainPhotoThumb();
+      closePhotoEditor();
+    }
+
+    // Crops, rotates, and downscales (per the shrink slider) in one pass via Cropper's own output
+    // sizing, then re-compresses to a reasonably small JPEG before it ever becomes a data URI.
+    function photoEditorApply() {
+      if (!photoCropper) { closePhotoEditor(); return; }
+
+      const shrinkPct = parseInt(document.getElementById('photoEditorShrink').value, 10) || 100;
+      const cropData = photoCropper.getData(true);
+      const targetWidth = Math.max(50, Math.round(cropData.width * (shrinkPct / 100)));
+
+      let canvas;
+      try {
+        canvas = photoCropper.getCroppedCanvas({ width: targetWidth, imageSmoothingQuality: 'high' });
+      } catch (e) {
+        canvas = null;
+      }
+
+      if (!canvas) {
+        showAlert("Couldn't process this image. Try \"Upload / Replace Photo\" to pick a fresh copy instead.");
+        return;
+      }
+
+      let dataUrl;
+      try {
+        dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      } catch (e) {
+        // Canvas export is blocked (tainted) for images loaded from sources that don't allow it —
+        // the photo can still be viewed and replaced, just not crop/rotate/shrink-edited in place.
+        showAlert("This photo can't be edited directly because of where it's hosted. Use \"Upload / Replace Photo\" to pick a fresh copy from your device instead.");
+        return;
+      }
+
+      document.getElementById('fieldImageURL').value = dataUrl;
+      markFormDirty();
+      renderMainPhotoThumb();
+      closePhotoEditor();
     }
 
     // --- NOTE FUNCTIONS ---
