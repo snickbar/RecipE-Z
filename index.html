@@ -286,6 +286,53 @@
     }
     .uni-close:hover { background: #a5281b; }
 
+    /* Cooking Mode timers, tucked into the toolbar between the tabs and the close button */
+    .cooking-timers-bar { position: relative; display: flex; gap: 8px; align-items: center; }
+    .cooking-timer {
+      display: flex; align-items: center; gap: 4px;
+      background: #fdf8ef; border: 1.5px solid #d8c19c; border-radius: 8px;
+      padding: 6px 10px; cursor: pointer; user-select: none;
+      font-weight: 800; font-size: 13px; color: #3b220c;
+      min-width: 60px; justify-content: center;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .cooking-timer-icon { font-size: 12px; opacity: 0.7; }
+    .cooking-timer.running { border-color: #a86022; background: #fdecd2; }
+    .cooking-timer.paused { border-color: #97621f; background: #f4ebd9; opacity: 0.75; }
+    .cooking-timer.done { border-color: #c0392b; background: #c0392b; color: #fff; animation: timer-flash 0.8s infinite; }
+    @keyframes timer-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+    .timer-popover {
+      position: absolute; top: 100%; left: 0; margin-top: 8px; z-index: 50;
+      background: #fdf8ef; border: 1.5px solid #d8c19c; border-radius: 10px;
+      padding: 10px; box-shadow: 0 6px 16px rgba(70,45,10,0.25);
+      display: flex; flex-direction: column; gap: 8px; width: 200px;
+      cursor: default;
+    }
+    .timer-popover-presets { display: flex; gap: 4px; flex-wrap: wrap; }
+    .timer-popover-presets button {
+      flex: 1; min-width: 34px; padding: 4px 6px; border-radius: 6px; border: 1px solid #d8c19c;
+      background: #fff; font-size: 11px; font-weight: 700; color: #4a280e; cursor: pointer;
+    }
+    .timer-popover-presets button:hover { background: #f4ebd9; }
+    .timer-popover-custom { display: flex; align-items: center; gap: 4px; }
+    .timer-input {
+      width: 46px; text-align: center; padding: 4px; border: 1px solid #d8c19c; border-radius: 6px;
+      font-weight: 700; font-size: 12px; color: #3b220c;
+    }
+    .timer-popover-custom button {
+      padding: 5px 10px; border-radius: 6px; border: none; font-weight: 700; font-size: 11px;
+      cursor: pointer; background: #4a280e; color: #fdf8ef; flex-shrink: 0;
+    }
+    .timer-popover-cancel {
+      padding: 3px; border-radius: 6px; border: none; font-weight: 700; font-size: 11px;
+      cursor: pointer; background: transparent; color: #97621f; text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      .cooking-timers-bar { order: 4; flex-basis: 100%; justify-content: center; }
+    }
+
     .detail-body { max-width: 980px; margin: 0 auto; padding: 36px 32px 60px; width: 100%; text-align: center; overflow-wrap: break-word; }
 
     /* Text-centering exceptions: typed input text, form labels (should match their input's side),
@@ -586,6 +633,32 @@
         <button class="uni-tab" data-tab="print" onclick="switchDetailTab('print')">2. Print Mode</button>
         <button class="uni-tab" data-tab="shopping" onclick="switchDetailTab('shopping')">3. Shopping</button>
         <button class="uni-tab" data-tab="cooking" onclick="switchDetailTab('cooking')">4. Cooking</button>
+      </div>
+      <div id="cookingTimersBar" class="cooking-timers-bar hidden">
+        <div class="cooking-timer" id="timer1" onclick="toggleTimerPopover(1, event)" title="Timer 1">
+          <span class="cooking-timer-icon">⏱</span>
+          <span class="cooking-timer-display" id="timer1Display">--:--</span>
+        </div>
+        <div class="cooking-timer" id="timer2" onclick="toggleTimerPopover(2, event)" title="Timer 2">
+          <span class="cooking-timer-icon">⏱</span>
+          <span class="cooking-timer-display" id="timer2Display">--:--</span>
+        </div>
+        <div id="timerSetPopover" class="timer-popover hidden" onclick="event.stopPropagation()">
+          <div class="timer-popover-presets">
+            <button type="button" onclick="quickSetTimer(5)">5m</button>
+            <button type="button" onclick="quickSetTimer(10)">10m</button>
+            <button type="button" onclick="quickSetTimer(15)">15m</button>
+            <button type="button" onclick="quickSetTimer(30)">30m</button>
+            <button type="button" onclick="quickSetTimer(60)">1h</button>
+          </div>
+          <div class="timer-popover-custom">
+            <input type="number" id="timerHoursInput" min="0" max="23" placeholder="HH" class="timer-input">
+            <span>:</span>
+            <input type="number" id="timerMinutesInput" min="0" max="59" placeholder="MM" class="timer-input">
+            <button type="button" onclick="startCustomTimer()">Start</button>
+          </div>
+          <button type="button" class="timer-popover-cancel" onclick="closeTimerPopover()">Cancel</button>
+        </div>
       </div>
       <div class="uni-close-wrap">
         <button class="uni-close" onclick="closeRecipeDetailView()" title="Close">&times;</button>
@@ -1382,6 +1455,7 @@
       Object.entries(ids).forEach(([key, elId]) => {
         document.getElementById(elId).classList.toggle('hidden', key !== tab);
       });
+      document.getElementById('cookingTimersBar').classList.toggle('hidden', tab !== 'cooking');
     }
 
     function renderDetailRecipeTab() {
@@ -1636,6 +1710,166 @@
       const steps = (currentDetailRecipe && currentDetailRecipe.steps) || [];
       if (cookingStepIndex < steps.length - 1) { cookingStepIndex++; renderCookingStep(); }
     }
+
+    // --- COOKING MODE TIMERS ---
+    // Two independent countdowns (e.g. a 2-hour roast + a 15-minute check-in), tucked into the
+    // toolbar since it's otherwise empty space during Cooking Mode.
+    let cookingTimers = {
+      1: { remaining: 0, intervalId: null, state: 'idle' },
+      2: { remaining: 0, intervalId: null, state: 'idle' }
+    };
+    let activeTimerPopoverId = null;
+    let timerAlarmIntervalId = null;
+
+    function formatTimerTime(totalSeconds) {
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      const mm = String(m).padStart(2, '0');
+      const ss = String(s).padStart(2, '0');
+      return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+    }
+
+    function renderTimer(id) {
+      const t = cookingTimers[id];
+      const el = document.getElementById('timer' + id);
+      const display = document.getElementById('timer' + id + 'Display');
+      el.classList.remove('running', 'paused', 'done');
+      if (t.state === 'idle') {
+        display.textContent = '--:--';
+      } else if (t.state === 'done') {
+        display.textContent = "Time's up!";
+        el.classList.add('done');
+      } else {
+        display.textContent = formatTimerTime(t.remaining);
+        el.classList.add(t.state); // 'running' or 'paused'
+      }
+    }
+
+    // Idle -> opens the set popover. Running -> pauses. Paused -> resumes. Done -> dismisses.
+    function toggleTimerPopover(id, event) {
+      event.stopPropagation();
+      const t = cookingTimers[id];
+      if (t.state === 'idle') openTimerPopover(id);
+      else if (t.state === 'running') pauseTimer(id);
+      else if (t.state === 'paused') resumeTimer(id);
+      else if (t.state === 'done') resetTimer(id);
+    }
+
+    function openTimerPopover(id) {
+      activeTimerPopoverId = id;
+      const popover = document.getElementById('timerSetPopover');
+      document.getElementById('timer' + id).appendChild(popover);
+      popover.classList.remove('hidden');
+      document.getElementById('timerHoursInput').value = '';
+      document.getElementById('timerMinutesInput').value = '';
+    }
+
+    function closeTimerPopover() {
+      document.getElementById('timerSetPopover').classList.add('hidden');
+      activeTimerPopoverId = null;
+    }
+
+    function quickSetTimer(minutes) {
+      if (activeTimerPopoverId === null) return;
+      beginTimer(activeTimerPopoverId, minutes * 60);
+      closeTimerPopover();
+    }
+
+    function startCustomTimer() {
+      if (activeTimerPopoverId === null) return;
+      const h = parseInt(document.getElementById('timerHoursInput').value, 10) || 0;
+      const m = parseInt(document.getElementById('timerMinutesInput').value, 10) || 0;
+      const totalSeconds = (h * 3600) + (m * 60);
+      if (totalSeconds <= 0) { showAlert('Enter a time first.'); return; }
+      beginTimer(activeTimerPopoverId, totalSeconds);
+      closeTimerPopover();
+    }
+
+    function beginTimer(id, totalSeconds) {
+      const t = cookingTimers[id];
+      clearInterval(t.intervalId);
+      t.remaining = totalSeconds;
+      t.state = 'running';
+      t.intervalId = setInterval(() => tickTimer(id), 1000);
+      renderTimer(id);
+    }
+
+    function tickTimer(id) {
+      const t = cookingTimers[id];
+      t.remaining--;
+      if (t.remaining <= 0) {
+        t.remaining = 0;
+        t.state = 'done';
+        clearInterval(t.intervalId);
+        t.intervalId = null;
+        playTimerAlarm();
+      }
+      renderTimer(id);
+    }
+
+    function pauseTimer(id) {
+      const t = cookingTimers[id];
+      clearInterval(t.intervalId);
+      t.intervalId = null;
+      t.state = 'paused';
+      renderTimer(id);
+    }
+
+    function resumeTimer(id) {
+      const t = cookingTimers[id];
+      t.state = 'running';
+      t.intervalId = setInterval(() => tickTimer(id), 1000);
+      renderTimer(id);
+    }
+
+    function resetTimer(id) {
+      const t = cookingTimers[id];
+      clearInterval(t.intervalId);
+      t.intervalId = null;
+      t.remaining = 0;
+      t.state = 'idle';
+      renderTimer(id);
+      stopTimerAlarmIfNoneDone();
+    }
+
+    // Beeps every 1.5s (Web Audio, no audio file needed) until every "done" timer is dismissed.
+    function beepOnce() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+        osc.onended = () => ctx.close();
+      } catch (e) { /* Web Audio unavailable — timer still flashes visually */ }
+    }
+
+    function playTimerAlarm() {
+      beepOnce();
+      if (!timerAlarmIntervalId) {
+        timerAlarmIntervalId = setInterval(beepOnce, 1500);
+      }
+    }
+
+    function stopTimerAlarmIfNoneDone() {
+      const anyDone = Object.values(cookingTimers).some(t => t.state === 'done');
+      if (!anyDone && timerAlarmIntervalId) {
+        clearInterval(timerAlarmIntervalId);
+        timerAlarmIntervalId = null;
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const popover = document.getElementById('timerSetPopover');
+      if (popover && !popover.classList.contains('hidden') && !popover.contains(e.target)) {
+        closeTimerPopover();
+      }
+    });
 
     function openRecipeManagerHub() {
       renderHubGrid();
