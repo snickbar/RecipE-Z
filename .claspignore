@@ -1,0 +1,7 @@
+# Only push the actual Apps Script project files. Everything else here (docs/ = the GitHub
+# Pages wrapper site, .git, .claude) is unrelated to the Apps Script deployment.
+**/**
+!appsscript.json
+!Code.js
+!index.html
+!versions.html
