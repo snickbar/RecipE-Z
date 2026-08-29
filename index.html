@@ -166,12 +166,17 @@
       cursor: pointer;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      background-color: #f2e7cd;
-      background-image:
-        radial-gradient(ellipse at 30% 15%, rgba(255,255,255,0.4), transparent 55%),
-        repeating-linear-gradient(45deg, rgba(120,90,50,0.035) 0px, rgba(120,90,50,0.035) 1px, transparent 1px, transparent 3px),
-        repeating-linear-gradient(-45deg, rgba(120,90,50,0.028) 0px, rgba(120,90,50,0.028) 1px, transparent 1px, transparent 3px),
-        url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22180%22 height=%22180%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3CfeColorMatrix type=%22saturate%22 values=%220%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%220.06%22/%3E%3C/svg%3E');
+      background: #f6efdd;
+    }
+
+    .card-bg-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      mix-blend-mode: multiply;
     }
     .card-container:hover {
       transform: translateY(-4px);
@@ -1495,6 +1500,8 @@
       renderMainGrid();
     }
 
+    const CARD_BG_URL = "https://drive.google.com/thumbnail?id=14WId7KrEJbp9L_O9KwnQAEMaJS6sm861&sz=w1600";
+
     function createCardHTML(recipe, onclickHandler, isLazy = false, deleteHandler = null) {
       const imgSrc = recipe.mainPicture && recipe.mainPicture.trim() !== '' ? recipe.mainPicture : FOOD_FALLBACK_SVG;
       const loadingAttr = isLazy ? 'loading="lazy"' : '';
@@ -1502,6 +1509,7 @@
       return `
         <div onclick="${onclickHandler}" class="card-container">
           ${deleteHandler ? `<button type="button" onclick="${deleteHandler}" class="absolute top-2 right-2 z-20 bg-red-700/90 hover:bg-red-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow" title="Delete Recipe">&times;</button>` : ''}
+          <img src="${CARD_BG_URL}" class="card-bg-img" alt="Card Graphic" ${loadingAttr}>
           <div class="card-content">
             
             <div class="food-photo-frame">
