@@ -3977,7 +3977,41 @@
         document.getElementById('ingDropdown')?.classList.add('hidden');
       }
     });
+    // Stale-while-revalidate: the Apps Script round-trip to read the Sheets data typically takes a
+    // couple of seconds, which is what made cards visibly "pop in" late. Rendering last time's data
+    // from localStorage immediately (if any) removes that wait on every visit but the very first —
+    // the real fetch still runs in the background and silently re-renders once it lands, so nothing
+    // ever goes stale for more than a moment.
+    const APP_DATA_CACHE_KEY = 'recipez_app_data_cache';
+
+    function loadAppDataFromCache() {
+      try {
+        const raw = localStorage.getItem(APP_DATA_CACHE_KEY);
+        if (!raw) return false;
+        const cached = JSON.parse(raw);
+        if (Array.isArray(cached.recipes)) masterRecipes = cached.recipes;
+        if (Array.isArray(cached.categories) && cached.categories.length > 0) categoriesList = cached.categories;
+        if (Array.isArray(cached.ingredients) && cached.ingredients.length > 0) masterIngredientsList = cached.ingredients;
+        if (Array.isArray(cached.units) && cached.units.length > 0) unitsList = cached.units;
+        recipesLoaded = true;
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function saveAppDataToCache(serverData) {
+      try {
+        localStorage.setItem(APP_DATA_CACHE_KEY, JSON.stringify(serverData));
+      } catch (e) { /* storage full/unavailable in this browser — just skip caching this time */ }
+    }
+
     window.addEventListener('DOMContentLoaded', function() {
+      if (loadAppDataFromCache()) {
+        renderMainGrid();
+        renderHubGrid();
+      }
+
       google.script.run
         .withSuccessHandler(function(serverData) {
           if (serverData) {
@@ -3985,6 +4019,7 @@
             if (Array.isArray(serverData.categories) && serverData.categories.length > 0) categoriesList = serverData.categories;
             if (Array.isArray(serverData.ingredients) && serverData.ingredients.length > 0) masterIngredientsList = serverData.ingredients;
             if (Array.isArray(serverData.units) && serverData.units.length > 0) unitsList = serverData.units;
+            saveAppDataToCache(serverData);
           }
           recipesLoaded = true;
           renderMainGrid();
