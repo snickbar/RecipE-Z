@@ -381,6 +381,29 @@
     .step-move-btn:hover:not(:disabled) { color: #4a280e; }
     .step-move-btn:disabled { opacity: 0.25; cursor: default; }
 
+    /* touch-action:none is what lets a drag on the handle actually work on a phone — without it
+       the browser treats the same finger motion as a page scroll instead of feeding it to us. */
+    .step-drag-handle {
+      display: flex; align-items: center;
+      padding: 6px 3px;
+      cursor: grab;
+      touch-action: none;
+      -webkit-user-select: none; user-select: none;
+    }
+    .step-drag-handle:active { cursor: grabbing; }
+    #draftStepsList li.step-item-dragging {
+      position: relative;
+      z-index: 20;
+      opacity: 0.92;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+      background: #fff8ea;
+      cursor: grabbing;
+    }
+    #draftStepsList li.step-item-drop-target {
+      border-color: #a86022 !important;
+      background: #fdecd2;
+    }
+
     /* Drag-to-pan crop frame — plain CSS transforms, no third-party library */
     .photo-editor-frame {
       position: relative;
@@ -3723,8 +3746,6 @@
       editDraftStep(insertAt);
     }
 
-    let draggedStepIndex = null;
-
     function renderDraftSteps() {
       const listEl = document.getElementById('draftStepsList');
 
@@ -3735,14 +3756,14 @@
       }
 
       listEl.innerHTML = draftSteps.map((step, idx) => `
-        <li draggable="true"
-            ondragstart="handleStepDragStart(${idx}, event)"
-            ondragover="handleStepDragOver(event)"
-            ondrop="handleStepDrop(${idx}, event)"
+        <li data-step-idx="${idx}"
             onclick="editDraftStep(${idx})"
             class="bg-amber-50 p-2.5 rounded border ${editingStepIndex === idx ? 'border-amber-500 ring-1 ring-amber-400' : 'border-amber-200'} space-y-1 cursor-pointer hover:border-amber-400 transition-colors">
           <div class="flex justify-between items-start gap-2">
             <div class="flex items-center gap-1.5 text-amber-800/50">
+              <span class="step-drag-handle" onpointerdown="startStepDrag(event, ${idx})" title="Drag to reorder">
+                <svg width="9" height="14" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.3"/><circle cx="8" cy="2" r="1.3"/><circle cx="2" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="2" cy="14" r="1.3"/><circle cx="8" cy="14" r="1.3"/></svg>
+              </span>
               <div class="flex flex-col" title="Move step">
                 <button type="button" onclick="event.stopPropagation(); moveStepUp(${idx})" ${idx === 0 ? 'disabled' : ''} class="step-move-btn" title="Move up">&#9650;</button>
                 <button type="button" onclick="event.stopPropagation(); moveStepDown(${idx})" ${idx === draftSteps.length - 1 ? 'disabled' : ''} class="step-move-btn" title="Move down">&#9660;</button>
@@ -3801,25 +3822,80 @@
       renderDraftSteps();
     }
 
-    function handleStepDragStart(idx, event) {
-      draggedStepIndex = idx;
-      event.dataTransfer.effectAllowed = 'move';
+    // Drag-to-reorder via Pointer Events, which unify mouse and touch in one implementation —
+    // unlike the old HTML5 drag-and-drop API (dragstart/dragover/drop), which only ever fires for
+    // mouse input and silently does nothing on a phone. Drag starts only from the handle icon (not
+    // the whole card), so it never conflicts with tapping the card to edit it or tapping a button.
+    let stepDrag = null;
+
+    function startStepDrag(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const li = event.currentTarget.closest('li');
+      if (!li) return;
+      try { event.currentTarget.setPointerCapture(event.pointerId); } catch (e) {}
+
+      stepDrag = {
+        pointerId: event.pointerId,
+        handle: event.currentTarget,
+        li: li,
+        fromIdx: idx,
+        startY: event.clientY,
+        targetIdx: idx
+      };
+      li.classList.add('step-item-dragging');
+
+      event.currentTarget.addEventListener('pointermove', onStepDragMove);
+      event.currentTarget.addEventListener('pointerup', onStepDragEnd);
+      event.currentTarget.addEventListener('pointercancel', onStepDragEnd);
     }
 
-    function handleStepDragOver(event) {
-      event.preventDefault();
-      event.dataTransfer.dropEffect = 'move';
+    function onStepDragMove(event) {
+      if (!stepDrag || event.pointerId !== stepDrag.pointerId) return;
+      const dy = event.clientY - stepDrag.startY;
+      stepDrag.li.style.transform = `translateY(${dy}px)`;
+
+      const listEl = document.getElementById('draftStepsList');
+      const items = [...listEl.children];
+      const others = items.filter(el => el !== stepDrag.li);
+      const draggedRect = stepDrag.li.getBoundingClientRect();
+      const draggedCenterY = draggedRect.top + draggedRect.height / 2;
+
+      let insertPos = others.length;
+      for (let i = 0; i < others.length; i++) {
+        const rect = others[i].getBoundingClientRect();
+        const mid = rect.top + rect.height / 2;
+        if (draggedCenterY < mid) { insertPos = i; break; }
+      }
+      stepDrag.targetIdx = insertPos;
+
+      others.forEach(el => el.classList.remove('step-item-drop-target'));
+      const target = others[Math.min(insertPos, others.length - 1)];
+      if (target) target.classList.add('step-item-drop-target');
     }
 
-    function handleStepDrop(idx, event) {
-      event.preventDefault();
-      if (draggedStepIndex === null || draggedStepIndex === idx) return;
+    function onStepDragEnd(event) {
+      if (!stepDrag || event.pointerId !== stepDrag.pointerId) return;
+      const { handle, li, fromIdx, targetIdx } = stepDrag;
 
-      markFormDirty();
-      const [moved] = draftSteps.splice(draggedStepIndex, 1);
-      draftSteps.splice(idx, 0, moved);
-      draggedStepIndex = null;
-      renderDraftSteps();
+      handle.removeEventListener('pointermove', onStepDragMove);
+      handle.removeEventListener('pointerup', onStepDragEnd);
+      handle.removeEventListener('pointercancel', onStepDragEnd);
+      try { handle.releasePointerCapture(event.pointerId); } catch (e) {}
+
+      li.style.transform = '';
+      li.classList.remove('step-item-dragging');
+      document.querySelectorAll('.step-item-drop-target').forEach(el => el.classList.remove('step-item-drop-target'));
+
+      stepDrag = null;
+
+      if (targetIdx !== fromIdx) {
+        markFormDirty();
+        const [moved] = draftSteps.splice(fromIdx, 1);
+        draftSteps.splice(targetIdx, 0, moved);
+        if (editingStepIndex === fromIdx) editingStepIndex = targetIdx;
+        renderDraftSteps();
+      }
     }
 
     // Persists whatever's currently typed before navigating away, so clicking Previous/Next/a step
