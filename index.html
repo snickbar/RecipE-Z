@@ -190,7 +190,17 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 1.25rem;
+      padding: 0.4rem 1.25rem 1.25rem;
+    }
+
+    /* Wraps up to 2 lines instead of a 1-line ellipsis; the font-size gets shrunk by JS (see
+       fitCardTitles) when even 2 lines at the default size don't fit, so the title area's height
+       never has to grow to accommodate a long recipe name. */
+    .card-title-fit {
+      line-height: 1.15;
+      max-height: 2.3em;
+      overflow: hidden;
+      word-break: break-word;
     }
 
     .food-photo-frame {
@@ -661,7 +671,7 @@
       .detail-body { padding-left: 12px; padding-right: 12px; }
 
       /* Two recipe cards per row instead of one — tighten padding/type so they don't feel cramped */
-      .card-content { padding: 0.65rem; }
+      .card-content { padding: 0.25rem 0.65rem 0.65rem; }
       .card-content h3 { font-size: 0.8rem; }
       .card-content .text-xs { font-size: 0.62rem; }
     }
@@ -1516,6 +1526,7 @@
       }
 
       container.innerHTML = filtered.map(r => createCardHTML(r, `openRecipeDetailView('${r.id}')`, true)).join('');
+      fitCardTitles(container);
     }
 
     function filterMainGrid() {
@@ -1551,7 +1562,7 @@
             </div>
 
             <div class="pt-2 text-center">
-              <h3 class="font-black font-title text-base text-[#2b1707] truncate px-1">${recipe.title}</h3>
+              <h3 class="font-black font-title text-base text-[#2b1707] card-title-fit px-1">${recipe.title}</h3>
               <div class="flex justify-around items-center text-xs font-bold text-amber-950/80 pt-1 border-t border-amber-900/15 mt-1">
                 <span>⏱️ ${recipe.prepTime || 'N/A'}</span>
                 <span>🍽️ ${recipe.servings || 'N/A'}</span>
@@ -1561,6 +1572,20 @@
           </div>
         </div>
       `;
+    }
+
+    // Shrinks a card title's font-size (down to a floor) until its text fits within the 2-line cap
+    // set by .card-title-fit, so a long recipe name wraps and shrinks instead of pushing the card's
+    // layout taller or getting cut off mid-word.
+    function fitCardTitles(container) {
+      (container || document).querySelectorAll('.card-title-fit').forEach(el => {
+        let fontSize = parseFloat(getComputedStyle(el).fontSize);
+        const minFontSize = 10;
+        while (el.scrollHeight > el.clientHeight + 1 && fontSize > minFontSize) {
+          fontSize -= 1;
+          el.style.fontSize = fontSize + 'px';
+        }
+      });
     }
 
     let currentDetailRecipe = null;
@@ -2258,7 +2283,9 @@
       } else if (hubSortMode === 'Oldest') {
         sorted.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
       }
-      document.getElementById('hubRecipesGrid').innerHTML = sorted.map(r => createCardHTML(r, `openEditFromHub('${r.id}')`, false, `quickDeleteRecipe('${r.id}', event)`)).join('');
+      const hubGridEl = document.getElementById('hubRecipesGrid');
+      hubGridEl.innerHTML = sorted.map(r => createCardHTML(r, `openEditFromHub('${r.id}')`, false, `quickDeleteRecipe('${r.id}', event)`)).join('');
+      fitCardTitles(hubGridEl);
     }
 
     function setHubSort(mode) {
