@@ -257,6 +257,12 @@
     }
     .uni-home-btn:hover { transform: scale(1.06); }
     .uni-home-btn img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    /* Without a circular badge behind them, the icons' own light/white regions (a timer's cream
+       face, the close X's white glyph) barely separated from the toolbar's cream background — a
+       soft dark halo traced around each icon's actual silhouette (not a rectangle) fixes that. */
+    .uni-home-btn img, .uni-mid-btn img, .uni-close img {
+      filter: drop-shadow(0 0 4px rgba(59,34,12,0.38)) drop-shadow(0 1.5px 2px rgba(59,34,12,0.35));
+    }
     .uni-home-hint { font-size: 9px; font-weight: 700; color: #97621f; text-transform: uppercase; letter-spacing: 0.03em; text-align: center; line-height: 1.2; }
 
     .uni-tabs { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; order: 4; flex-basis: 100%; }
