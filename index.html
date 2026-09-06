@@ -693,32 +693,37 @@
   <!-- ================= MAIN HOME SCREEN ================= -->
   <div class="max-w-6xl mx-auto space-y-4">
 
-    <div class="uni-toolbar">
+    <div class="uni-toolbar -mx-4 -mt-2 sm:-mx-8">
       <div class="uni-home">
         <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
-          <img src="https://drive.google.com/thumbnail?id=1t6woSpAPNlq7cJqzQ_VOq9ZE2i2tKCbn&sz=w400" alt="Home">
+          <img src="https://drive.google.com/thumbnail?id=1cCrhHGbCUF24hXksaNJ-viWSUYBrnxXe&sz=w500" alt="Home">
         </button>
       </div>
       <div class="uni-mid-icons">
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
-            <img src="https://drive.google.com/thumbnail?id=1KXt1R0rgKgssexS_voe44xOw8V_T69g5&sz=w400" alt="Recipe Manager">
+            <img src="https://drive.google.com/thumbnail?id=1QwCW_ZidiDij8cnRHT6FmIMEBmXMx6VI&sz=w500" alt="Recipe Manager">
           </button>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
-            <img src="https://drive.google.com/thumbnail?id=1OEay0QV10AIwmf5l8La6WMft1Xa-f8Hh&sz=w400" alt="Ingredients Manager">
+            <img src="https://drive.google.com/thumbnail?id=19VHEXsjs84l8OP85mvA4Q4GEtZuFnFAr&sz=w500" alt="Ingredients Manager">
           </button>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
-            <img src="https://drive.google.com/thumbnail?id=1EaL8NEY4n1evVO-1rAwv9m4syTBx_Xp9&sz=w400" alt="Timers">
+            <img src="https://drive.google.com/thumbnail?id=1822uWRqE28hIRipUu0KxJeQ6Ul1b-2gh&sz=w500" alt="Timers">
             <span class="uni-mid-badge timers-badge hidden">0</span>
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToSettings()" title="Settings">
+            <img src="https://drive.google.com/thumbnail?id=1HQsJ2khFk2pTCfrKiKNDnswaWZoe08cP&sz=w500" alt="Settings">
           </button>
         </div>
       </div>
       <div class="uni-close-wrap">
-        <button class="uni-close" onclick="attemptAppClose()" title="Close"><img src="https://drive.google.com/thumbnail?id=106rssp2Z2QYasO2EoDngsXu46h5-692p&sz=w400" alt="Close"></button>
+        <button class="uni-close" onclick="attemptAppClose()" title="Close"><img src="https://drive.google.com/thumbnail?id=17GnSrtUze2EMQzXIRI2bKOrdNFPxBTUk&sz=w500" alt="Close"></button>
       </div>
     </div>
 
@@ -764,7 +769,7 @@
     <div class="uni-toolbar">
       <div class="uni-home">
         <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
-          <img src="https://drive.google.com/thumbnail?id=1t6woSpAPNlq7cJqzQ_VOq9ZE2i2tKCbn&sz=w400" alt="Home">
+          <img src="https://drive.google.com/thumbnail?id=1cCrhHGbCUF24hXksaNJ-viWSUYBrnxXe&sz=w500" alt="Home">
         </button>
       </div>
       <div class="uni-tabs">
@@ -776,23 +781,28 @@
       <div class="uni-mid-icons">
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
-            <img src="https://drive.google.com/thumbnail?id=1KXt1R0rgKgssexS_voe44xOw8V_T69g5&sz=w400" alt="Recipe Manager">
+            <img src="https://drive.google.com/thumbnail?id=1QwCW_ZidiDij8cnRHT6FmIMEBmXMx6VI&sz=w500" alt="Recipe Manager">
           </button>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
-            <img src="https://drive.google.com/thumbnail?id=1OEay0QV10AIwmf5l8La6WMft1Xa-f8Hh&sz=w400" alt="Ingredients Manager">
+            <img src="https://drive.google.com/thumbnail?id=19VHEXsjs84l8OP85mvA4Q4GEtZuFnFAr&sz=w500" alt="Ingredients Manager">
           </button>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
-            <img src="https://drive.google.com/thumbnail?id=1EaL8NEY4n1evVO-1rAwv9m4syTBx_Xp9&sz=w400" alt="Timers">
+            <img src="https://drive.google.com/thumbnail?id=1822uWRqE28hIRipUu0KxJeQ6Ul1b-2gh&sz=w500" alt="Timers">
             <span class="uni-mid-badge timers-badge hidden">0</span>
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToSettings()" title="Settings">
+            <img src="https://drive.google.com/thumbnail?id=1HQsJ2khFk2pTCfrKiKNDnswaWZoe08cP&sz=w500" alt="Settings">
           </button>
         </div>
       </div>
       <div class="uni-close-wrap">
-        <button class="uni-close" onclick="closeRecipeDetailView()" title="Close"><img src="https://drive.google.com/thumbnail?id=106rssp2Z2QYasO2EoDngsXu46h5-692p&sz=w400" alt="Close"></button>
+        <button class="uni-close" onclick="closeRecipeDetailView()" title="Close"><img src="https://drive.google.com/thumbnail?id=17GnSrtUze2EMQzXIRI2bKOrdNFPxBTUk&sz=w500" alt="Close"></button>
       </div>
     </div>
 
@@ -897,29 +907,34 @@
     <div class="uni-toolbar">
       <div class="uni-home">
         <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
-          <img src="https://drive.google.com/thumbnail?id=1t6woSpAPNlq7cJqzQ_VOq9ZE2i2tKCbn&sz=w400" alt="Home">
+          <img src="https://drive.google.com/thumbnail?id=1cCrhHGbCUF24hXksaNJ-viWSUYBrnxXe&sz=w500" alt="Home">
         </button>
       </div>
       <div class="uni-mid-icons">
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
-            <img src="https://drive.google.com/thumbnail?id=1KXt1R0rgKgssexS_voe44xOw8V_T69g5&sz=w400" alt="Recipe Manager">
+            <img src="https://drive.google.com/thumbnail?id=1QwCW_ZidiDij8cnRHT6FmIMEBmXMx6VI&sz=w500" alt="Recipe Manager">
           </button>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
-            <img src="https://drive.google.com/thumbnail?id=1OEay0QV10AIwmf5l8La6WMft1Xa-f8Hh&sz=w400" alt="Ingredients Manager">
+            <img src="https://drive.google.com/thumbnail?id=19VHEXsjs84l8OP85mvA4Q4GEtZuFnFAr&sz=w500" alt="Ingredients Manager">
           </button>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
-            <img src="https://drive.google.com/thumbnail?id=1EaL8NEY4n1evVO-1rAwv9m4syTBx_Xp9&sz=w400" alt="Timers">
+            <img src="https://drive.google.com/thumbnail?id=1822uWRqE28hIRipUu0KxJeQ6Ul1b-2gh&sz=w500" alt="Timers">
             <span class="uni-mid-badge timers-badge hidden">0</span>
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToSettings()" title="Settings">
+            <img src="https://drive.google.com/thumbnail?id=1HQsJ2khFk2pTCfrKiKNDnswaWZoe08cP&sz=w500" alt="Settings">
           </button>
         </div>
       </div>
       <div class="uni-close-wrap">
-        <button class="uni-close" onclick="closeRecipeManagerHub()" title="Close"><img src="https://drive.google.com/thumbnail?id=106rssp2Z2QYasO2EoDngsXu46h5-692p&sz=w400" alt="Close"></button>
+        <button class="uni-close" onclick="closeRecipeManagerHub()" title="Close"><img src="https://drive.google.com/thumbnail?id=17GnSrtUze2EMQzXIRI2bKOrdNFPxBTUk&sz=w500" alt="Close"></button>
       </div>
     </div>
 
@@ -954,7 +969,7 @@
     <div class="uni-toolbar">
       <div class="uni-home">
         <button class="uni-home-btn" onclick="goHomeFromEditor()" title="Save &amp; Home">
-          <img src="https://drive.google.com/thumbnail?id=1t6woSpAPNlq7cJqzQ_VOq9ZE2i2tKCbn&sz=w400" alt="Home">
+          <img src="https://drive.google.com/thumbnail?id=1cCrhHGbCUF24hXksaNJ-viWSUYBrnxXe&sz=w500" alt="Home">
         </button>
       </div>
       <div class="uni-tabs">
@@ -966,23 +981,28 @@
       <div class="uni-mid-icons">
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
-            <img src="https://drive.google.com/thumbnail?id=1KXt1R0rgKgssexS_voe44xOw8V_T69g5&sz=w400" alt="Recipe Manager">
+            <img src="https://drive.google.com/thumbnail?id=1QwCW_ZidiDij8cnRHT6FmIMEBmXMx6VI&sz=w500" alt="Recipe Manager">
           </button>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
-            <img src="https://drive.google.com/thumbnail?id=1OEay0QV10AIwmf5l8La6WMft1Xa-f8Hh&sz=w400" alt="Ingredients Manager">
+            <img src="https://drive.google.com/thumbnail?id=19VHEXsjs84l8OP85mvA4Q4GEtZuFnFAr&sz=w500" alt="Ingredients Manager">
           </button>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
-            <img src="https://drive.google.com/thumbnail?id=1EaL8NEY4n1evVO-1rAwv9m4syTBx_Xp9&sz=w400" alt="Timers">
+            <img src="https://drive.google.com/thumbnail?id=1822uWRqE28hIRipUu0KxJeQ6Ul1b-2gh&sz=w500" alt="Timers">
             <span class="uni-mid-badge timers-badge hidden">0</span>
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToSettings()" title="Settings">
+            <img src="https://drive.google.com/thumbnail?id=1HQsJ2khFk2pTCfrKiKNDnswaWZoe08cP&sz=w500" alt="Settings">
           </button>
         </div>
       </div>
       <div class="uni-close-wrap">
-        <button class="uni-close" onclick="attemptCloseEditor()" title="Close"><img src="https://drive.google.com/thumbnail?id=106rssp2Z2QYasO2EoDngsXu46h5-692p&sz=w400" alt="Close"></button>
+        <button class="uni-close" onclick="attemptCloseEditor()" title="Close"><img src="https://drive.google.com/thumbnail?id=17GnSrtUze2EMQzXIRI2bKOrdNFPxBTUk&sz=w500" alt="Close"></button>
       </div>
     </div>
 
@@ -1238,7 +1258,7 @@
     <div class="uni-toolbar">
       <div class="uni-home">
         <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
-          <img src="https://drive.google.com/thumbnail?id=1t6woSpAPNlq7cJqzQ_VOq9ZE2i2tKCbn&sz=w400" alt="Home">
+          <img src="https://drive.google.com/thumbnail?id=1cCrhHGbCUF24hXksaNJ-viWSUYBrnxXe&sz=w500" alt="Home">
         </button>
       </div>
       <div class="uni-tabs">
@@ -1250,23 +1270,28 @@
       <div class="uni-mid-icons">
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
-            <img src="https://drive.google.com/thumbnail?id=1KXt1R0rgKgssexS_voe44xOw8V_T69g5&sz=w400" alt="Recipe Manager">
+            <img src="https://drive.google.com/thumbnail?id=1QwCW_ZidiDij8cnRHT6FmIMEBmXMx6VI&sz=w500" alt="Recipe Manager">
           </button>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
-            <img src="https://drive.google.com/thumbnail?id=1OEay0QV10AIwmf5l8La6WMft1Xa-f8Hh&sz=w400" alt="Ingredients Manager">
+            <img src="https://drive.google.com/thumbnail?id=19VHEXsjs84l8OP85mvA4Q4GEtZuFnFAr&sz=w500" alt="Ingredients Manager">
           </button>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
-            <img src="https://drive.google.com/thumbnail?id=1EaL8NEY4n1evVO-1rAwv9m4syTBx_Xp9&sz=w400" alt="Timers">
+            <img src="https://drive.google.com/thumbnail?id=1822uWRqE28hIRipUu0KxJeQ6Ul1b-2gh&sz=w500" alt="Timers">
             <span class="uni-mid-badge timers-badge hidden">0</span>
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToSettings()" title="Settings">
+            <img src="https://drive.google.com/thumbnail?id=1HQsJ2khFk2pTCfrKiKNDnswaWZoe08cP&sz=w500" alt="Settings">
           </button>
         </div>
       </div>
       <div class="uni-close-wrap">
-        <button class="uni-close" onclick="closeIngredientsManager()" title="Close"><img src="https://drive.google.com/thumbnail?id=106rssp2Z2QYasO2EoDngsXu46h5-692p&sz=w400" alt="Close"></button>
+        <button class="uni-close" onclick="closeIngredientsManager()" title="Close"><img src="https://drive.google.com/thumbnail?id=17GnSrtUze2EMQzXIRI2bKOrdNFPxBTUk&sz=w500" alt="Close"></button>
       </div>
     </div>
 
@@ -1331,6 +1356,48 @@
         <ul id="managerUnitsList" class="space-y-2 max-w-md"></ul>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ================= SETTINGS (COMING SOON) MODAL ================= -->
+  <div id="settingsComingSoonModal" class="fixed inset-0 hidden flex flex-col z-40 linen-bg" style="overflow-y: auto;">
+    <div class="uni-toolbar">
+      <div class="uni-home">
+        <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
+          <img src="https://drive.google.com/thumbnail?id=1cCrhHGbCUF24hXksaNJ-viWSUYBrnxXe&sz=w500" alt="Home">
+        </button>
+      </div>
+      <div class="uni-mid-icons">
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
+            <img src="https://drive.google.com/thumbnail?id=1QwCW_ZidiDij8cnRHT6FmIMEBmXMx6VI&sz=w500" alt="Recipe Manager">
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
+            <img src="https://drive.google.com/thumbnail?id=19VHEXsjs84l8OP85mvA4Q4GEtZuFnFAr&sz=w500" alt="Ingredients Manager">
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
+            <img src="https://drive.google.com/thumbnail?id=1822uWRqE28hIRipUu0KxJeQ6Ul1b-2gh&sz=w500" alt="Timers">
+            <span class="uni-mid-badge timers-badge hidden">0</span>
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToSettings()" title="Settings">
+            <img src="https://drive.google.com/thumbnail?id=1HQsJ2khFk2pTCfrKiKNDnswaWZoe08cP&sz=w500" alt="Settings">
+          </button>
+        </div>
+      </div>
+      <div class="uni-close-wrap">
+        <button class="uni-close" onclick="closeSettingsComingSoon()" title="Close"><img src="https://drive.google.com/thumbnail?id=17GnSrtUze2EMQzXIRI2bKOrdNFPxBTUk&sz=w500" alt="Close"></button>
+      </div>
+    </div>
+
+    <div class="detail-body" style="max-width: 560px; text-align: center; padding-top: 60px;">
+      <h1 class="text-2xl font-black font-title text-[#3b220c] mb-3">Settings</h1>
+      <p class="text-sm text-amber-950/70 font-semibold">Coming soon! This is where app settings will live.</p>
     </div>
   </div>
 
@@ -2442,6 +2509,24 @@
       openIngredientsManager();
     }
 
+    function navToSettings() {
+      const editorModal = document.getElementById('recipeEditorModal');
+      if (!editorModal.classList.contains('hidden')) goHomeFromEditor();
+      else goToHomeGrid();
+      openSettingsComingSoon();
+    }
+
+    // Settings hasn't been built out yet — this just proves the icon/navigation works until
+    // real settings land here.
+    function openSettingsComingSoon() {
+      document.getElementById('settingsComingSoonModal').classList.remove('hidden');
+      pushBackGuard();
+    }
+
+    function closeSettingsComingSoon() {
+      document.getElementById('settingsComingSoonModal').classList.add('hidden');
+    }
+
     function openRecipeManagerHub() {
       renderHubGrid();
       document.getElementById('recipeManagerHubModal').classList.remove('hidden');
@@ -2518,7 +2603,7 @@
     // 'flex' is permanently part of these pages' base class (except the detail view, which manages
     // its own 'flex' toggle in open/closeRecipeDetailView) so it's never removed out from under them.
     function goToHomeGrid() {
-      ['recipeDetailView', 'recipeEditorModal', 'recipeManagerHubModal', 'ingredientsManagerModal'].forEach(id => {
+      ['recipeDetailView', 'recipeEditorModal', 'recipeManagerHubModal', 'ingredientsManagerModal', 'settingsComingSoonModal'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.add('hidden');
       });
@@ -2555,7 +2640,7 @@
 
     function anyOverlayOpen() {
       const ids = ['unsavedChangesModal', 'photoEditorModal', 'smartImportModal', 'smartCleanupModal',
-        'recipeEditorModal', 'ingredientsManagerModal', 'recipeManagerHubModal', 'recipeDetailView'];
+        'recipeEditorModal', 'ingredientsManagerModal', 'recipeManagerHubModal', 'recipeDetailView', 'settingsComingSoonModal'];
       return ids.some(id => {
         const el = document.getElementById(id);
         return el && !el.classList.contains('hidden');
@@ -2579,6 +2664,8 @@
         closeRecipeManagerHub();
       } else if (!document.getElementById('recipeDetailView').classList.contains('hidden')) {
         closeRecipeDetailView();
+      } else if (!document.getElementById('settingsComingSoonModal').classList.contains('hidden')) {
+        closeSettingsComingSoon();
       }
       if (anyOverlayOpen()) pushBackGuard();
     });
