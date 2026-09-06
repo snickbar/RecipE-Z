@@ -283,7 +283,7 @@
       box-shadow: 0 3px 10px rgba(74,40,14,0.3);
     }
 
-    .uni-page-title { font-family: 'Cinzel', serif; font-weight: 800; font-size: 18px; color: #3b220c; }
+    .uni-page-title { font-family: 'Cinzel', serif; font-weight: 800; font-size: 18px; color: #3b220c; flex: 1; text-align: center; }
 
     .uni-close-wrap { min-width: 70px; display: flex; justify-content: flex-end; }
     .uni-close {
@@ -757,7 +757,6 @@
         <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
           <img src="https://drive.google.com/thumbnail?id=1LQdyz8FsloEYDGifVEy3wMRPed85VTNK&sz=w400" alt="Home">
         </button>
-        <span class="uni-home-hint">Home</span>
       </div>
       <div class="uni-tabs">
         <button class="uni-tab" data-tab="recipe" onclick="switchDetailTab('recipe')">1. Recipe</button>
@@ -770,20 +769,17 @@
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
             <img src="https://drive.google.com/thumbnail?id=1KXt1R0rgKgssexS_voe44xOw8V_T69g5&sz=w400" alt="Recipe Manager">
           </button>
-          <span class="uni-mid-label">Recipes</span>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
             <img src="https://drive.google.com/thumbnail?id=1AfOA5nKTq_ZFsMJ4JNMWRYkuuisX85NI&sz=w400" alt="Ingredients Manager">
           </button>
-          <span class="uni-mid-label">Ingr.</span>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
             <img src="https://drive.google.com/thumbnail?id=1EaL8NEY4n1evVO-1rAwv9m4syTBx_Xp9&sz=w400" alt="Timers">
             <span class="uni-mid-badge timers-badge hidden">0</span>
           </button>
-          <span class="uni-mid-label timers-mid-label">Timers</span>
         </div>
       </div>
       <div class="uni-close-wrap">
@@ -894,7 +890,6 @@
         <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
           <img src="https://drive.google.com/thumbnail?id=1LQdyz8FsloEYDGifVEy3wMRPed85VTNK&sz=w400" alt="Home">
         </button>
-        <span class="uni-home-hint">Home</span>
       </div>
       <div class="uni-page-title">Recipe Manager</div>
       <div class="uni-mid-icons">
@@ -902,20 +897,17 @@
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
             <img src="https://drive.google.com/thumbnail?id=1KXt1R0rgKgssexS_voe44xOw8V_T69g5&sz=w400" alt="Recipe Manager">
           </button>
-          <span class="uni-mid-label">Recipes</span>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
             <img src="https://drive.google.com/thumbnail?id=1AfOA5nKTq_ZFsMJ4JNMWRYkuuisX85NI&sz=w400" alt="Ingredients Manager">
           </button>
-          <span class="uni-mid-label">Ingr.</span>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
             <img src="https://drive.google.com/thumbnail?id=1EaL8NEY4n1evVO-1rAwv9m4syTBx_Xp9&sz=w400" alt="Timers">
             <span class="uni-mid-badge timers-badge hidden">0</span>
           </button>
-          <span class="uni-mid-label timers-mid-label">Timers</span>
         </div>
       </div>
       <div class="uni-close-wrap">
@@ -956,7 +948,6 @@
         <button class="uni-home-btn" onclick="goHomeFromEditor()" title="Save &amp; Home">
           <img src="https://drive.google.com/thumbnail?id=1LQdyz8FsloEYDGifVEy3wMRPed85VTNK&sz=w400" alt="Home">
         </button>
-        <span class="uni-home-hint">Save &amp; Home</span>
       </div>
       <div class="uni-tabs">
         <button id="tabBtnDetails" onclick="switchEditorTab(1)" class="uni-tab active">1. Details</button>
@@ -969,20 +960,17 @@
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
             <img src="https://drive.google.com/thumbnail?id=1KXt1R0rgKgssexS_voe44xOw8V_T69g5&sz=w400" alt="Recipe Manager">
           </button>
-          <span class="uni-mid-label">Recipes</span>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
             <img src="https://drive.google.com/thumbnail?id=1AfOA5nKTq_ZFsMJ4JNMWRYkuuisX85NI&sz=w400" alt="Ingredients Manager">
           </button>
-          <span class="uni-mid-label">Ingr.</span>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
             <img src="https://drive.google.com/thumbnail?id=1EaL8NEY4n1evVO-1rAwv9m4syTBx_Xp9&sz=w400" alt="Timers">
             <span class="uni-mid-badge timers-badge hidden">0</span>
           </button>
-          <span class="uni-mid-label timers-mid-label">Timers</span>
         </div>
       </div>
       <div class="uni-close-wrap">
@@ -1244,7 +1232,6 @@
         <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
           <img src="https://drive.google.com/thumbnail?id=1LQdyz8FsloEYDGifVEy3wMRPed85VTNK&sz=w400" alt="Home">
         </button>
-        <span class="uni-home-hint">Home</span>
       </div>
       <div class="uni-tabs">
         <button id="mgrTabBtn1" onclick="switchIngManagerTab(1)" class="uni-tab active">1. Add Ingredient</button>
@@ -1257,20 +1244,17 @@
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
             <img src="https://drive.google.com/thumbnail?id=1KXt1R0rgKgssexS_voe44xOw8V_T69g5&sz=w400" alt="Recipe Manager">
           </button>
-          <span class="uni-mid-label">Recipes</span>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
             <img src="https://drive.google.com/thumbnail?id=1AfOA5nKTq_ZFsMJ4JNMWRYkuuisX85NI&sz=w400" alt="Ingredients Manager">
           </button>
-          <span class="uni-mid-label">Ingr.</span>
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
             <img src="https://drive.google.com/thumbnail?id=1EaL8NEY4n1evVO-1rAwv9m4syTBx_Xp9&sz=w400" alt="Timers">
             <span class="uni-mid-badge timers-badge hidden">0</span>
           </button>
-          <span class="uni-mid-label timers-mid-label">Timers</span>
         </div>
       </div>
       <div class="uni-close-wrap">
