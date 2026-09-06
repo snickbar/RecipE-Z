@@ -1693,6 +1693,7 @@
       const view = document.getElementById('recipeDetailView');
       view.classList.remove('hidden');
       view.classList.add('flex');
+      pushBackGuard();
     }
 
     function closeRecipeDetailView() {
@@ -2429,6 +2430,7 @@
     function openRecipeManagerHub() {
       renderHubGrid();
       document.getElementById('recipeManagerHubModal').classList.remove('hidden');
+      pushBackGuard();
     }
 
     function closeRecipeManagerHub() {
@@ -2483,6 +2485,7 @@
       switchIngManagerTab(1);
 
       document.getElementById('ingredientsManagerModal').classList.remove('hidden');
+      pushBackGuard();
     }
 
     function closeIngredientsManager() {
@@ -2513,6 +2516,49 @@
       document.getElementById('recipeEditorModal').classList.add('hidden');
       goToHomeGrid();
     }
+
+    // --- Phone back-button handling ---
+    // Every screen here is just a div being shown/hidden — there's never any real browser
+    // navigation, so the back button (or a phone's back gesture) had nowhere to go and exited
+    // the whole app instead of closing whatever was open. Fix: push a history entry each time a
+    // full-screen view (or a modal layered on top of one) opens, and use popstate to close
+    // whatever's currently on top instead of letting the browser navigate away. After closing one
+    // layer, re-push a guard if anything is still open underneath, so the next back press is
+    // caught too — only once nothing at all is open does a further back press exit normally,
+    // same as pressing back on any app's home screen.
+    function pushBackGuard() {
+      try { history.pushState({ rzGuard: true }, '', ''); } catch (e) { /* history API unavailable — back button just won't be intercepted */ }
+    }
+
+    function anyOverlayOpen() {
+      const ids = ['unsavedChangesModal', 'photoEditorModal', 'smartImportModal', 'smartCleanupModal',
+        'recipeEditorModal', 'ingredientsManagerModal', 'recipeManagerHubModal', 'recipeDetailView'];
+      return ids.some(id => {
+        const el = document.getElementById(id);
+        return el && !el.classList.contains('hidden');
+      });
+    }
+
+    window.addEventListener('popstate', function() {
+      if (!document.getElementById('unsavedChangesModal').classList.contains('hidden')) {
+        closeUnsavedPrompt(); // treat back as "keep editing" — never silently discard on a back press
+      } else if (!document.getElementById('photoEditorModal').classList.contains('hidden')) {
+        closePhotoEditor();
+      } else if (!document.getElementById('smartImportModal').classList.contains('hidden')) {
+        closeSmartImportModal();
+      } else if (!document.getElementById('smartCleanupModal').classList.contains('hidden')) {
+        closeSmartCleanupModal();
+      } else if (!document.getElementById('recipeEditorModal').classList.contains('hidden')) {
+        attemptCloseEditor();
+      } else if (!document.getElementById('ingredientsManagerModal').classList.contains('hidden')) {
+        closeIngredientsManager();
+      } else if (!document.getElementById('recipeManagerHubModal').classList.contains('hidden')) {
+        closeRecipeManagerHub();
+      } else if (!document.getElementById('recipeDetailView').classList.contains('hidden')) {
+        closeRecipeDetailView();
+      }
+      if (anyOverlayOpen()) pushBackGuard();
+    });
 
     function renderManagerCategoryButtons() {
       const container = document.getElementById('managerIngCategoryButtons');
@@ -2653,6 +2699,7 @@
           }));
           renderCleanupGroups();
           document.getElementById('smartCleanupModal').classList.remove('hidden');
+          pushBackGuard();
         })
         .withFailureHandler(function(error) {
           btn.disabled = false;
@@ -2908,6 +2955,7 @@
       renderDraftSteps();
       renderDraftNotes();
       document.getElementById('recipeEditorModal').classList.remove('hidden');
+      pushBackGuard();
     }
 
     // --- SMART IMPORT ---
@@ -2916,6 +2964,7 @@
       document.getElementById('smartImportBtn').disabled = false;
       document.getElementById('smartImportBtn').innerText = 'Parse Recipe';
       document.getElementById('smartImportModal').classList.remove('hidden');
+      pushBackGuard();
     }
 
     function closeSmartImportModal() {
@@ -3039,6 +3088,7 @@
       renderDraftSteps();
       renderDraftNotes();
       document.getElementById('recipeEditorModal').classList.remove('hidden');
+      pushBackGuard();
     }
 
     function promptDeleteCurrentRecipe() {
@@ -3197,6 +3247,7 @@
     function openPhotoEditor() {
       const url = document.getElementById('fieldImageURL').value.trim();
       document.getElementById('photoEditorModal').classList.remove('hidden');
+      pushBackGuard();
       document.getElementById('photoEditorShrink').value = 100;
       document.getElementById('photoEditorShrinkLabel').innerText = '100%';
 
