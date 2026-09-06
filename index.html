@@ -296,29 +296,55 @@
     }
     .uni-close:hover { background: #a5281b; }
 
-    /* Cooking Mode timers, tucked into the toolbar between the tabs and the close button */
-    .cooking-timers-bar { position: relative; display: flex; gap: 8px; align-items: center; }
-    .cooking-timer {
-      display: flex; align-items: center; gap: 4px;
-      background: #fdf8ef; border: 1.5px solid #d8c19c; border-radius: 8px;
-      padding: 6px 10px; cursor: pointer; user-select: none;
-      font-weight: 800; font-size: 13px; color: #3b220c;
-      min-width: 60px; justify-content: center;
-      transition: background 0.2s ease, border-color 0.2s ease;
+    /* Recipe Manager / Ingredients Manager / Timers shortcuts, living in every toolbar between
+       the tabs (or page title) and the close button. Icons are simple placeholders until nicer
+       custom graphics replace them. */
+    .uni-mid-icons { display: flex; align-items: center; gap: 14px; }
+    .uni-mid-col { display: flex; flex-direction: column; align-items: center; gap: 2px; position: relative; }
+    .uni-mid-btn {
+      width: 36px; height: 36px; border-radius: 999px; position: relative;
+      border: 1.5px solid #c9ad82; background: #ffffff; color: #4a280e;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
-    .cooking-timer-icon { font-size: 12px; opacity: 0.7; }
-    .cooking-timer.running { border-color: #a86022; background: #fdecd2; }
-    .cooking-timer.paused { border-color: #97621f; background: #f4ebd9; opacity: 0.75; }
-    .cooking-timer.done { border-color: #c0392b; background: #c0392b; color: #fff; animation: timer-flash 0.8s infinite; }
+    .uni-mid-btn:hover { background: #f4e9d2; }
+    .uni-mid-btn.has-done { background: #c0392b; border-color: #c0392b; color: #fff; animation: timer-flash 0.8s infinite; }
     @keyframes timer-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+    .uni-mid-label { font-size: 8px; font-weight: 700; color: #97621f; text-transform: uppercase; letter-spacing: 0.02em; text-align: center; line-height: 1.15; }
+    .uni-mid-badge {
+      position: absolute; top: -3px; right: -3px; min-width: 15px; height: 15px; padding: 0 3px;
+      border-radius: 999px; background: #a86022; color: #fff; border: 1.5px solid #fdf8ef;
+      font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+    }
+    .uni-mid-badge.hidden { display: none; }
 
-    .timer-popover {
-      position: absolute; top: 100%; left: 0; margin-top: 8px; z-index: 50;
+    /* Timers panel — drops down from the clock icon, listing every running/paused/finished timer
+       (no cap on how many, unlike the old fixed 2-slot design) plus an always-available Add Timer. */
+    .timers-panel {
+      position: absolute; top: 100%; right: 0; margin-top: 8px; z-index: 50;
       background: #fdf8ef; border: 1.5px solid #d8c19c; border-radius: 10px;
       padding: 10px; box-shadow: 0 6px 16px rgba(70,45,10,0.25);
-      display: flex; flex-direction: column; gap: 8px; width: 200px;
+      display: flex; flex-direction: column; gap: 8px; width: 235px; max-height: 340px; overflow-y: auto;
       cursor: default;
     }
+    .timers-panel.hidden { display: none; }
+    .timers-panel-empty { font-size: 12px; color: #8a7256; text-align: center; padding: 6px 4px; font-weight: 600; }
+    .timer-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      padding: 7px 9px; border: 1.3px solid #d8c19c; border-radius: 8px; background: #fff;
+    }
+    .timer-row.running { border-color: #a86022; background: #fdecd2; }
+    .timer-row.paused { border-color: #97621f; background: #f4ebd9; opacity: 0.85; }
+    .timer-row.done { border-color: #c0392b; background: #c0392b; color: #fff; animation: timer-flash 0.8s infinite; }
+    .timer-row-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .timer-row-name { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
+    .timer-row-time { font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .timer-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .timer-row-btn {
+      width: 24px; height: 24px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.15);
+      background: rgba(255,255,255,0.65); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 11px; color: inherit;
+    }
+
     .timer-popover-presets { display: flex; gap: 4px; flex-wrap: wrap; }
     .timer-popover-presets button {
       flex: 1; min-width: 34px; padding: 4px 6px; border-radius: 6px; border: 1px solid #d8c19c;
@@ -338,16 +364,14 @@
       padding: 3px; border-radius: 6px; border: none; font-weight: 700; font-size: 11px;
       cursor: pointer; background: transparent; color: #97621f; text-decoration: underline;
     }
-
-    .timer-popover-status { font-size: 12px; font-weight: 700; color: #3b220c; text-align: center; }
-    .timer-popover-actions { display: flex; flex-direction: column; gap: 6px; }
-    .timer-action-btn {
-      padding: 7px 10px; border-radius: 6px; border: 1px solid #d8c19c;
-      background: #fff; font-size: 12px; font-weight: 800; color: #4a280e; cursor: pointer;
+    .timer-add-btn {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px; border-radius: 8px; border: 1.5px dashed #a86022; background: transparent;
+      color: #a86022; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em;
+      cursor: pointer;
     }
-    .timer-action-btn:hover { background: #f4ebd9; }
-    .timer-action-cancel { color: #c0392b; border-color: #e2b3ac; }
-    .timer-action-cancel:hover { background: #fbeceb; }
+    .timer-add-btn:hover { background: #fdecd2; }
+    .timer-add-form { display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed #d8c19c; padding-top: 8px; }
 
     /* Clickable recipe-photo thumbnail (opens the crop/rotate/shrink/delete/replace editor) */
     .photo-thumb {
@@ -643,13 +667,15 @@
          squeezing the tab labels unreadably small. Wrap it onto two rows instead. */
       .uni-toolbar { padding: 8px 10px; flex-wrap: wrap; row-gap: 8px; }
       .uni-home { order: 1; min-width: 0; }
-      .cooking-timers-bar.hidden { display: none; }
-      .cooking-timers-bar:not(.hidden) { order: 2; display: flex; }
+      .uni-mid-icons { order: 2; gap: 8px; }
+      .uni-mid-btn { width: 32px; height: 32px; }
+      .uni-mid-label { font-size: 7px; }
       .uni-close-wrap { order: 3; min-width: 0; }
       .uni-tabs { order: 4; flex-basis: 100%; gap: 6px; }
       .uni-tab { min-width: 0; flex: 1 1 auto; padding: 8px 6px; font-size: 10px; }
       .uni-page-title { font-size: 15px; order: 1; flex: 1; }
       .uni-home-btn, .uni-close { width: 36px; height: 36px; }
+      .timers-panel { right: -8px; width: 210px; }
 
       /* Home page nav icons were a fixed 280px wide each — way too big next to the search
          box on a phone screen. Put the two manager buttons side by side (a grid, so their
@@ -739,16 +765,26 @@
         <button class="uni-tab" data-tab="shopping" onclick="switchDetailTab('shopping')">3. Shopping</button>
         <button class="uni-tab" data-tab="cooking" onclick="switchDetailTab('cooking')">4. Cooking</button>
       </div>
-      <div id="cookingTimersBar" class="cooking-timers-bar hidden">
-        <div class="cooking-timer" id="timer1" onclick="toggleTimerPopover(1, event)" title="Timer 1">
-          <span class="cooking-timer-icon">⏱</span>
-          <span class="cooking-timer-display" id="timer1Display">--:--</span>
+      <div class="uni-mid-icons">
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 5.5v15"/></svg>
+          </button>
+          <span class="uni-mid-label">Recipes</span>
         </div>
-        <div class="cooking-timer" id="timer2" onclick="toggleTimerPopover(2, event)" title="Timer 2">
-          <span class="cooking-timer-icon">⏱</span>
-          <span class="cooking-timer-display" id="timer2Display">--:--</span>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h18M5 8l1 12h12l1-12M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+          </button>
+          <span class="uni-mid-label">Ingr.</span>
         </div>
-        <div id="timerSetPopover" class="timer-popover hidden" onclick="event.stopPropagation()"></div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>
+            <span class="uni-mid-badge timers-badge hidden">0</span>
+          </button>
+          <span class="uni-mid-label timers-mid-label">Timers</span>
+        </div>
       </div>
       <div class="uni-close-wrap">
         <button class="uni-close" onclick="closeRecipeDetailView()" title="Close">&times;</button>
@@ -861,6 +897,27 @@
         <span class="uni-home-hint">Home</span>
       </div>
       <div class="uni-page-title">Recipe Manager</div>
+      <div class="uni-mid-icons">
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 5.5v15"/></svg>
+          </button>
+          <span class="uni-mid-label">Recipes</span>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h18M5 8l1 12h12l1-12M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+          </button>
+          <span class="uni-mid-label">Ingr.</span>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>
+            <span class="uni-mid-badge timers-badge hidden">0</span>
+          </button>
+          <span class="uni-mid-label timers-mid-label">Timers</span>
+        </div>
+      </div>
       <div class="uni-close-wrap">
         <button class="uni-close" onclick="closeRecipeManagerHub()" title="Close">&times;</button>
       </div>
@@ -906,6 +963,27 @@
         <button id="tabBtnIngredients" onclick="switchEditorTab(2)" class="uni-tab">2. Ingredients</button>
         <button id="tabBtnSteps" onclick="switchEditorTab(3)" class="uni-tab">3. Steps</button>
         <button id="tabBtnNotes" onclick="switchEditorTab(4)" class="uni-tab">4. Notes</button>
+      </div>
+      <div class="uni-mid-icons">
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 5.5v15"/></svg>
+          </button>
+          <span class="uni-mid-label">Recipes</span>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h18M5 8l1 12h12l1-12M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+          </button>
+          <span class="uni-mid-label">Ingr.</span>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>
+            <span class="uni-mid-badge timers-badge hidden">0</span>
+          </button>
+          <span class="uni-mid-label timers-mid-label">Timers</span>
+        </div>
       </div>
       <div class="uni-close-wrap">
         <button class="uni-close" onclick="attemptCloseEditor()" title="Close">&times;</button>
@@ -1174,6 +1252,27 @@
         <button id="mgrTabBtn3" onclick="switchIngManagerTab(3)" class="uni-tab">3. Add Unit</button>
         <button id="mgrTabBtn4" onclick="switchIngManagerTab(4)" class="uni-tab">4. View Units</button>
       </div>
+      <div class="uni-mid-icons">
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 5.5v15"/></svg>
+          </button>
+          <span class="uni-mid-label">Recipes</span>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h18M5 8l1 12h12l1-12M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+          </button>
+          <span class="uni-mid-label">Ingr.</span>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>
+            <span class="uni-mid-badge timers-badge hidden">0</span>
+          </button>
+          <span class="uni-mid-label timers-mid-label">Timers</span>
+        </div>
+      </div>
       <div class="uni-close-wrap">
         <button class="uni-close" onclick="closeIngredientsManager()" title="Close">&times;</button>
       </div>
@@ -1369,6 +1468,10 @@
       </div>
     </div>
   </div>
+
+  <!-- ================= TIMERS PANEL (shared singleton, relocated by JS to whichever toolbar's
+       clock icon was tapped — see toggleTimersPanel()) ================= -->
+  <div id="timersPanelDropdown" class="timers-panel hidden" onclick="event.stopPropagation()"></div>
 
   <script>
     const FOOD_FALLBACK_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23e2ccab'/><circle cx='200' cy='150' r='60' fill='%23a16630'/><path d='M150,150 Q200,100 250,150 Q200,200 150,150' fill='%235c2e10'/></svg>";
@@ -1628,7 +1731,6 @@
       Object.entries(ids).forEach(([key, elId]) => {
         document.getElementById(elId).classList.toggle('hidden', key !== tab);
       });
-      document.getElementById('cookingTimersBar').classList.toggle('hidden', tab !== 'cooking');
     }
 
     function renderDetailRecipeTab() {
@@ -1884,14 +1986,11 @@
       if (cookingStepIndex < steps.length - 1) { cookingStepIndex++; renderCookingStep(); }
     }
 
-    // --- COOKING MODE TIMERS ---
-    // Two independent countdowns (e.g. a 2-hour roast + a 15-minute check-in), tucked into the
-    // toolbar since it's otherwise empty space during Cooking Mode.
-    let cookingTimers = {
-      1: { remaining: 0, intervalId: null, state: 'idle' },
-      2: { remaining: 0, intervalId: null, state: 'idle' }
-    };
-    let activeTimerPopoverId = null;
+    // --- TIMERS (unlimited — added one at a time from the clock icon in the toolbar, present on
+    // every non-home screen, instead of a fixed 2-slot bar tied to Cooking Mode) ---
+    let cookingTimers = {};
+    let nextTimerId = 1;
+    let timersAddFormOpen = false;
     let timerAlarmIntervalId = null;
 
     function formatTimerTime(totalSeconds) {
@@ -1903,133 +2002,196 @@
       return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
     }
 
-    function renderTimer(id) {
-      const t = cookingTimers[id];
-      const el = document.getElementById('timer' + id);
-      const display = document.getElementById('timer' + id + 'Display');
-      el.classList.remove('running', 'paused', 'done');
-      if (t.state === 'idle') {
-        display.textContent = '--:--';
-      } else if (t.state === 'done') {
-        display.textContent = "Time's up!";
-        el.classList.add('done');
-      } else {
-        display.textContent = formatTimerTime(t.remaining);
-        el.classList.add(t.state); // 'running' or 'paused'
-      }
-      // Keep an open popover in sync (e.g. the countdown ticking, or switching to "Time's up!") —
-      // but never while 'edit' is showing live inputs, or a background tick would wipe them out.
-      if (activeTimerPopoverId === id && t.state !== 'edit') renderTimerPopoverContent(id);
-    }
-
-    // Every tap opens (or closes, if already open) a popover with explicit, labeled actions for
-    // that timer's current state — no more guessing what a tap on the pill itself will do.
-    function toggleTimerPopover(id, event) {
+    // The panel is one shared element JS relocates into whichever toolbar's clock icon was
+    // tapped (there's an identical clock icon in every toolbar instance).
+    function toggleTimersPanel(event) {
       event.stopPropagation();
-      if (activeTimerPopoverId === id) { closeTimerPopover(); return; }
-      openTimerPopover(id);
+      const col = event.currentTarget.closest('.uni-mid-col');
+      const panel = document.getElementById('timersPanelDropdown');
+      if (!panel.classList.contains('hidden') && panel.parentElement === col) {
+        closeTimersPanel();
+        return;
+      }
+      col.appendChild(panel);
+      panel.classList.remove('hidden');
+      renderTimersPanel();
     }
 
-    function openTimerPopover(id) {
-      activeTimerPopoverId = id;
-      const popover = document.getElementById('timerSetPopover');
-      document.getElementById('timer' + id).appendChild(popover);
-      popover.classList.remove('hidden');
-      renderTimerPopoverContent(id);
+    function closeTimersPanel() {
+      document.getElementById('timersPanelDropdown').classList.add('hidden');
+      timersAddFormOpen = false;
     }
 
-    function closeTimerPopover() {
-      document.getElementById('timerSetPopover').classList.add('hidden');
-      activeTimerPopoverId = null;
+    function openAddTimerForm() {
+      timersAddFormOpen = true;
+      renderTimersPanel();
     }
 
-    function renderTimerPopoverContent(id) {
+    function closeAddTimerForm() {
+      timersAddFormOpen = false;
+      renderTimersPanel();
+    }
+
+    function renderTimersPanel() {
+      const panel = document.getElementById('timersPanelDropdown');
+      const ids = Object.keys(cookingTimers).map(Number).sort((a, b) => a - b);
+      let html = ids.length
+        ? ids.map(id => renderTimerRowHTML(id)).join('')
+        : `<div class="timers-panel-empty">No timers running yet.</div>`;
+
+      if (timersAddFormOpen) {
+        html += `
+          <div class="timer-add-form">
+            <div class="timer-popover-presets">
+              <button type="button" onclick="quickAddTimer(5)">5m</button>
+              <button type="button" onclick="quickAddTimer(10)">10m</button>
+              <button type="button" onclick="quickAddTimer(15)">15m</button>
+              <button type="button" onclick="quickAddTimer(30)">30m</button>
+              <button type="button" onclick="quickAddTimer(60)">1h</button>
+            </div>
+            <div class="timer-popover-custom">
+              <input type="number" id="newTimerHoursInput" min="0" max="23" placeholder="HH" class="timer-input">
+              <span>:</span>
+              <input type="number" id="newTimerMinutesInput" min="0" max="59" placeholder="MM" class="timer-input">
+              <button type="button" onclick="startCustomAddTimer()">Start</button>
+            </div>
+            <button type="button" class="timer-popover-cancel" onclick="closeAddTimerForm()">Cancel</button>
+          </div>
+        `;
+      } else {
+        html += `<button type="button" class="timer-add-btn" onclick="openAddTimerForm()">+ Add Timer</button>`;
+      }
+      panel.innerHTML = html;
+    }
+
+    function renderTimerRowHTML(id) {
       const t = cookingTimers[id];
-      const popover = document.getElementById('timerSetPopover');
-
-      if (t.state === 'idle') {
-        popover.innerHTML = `
-          <div class="timer-popover-presets">
-            <button type="button" onclick="quickSetTimer(${id}, 5)">5m</button>
-            <button type="button" onclick="quickSetTimer(${id}, 10)">10m</button>
-            <button type="button" onclick="quickSetTimer(${id}, 15)">15m</button>
-            <button type="button" onclick="quickSetTimer(${id}, 30)">30m</button>
-            <button type="button" onclick="quickSetTimer(${id}, 60)">1h</button>
-          </div>
-          <div class="timer-popover-custom">
-            <input type="number" id="timerHoursInput" min="0" max="23" placeholder="HH" class="timer-input">
-            <span>:</span>
-            <input type="number" id="timerMinutesInput" min="0" max="59" placeholder="MM" class="timer-input">
-            <button type="button" onclick="startCustomTimer(${id})">Start</button>
-          </div>
-          <button type="button" class="timer-popover-cancel" onclick="closeTimerPopover()">Close</button>
-        `;
-      } else if (t.state === 'running' || t.state === 'paused') {
-        popover.innerHTML = `
-          <div class="timer-popover-status">${t.state === 'running' ? 'Running' : 'Paused'} &mdash; ${formatTimerTime(t.remaining)}</div>
-          <div class="timer-popover-actions">
-            ${t.state === 'running'
-              ? `<button type="button" class="timer-action-btn" onclick="pauseTimer(${id})">⏸ Pause</button>`
-              : `<button type="button" class="timer-action-btn" onclick="resumeTimer(${id})">▶ Resume</button>`}
-            <button type="button" class="timer-action-btn" onclick="openTimerEditMode(${id})">✎ Edit Time</button>
-            <button type="button" class="timer-action-btn timer-action-cancel" onclick="resetTimer(${id})">✕ Cancel Timer</button>
-          </div>
-        `;
-      } else if (t.state === 'edit') {
-        popover.innerHTML = `
-          <div class="timer-popover-presets">
-            <button type="button" onclick="quickSetTimer(${id}, 5)">5m</button>
-            <button type="button" onclick="quickSetTimer(${id}, 10)">10m</button>
-            <button type="button" onclick="quickSetTimer(${id}, 15)">15m</button>
-            <button type="button" onclick="quickSetTimer(${id}, 30)">30m</button>
-            <button type="button" onclick="quickSetTimer(${id}, 60)">1h</button>
-          </div>
-          <div class="timer-popover-custom">
-            <input type="number" id="timerHoursInput" min="0" max="23" placeholder="HH" class="timer-input">
-            <span>:</span>
-            <input type="number" id="timerMinutesInput" min="0" max="59" placeholder="MM" class="timer-input">
-            <button type="button" onclick="startCustomTimer(${id})">Set</button>
-          </div>
-          <button type="button" class="timer-popover-cancel" onclick="cancelTimerEdit(${id})">Back</button>
-        `;
-      } else if (t.state === 'done') {
-        popover.innerHTML = `
-          <div class="timer-popover-status">Time's up!</div>
-          <div class="timer-popover-actions">
-            <button type="button" class="timer-action-btn" onclick="restartTimer(${id})">↻ Restart Same Time</button>
-            <button type="button" class="timer-action-btn timer-action-cancel" onclick="resetTimer(${id})">✕ Dismiss</button>
+      if (t.state === 'edit') {
+        return `
+          <div class="timer-add-form">
+            <div class="timer-row-name" style="max-width:none;">${t.name}</div>
+            <div class="timer-popover-presets">
+              <button type="button" onclick="quickSetTimer(${id}, 5)">5m</button>
+              <button type="button" onclick="quickSetTimer(${id}, 10)">10m</button>
+              <button type="button" onclick="quickSetTimer(${id}, 15)">15m</button>
+              <button type="button" onclick="quickSetTimer(${id}, 30)">30m</button>
+              <button type="button" onclick="quickSetTimer(${id}, 60)">1h</button>
+            </div>
+            <div class="timer-popover-custom">
+              <input type="number" id="timerHoursInput${id}" min="0" max="23" placeholder="HH" class="timer-input">
+              <span>:</span>
+              <input type="number" id="timerMinutesInput${id}" min="0" max="59" placeholder="MM" class="timer-input">
+              <button type="button" onclick="startCustomTimer(${id})">Set</button>
+            </div>
+            <button type="button" class="timer-popover-cancel" onclick="cancelTimerEdit(${id})">Back</button>
           </div>
         `;
       }
+      const timeLabel = t.state === 'done' ? "Time's up!" : formatTimerTime(t.remaining);
+      let actions;
+      if (t.state === 'done') {
+        actions = `
+          <button type="button" class="timer-row-btn" onclick="restartTimer(${id})" title="Restart same time">&#8635;</button>
+          <button type="button" class="timer-row-btn" onclick="removeTimer(${id})" title="Dismiss">&times;</button>
+        `;
+      } else {
+        actions = `
+          ${t.state === 'running'
+            ? `<button type="button" class="timer-row-btn" onclick="pauseTimer(${id})" title="Pause">&#10074;&#10074;</button>`
+            : `<button type="button" class="timer-row-btn" onclick="resumeTimer(${id})" title="Resume">&#9654;</button>`}
+          <button type="button" class="timer-row-btn" onclick="openTimerEditMode(${id})" title="Edit time">&#9998;</button>
+          <button type="button" class="timer-row-btn" onclick="removeTimer(${id})" title="Cancel">&times;</button>
+        `;
+      }
+      return `
+        <div class="timer-row ${t.state}">
+          <div class="timer-row-info">
+            <span class="timer-row-name">${t.name}</span>
+            <span class="timer-row-time">${timeLabel}</span>
+          </div>
+          <div class="timer-row-actions">${actions}</div>
+        </div>
+      `;
     }
 
-    // "Edit Time" on a running/paused timer swaps the popover to the picker without losing the
+    // Reflects timer count/state on the clock icon in every toolbar at once (only one is visible
+    // at a time, but all instances share the same classes).
+    function renderTimersBadge() {
+      const ids = Object.keys(cookingTimers);
+      const count = ids.length;
+      const anyDone = ids.some(id => cookingTimers[id].state === 'done');
+      document.querySelectorAll('.timers-clock-btn').forEach(btn => btn.classList.toggle('has-done', anyDone));
+      document.querySelectorAll('.timers-badge').forEach(badge => {
+        badge.classList.toggle('hidden', count === 0);
+        badge.textContent = count;
+      });
+      document.querySelectorAll('.timers-mid-label').forEach(label => {
+        label.textContent = count === 0 ? 'Timers' : (count + ' running');
+      });
+    }
+
+    // A background tick must never clobber a DIFFERENT timer's live edit/add inputs elsewhere in
+    // the same open panel — skip the re-render (badge still updates) until that finishes.
+    function isTimersPanelEditingInProgress() {
+      if (timersAddFormOpen) return true;
+      return Object.values(cookingTimers).some(t => t.state === 'edit');
+    }
+
+    function refreshTimersPanelIfOpen() {
+      const panel = document.getElementById('timersPanelDropdown');
+      if (panel.classList.contains('hidden') || isTimersPanelEditingInProgress()) return;
+      renderTimersPanel();
+    }
+
+    function createTimerId() {
+      const id = nextTimerId;
+      nextTimerId += 1;
+      return id;
+    }
+
+    function quickAddTimer(minutes) {
+      const id = createTimerId();
+      cookingTimers[id] = { id, name: 'Timer ' + id, remaining: 0, state: 'idle' };
+      timersAddFormOpen = false;
+      beginTimer(id, minutes * 60);
+    }
+
+    function startCustomAddTimer() {
+      const h = parseInt(document.getElementById('newTimerHoursInput').value, 10) || 0;
+      const m = parseInt(document.getElementById('newTimerMinutesInput').value, 10) || 0;
+      const totalSeconds = (h * 3600) + (m * 60);
+      if (totalSeconds <= 0) { showAlert('Enter a time first.'); return; }
+      const id = createTimerId();
+      cookingTimers[id] = { id, name: 'Timer ' + id, remaining: 0, state: 'idle' };
+      timersAddFormOpen = false;
+      beginTimer(id, totalSeconds);
+    }
+
+    function quickSetTimer(id, minutes) {
+      beginTimer(id, minutes * 60);
+    }
+
+    function startCustomTimer(id) {
+      const h = parseInt(document.getElementById('timerHoursInput' + id).value, 10) || 0;
+      const m = parseInt(document.getElementById('timerMinutesInput' + id).value, 10) || 0;
+      const totalSeconds = (h * 3600) + (m * 60);
+      if (totalSeconds <= 0) { showAlert('Enter a time first.'); return; }
+      beginTimer(id, totalSeconds);
+    }
+
+    // "Edit Time" on a running/paused timer swaps just that row to the picker without losing the
     // timer's current state until a new duration is actually chosen.
     function openTimerEditMode(id) {
       cookingTimers[id]._editingFrom = cookingTimers[id].state;
       cookingTimers[id].state = 'edit';
-      renderTimerPopoverContent(id);
+      renderTimersPanel();
     }
 
     function cancelTimerEdit(id) {
       const t = cookingTimers[id];
       t.state = t._editingFrom || 'idle';
       delete t._editingFrom;
-      renderTimerPopoverContent(id);
-    }
-
-    function quickSetTimer(id, minutes) {
-      beginTimer(id, minutes * 60);
-      closeTimerPopover();
-    }
-
-    function startCustomTimer(id) {
-      const h = parseInt(document.getElementById('timerHoursInput').value, 10) || 0;
-      const m = parseInt(document.getElementById('timerMinutesInput').value, 10) || 0;
-      const totalSeconds = (h * 3600) + (m * 60);
-      if (totalSeconds <= 0) { showAlert('Enter a time first.'); return; }
-      beginTimer(id, totalSeconds);
-      closeTimerPopover();
+      renderTimersPanel();
     }
 
     // Timers are driven off a fixed end-timestamp (Date.now() + duration), not a per-tick
@@ -2046,7 +2208,8 @@
       t.remaining = totalSeconds;
       t.state = 'running';
       t.intervalId = setInterval(() => tickTimer(id), 1000);
-      renderTimer(id);
+      renderTimersPanel();
+      renderTimersBadge();
       scheduleTimerNotification(id, totalSeconds);
       saveTimersToStorage();
     }
@@ -2054,11 +2217,11 @@
     function restartTimer(id) {
       beginTimer(id, cookingTimers[id].total || 0);
       stopTimerAlarmIfNoneDone();
-      closeTimerPopover();
     }
 
     function tickTimer(id) {
       const t = cookingTimers[id];
+      if (!t) return;
       t.remaining = Math.max(0, Math.round((t.endTime - Date.now()) / 1000));
       if (t.remaining <= 0) {
         t.state = 'done';
@@ -2067,7 +2230,8 @@
         playTimerAlarm();
         saveTimersToStorage();
       }
-      renderTimer(id);
+      refreshTimersPanelIfOpen();
+      renderTimersBadge();
     }
 
     function pauseTimer(id) {
@@ -2077,7 +2241,8 @@
       t.intervalId = null;
       clearTimeout(t.notificationTimeoutId);
       t.state = 'paused';
-      renderTimer(id);
+      renderTimersPanel();
+      renderTimersBadge();
       saveTimersToStorage();
     }
 
@@ -2086,22 +2251,21 @@
       t.endTime = Date.now() + t.remaining * 1000;
       t.state = 'running';
       t.intervalId = setInterval(() => tickTimer(id), 1000);
-      renderTimer(id);
+      renderTimersPanel();
+      renderTimersBadge();
       scheduleTimerNotification(id, t.remaining);
       saveTimersToStorage();
     }
 
-    function resetTimer(id) {
+    function removeTimer(id) {
       const t = cookingTimers[id];
-      clearInterval(t.intervalId);
-      t.intervalId = null;
-      clearTimeout(t.notificationTimeoutId);
-      t.remaining = 0;
-      t.total = 0;
-      t.endTime = null;
-      t.state = 'idle';
-      renderTimer(id);
-      closeTimerPopover();
+      if (t) {
+        clearInterval(t.intervalId);
+        clearTimeout(t.notificationTimeoutId);
+      }
+      delete cookingTimers[id];
+      renderTimersPanel();
+      renderTimersBadge();
       stopTimerAlarmIfNoneDone();
       saveTimersToStorage();
     }
@@ -2122,13 +2286,12 @@
 
     function saveTimersToStorage() {
       try {
-        const data = {};
+        const data = { nextTimerId, timers: {} };
         Object.keys(cookingTimers).forEach(id => {
           const t = cookingTimers[id];
-          if (t.state === 'running') data[id] = { state: 'running', endTime: t.endTime, total: t.total };
-          else if (t.state === 'paused') data[id] = { state: 'paused', remaining: t.remaining, total: t.total };
-          else if (t.state === 'done') data[id] = { state: 'done', total: t.total };
-          else data[id] = { state: 'idle' };
+          if (t.state === 'running') data.timers[id] = { name: t.name, state: 'running', endTime: t.endTime, total: t.total };
+          else if (t.state === 'paused') data.timers[id] = { name: t.name, state: 'paused', remaining: t.remaining, total: t.total };
+          else if (t.state === 'done') data.timers[id] = { name: t.name, state: 'done', total: t.total };
         });
         localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(data));
       } catch (e) { /* localStorage unavailable (private browsing etc.) — timers just won't persist */ }
@@ -2139,11 +2302,13 @@
         const raw = localStorage.getItem(TIMER_STORAGE_KEY);
         if (!raw) return;
         const data = JSON.parse(raw);
-        Object.keys(data).forEach(idStr => {
+        nextTimerId = data.nextTimerId || 1;
+        const timers = data.timers || {};
+        Object.keys(timers).forEach(idStr => {
           const id = Number(idStr);
-          const saved = data[idStr];
-          const t = cookingTimers[id];
-          if (!t || !saved) return;
+          const saved = timers[idStr];
+          if (!saved) return;
+          const t = { id, name: saved.name || ('Timer ' + id) };
 
           if (saved.state === 'running') {
             t.total = saved.total;
@@ -2152,10 +2317,12 @@
             if (remaining <= 0) {
               t.remaining = 0;
               t.state = 'done';
+              cookingTimers[id] = t;
               playTimerAlarm();
             } else {
               t.remaining = remaining;
               t.state = 'running';
+              cookingTimers[id] = t;
               t.intervalId = setInterval(() => tickTimer(id), 1000);
               scheduleTimerNotification(id, remaining);
             }
@@ -2163,13 +2330,15 @@
             t.remaining = saved.remaining;
             t.total = saved.total;
             t.state = 'paused';
+            cookingTimers[id] = t;
           } else if (saved.state === 'done') {
             t.remaining = 0;
             t.total = saved.total;
             t.state = 'done';
+            cookingTimers[id] = t;
           }
-          renderTimer(id);
         });
+        renderTimersBadge();
       } catch (e) { /* corrupt/unavailable storage — timers just start fresh */ }
     }
 
@@ -2195,7 +2364,7 @@
       t.notificationTimeoutId = setTimeout(() => {
         if (Notification.permission === 'granted') {
           try {
-            new Notification('RecipE-Z Timer ' + id, {
+            new Notification('RecipE-Z ' + (t.name || ('Timer ' + id)), {
               body: "Time's up!",
               tag: 'recipez-timer-' + id
             });
@@ -2257,11 +2426,28 @@
     }
 
     document.addEventListener('click', function(e) {
-      const popover = document.getElementById('timerSetPopover');
-      if (popover && !popover.classList.contains('hidden') && !popover.contains(e.target)) {
-        closeTimerPopover();
+      const panel = document.getElementById('timersPanelDropdown');
+      if (panel && !panel.classList.contains('hidden') && !panel.contains(e.target)) {
+        closeTimersPanel();
       }
     });
+
+    // --- Toolbar navigation shortcuts (Recipe Manager / Ingredients Manager icons, present in
+    // every toolbar) — always hide whatever full-screen view is currently open first, saving any
+    // in-progress recipe edit exactly like the toolbar's own Home icon does, then open the target. ---
+    function navToRecipeManager() {
+      const editorModal = document.getElementById('recipeEditorModal');
+      if (!editorModal.classList.contains('hidden')) goHomeFromEditor();
+      else goToHomeGrid();
+      openRecipeManagerHub();
+    }
+
+    function navToIngredientsManager() {
+      const editorModal = document.getElementById('recipeEditorModal');
+      if (!editorModal.classList.contains('hidden')) goHomeFromEditor();
+      else goToHomeGrid();
+      openIngredientsManager();
+    }
 
     function openRecipeManagerHub() {
       renderHubGrid();
