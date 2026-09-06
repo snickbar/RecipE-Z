@@ -251,13 +251,13 @@
 
     /* ============ UNIFORM PAGE TOOLBAR (Home / sections / Close) ============ */
     .uni-toolbar {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex; align-items: center; flex-wrap: wrap; row-gap: 10px;
       background: #fdf8ef; border-bottom: 1.5px solid #d8c19c;
       padding: 10px 28px;
       box-shadow: 0 2px 8px rgba(70,45,10,0.06);
       position: sticky; top: 0; z-index: 5;
     }
-    .uni-home { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 70px; flex: 0 0 auto; }
+    .uni-home { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 70px; flex: 0 0 auto; order: 1; }
     .uni-home-btn {
       width: 42px; height: 42px; border-radius: 999px;
       border: none; background: transparent; padding: 0;
@@ -268,7 +268,7 @@
     .uni-home-btn img { width: 100%; height: 100%; border-radius: 999px; display: block; }
     .uni-home-hint { font-size: 9px; font-weight: 700; color: #97621f; text-transform: uppercase; letter-spacing: 0.03em; text-align: center; line-height: 1.2; }
 
-    .uni-tabs { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; flex: 1 1 auto; }
+    .uni-tabs { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; order: 4; flex-basis: 100%; }
     .uni-tab {
       min-width: 100px; text-align: center;
       padding: 9px 16px; border-radius: 10px;
@@ -283,12 +283,7 @@
       box-shadow: 0 3px 10px rgba(74,40,14,0.3);
     }
 
-    /* Groups the Recipe/Ingredients/Timers icons with Close into one fixed unit pinned to the
-       right edge, so their position never depends on whatever sits in the middle (tabs, or
-       nothing at all) — mirrors Home being pinned to the left. */
-    .uni-right-group { display: flex; align-items: center; gap: 20px; flex: 0 0 auto; }
-
-    .uni-close-wrap { display: flex; justify-content: flex-end; }
+    .uni-close-wrap { display: flex; justify-content: flex-end; flex: 0 0 auto; order: 3; }
     .uni-close {
       width: 42px; height: 42px; border-radius: 999px;
       background: transparent; border: none; padding: 0;
@@ -298,9 +293,10 @@
     .uni-close:hover { transform: scale(1.06); }
     .uni-close img { width: 100%; height: 100%; border-radius: 999px; display: block; }
 
-    /* Recipe Manager / Ingredients Manager / Timers shortcuts, living in every toolbar between
-       the tabs (or page title) and the close button. */
-    .uni-mid-icons { display: flex; align-items: center; gap: 14px; }
+    /* Recipe Manager / Ingredients Manager / Timers shortcuts. Sits between Home and Close as its
+       own flexible, centered item — always in the same spot regardless of whether tabs are present,
+       since tabs are forced to their own row below (see .uni-tabs) instead of sharing this one. */
+    .uni-mid-icons { display: flex; align-items: center; justify-content: center; gap: 14px; flex: 1 1 auto; order: 2; }
     .uni-mid-col { display: flex; flex-direction: column; align-items: center; gap: 2px; position: relative; }
     .uni-mid-btn {
       width: 36px; height: 36px; border-radius: 999px; position: relative;
@@ -666,14 +662,11 @@
 
     /* ============ MOBILE LAYOUT ============ */
     @media (max-width: 640px) {
-      /* Toolbar on every sub-screen: home + tabs + close was cramming onto one line and
-         squeezing the tab labels unreadably small. Wrap it onto two rows instead. */
-      .uni-toolbar { padding: 8px 10px; flex-wrap: wrap; row-gap: 8px; }
-      .uni-home { order: 1; min-width: 0; }
-      .uni-right-group { order: 2; gap: 10px; }
+      .uni-toolbar { padding: 8px 10px; row-gap: 8px; }
+      .uni-home { min-width: 0; }
       .uni-mid-icons { gap: 8px; }
       .uni-mid-btn { width: 32px; height: 32px; }
-      .uni-tabs { order: 4; flex-basis: 100%; gap: 6px; }
+      .uni-tabs { gap: 6px; }
       .uni-tab { min-width: 0; flex: 1 1 auto; padding: 8px 6px; font-size: 10px; }
       .uni-home-btn, .uni-close { width: 36px; height: 36px; }
       .timers-panel { right: -8px; width: 210px; }
@@ -765,7 +758,6 @@
         <button class="uni-tab" data-tab="shopping" onclick="switchDetailTab('shopping')">3. Shopping</button>
         <button class="uni-tab" data-tab="cooking" onclick="switchDetailTab('cooking')">4. Cooking</button>
       </div>
-      <div class="uni-right-group">
       <div class="uni-mid-icons">
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
@@ -786,7 +778,6 @@
       </div>
       <div class="uni-close-wrap">
         <button class="uni-close" onclick="closeRecipeDetailView()" title="Close"><img src="https://drive.google.com/thumbnail?id=106rssp2Z2QYasO2EoDngsXu46h5-692p&sz=w400" alt="Close"></button>
-      </div>
       </div>
     </div>
 
@@ -894,7 +885,6 @@
           <img src="https://drive.google.com/thumbnail?id=1LQdyz8FsloEYDGifVEy3wMRPed85VTNK&sz=w400" alt="Home">
         </button>
       </div>
-      <div class="uni-right-group">
       <div class="uni-mid-icons">
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
@@ -915,7 +905,6 @@
       </div>
       <div class="uni-close-wrap">
         <button class="uni-close" onclick="closeRecipeManagerHub()" title="Close"><img src="https://drive.google.com/thumbnail?id=106rssp2Z2QYasO2EoDngsXu46h5-692p&sz=w400" alt="Close"></button>
-      </div>
       </div>
     </div>
 
@@ -959,7 +948,6 @@
         <button id="tabBtnSteps" onclick="switchEditorTab(3)" class="uni-tab">3. Steps</button>
         <button id="tabBtnNotes" onclick="switchEditorTab(4)" class="uni-tab">4. Notes</button>
       </div>
-      <div class="uni-right-group">
       <div class="uni-mid-icons">
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
@@ -980,7 +968,6 @@
       </div>
       <div class="uni-close-wrap">
         <button class="uni-close" onclick="attemptCloseEditor()" title="Close"><img src="https://drive.google.com/thumbnail?id=106rssp2Z2QYasO2EoDngsXu46h5-692p&sz=w400" alt="Close"></button>
-      </div>
       </div>
     </div>
 
@@ -1245,7 +1232,6 @@
         <button id="mgrTabBtn3" onclick="switchIngManagerTab(3)" class="uni-tab">3. Add Unit</button>
         <button id="mgrTabBtn4" onclick="switchIngManagerTab(4)" class="uni-tab">4. View Units</button>
       </div>
-      <div class="uni-right-group">
       <div class="uni-mid-icons">
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
@@ -1266,7 +1252,6 @@
       </div>
       <div class="uni-close-wrap">
         <button class="uni-close" onclick="closeIngredientsManager()" title="Close"><img src="https://drive.google.com/thumbnail?id=106rssp2Z2QYasO2EoDngsXu46h5-692p&sz=w400" alt="Close"></button>
-      </div>
       </div>
     </div>
 
