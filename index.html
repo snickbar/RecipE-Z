@@ -45,15 +45,6 @@
       color: #97621f;
       margin: 0;
     }
-    .header-divider {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      max-width: 360px;
-      margin: 16px auto 8px;
-    }
-    .header-divider-line { flex: 1; height: 0; border-top: 1.5px dashed #b8946a; }
-
     .section-title {
       font-family: 'Cinzel', serif;
       font-weight: 700;
@@ -259,13 +250,13 @@
     }
     .uni-home { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 70px; flex: 0 0 auto; order: 1; }
     .uni-home-btn {
-      width: 42px; height: 42px; border-radius: 999px;
+      width: 48px; height: 48px;
       border: none; background: transparent; padding: 0;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: transform 0.15s ease;
     }
     .uni-home-btn:hover { transform: scale(1.06); }
-    .uni-home-btn img { width: 100%; height: 100%; border-radius: 999px; display: block; }
+    .uni-home-btn img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .uni-home-hint { font-size: 9px; font-weight: 700; color: #97621f; text-transform: uppercase; letter-spacing: 0.03em; text-align: center; line-height: 1.2; }
 
     .uni-tabs { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; order: 4; flex-basis: 100%; }
@@ -285,13 +276,13 @@
 
     .uni-close-wrap { display: flex; justify-content: flex-end; flex: 0 0 auto; order: 3; }
     .uni-close {
-      width: 42px; height: 42px; border-radius: 999px;
+      width: 48px; height: 48px;
       background: transparent; border: none; padding: 0;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: transform 0.15s ease;
     }
     .uni-close:hover { transform: scale(1.06); }
-    .uni-close img { width: 100%; height: 100%; border-radius: 999px; display: block; }
+    .uni-close img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
     /* Recipe Manager / Ingredients Manager / Timers shortcuts. Sits between Home and Close as its
        own flexible, centered item — always in the same spot regardless of whether tabs are present,
@@ -299,13 +290,13 @@
     .uni-mid-icons { display: flex; align-items: center; justify-content: center; gap: 14px; flex: 1 1 auto; order: 2; }
     .uni-mid-col { display: flex; flex-direction: column; align-items: center; gap: 2px; position: relative; }
     .uni-mid-btn {
-      width: 36px; height: 36px; border-radius: 999px; position: relative;
+      width: 44px; height: 44px; position: relative;
       border: none; background: transparent; padding: 0;
       display: flex; align-items: center; justify-content: center; cursor: pointer;
       transition: transform 0.15s ease;
     }
     .uni-mid-btn:hover { transform: scale(1.06); }
-    .uni-mid-btn img { width: 100%; height: 100%; border-radius: 999px; display: block; }
+    .uni-mid-btn img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .uni-mid-btn.has-done img { animation: timer-flash 0.8s infinite; }
     @keyframes timer-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     .uni-mid-label { font-size: 8px; font-weight: 700; color: #97621f; text-transform: uppercase; letter-spacing: 0.02em; text-align: center; line-height: 1.15; }
@@ -664,11 +655,11 @@
     @media (max-width: 640px) {
       .uni-toolbar { padding: 8px 10px; row-gap: 8px; }
       .uni-home { min-width: 0; }
-      .uni-mid-icons { gap: 8px; }
-      .uni-mid-btn { width: 32px; height: 32px; }
+      .uni-mid-icons { gap: 10px; }
+      .uni-mid-btn { width: 40px; height: 40px; }
       .uni-tabs { gap: 6px; }
       .uni-tab { min-width: 0; flex: 1 1 auto; padding: 8px 6px; font-size: 10px; }
-      .uni-home-btn, .uni-close { width: 36px; height: 36px; }
+      .uni-home-btn, .uni-close { width: 42px; height: 42px; }
       .timers-panel { right: -8px; width: 210px; }
 
       /* Home page nav icons were a fixed 280px wide each — way too big next to the search
@@ -701,17 +692,41 @@
 
   <!-- ================= MAIN HOME SCREEN ================= -->
   <div class="max-w-6xl mx-auto space-y-4">
-    
+
+    <div class="uni-toolbar">
+      <div class="uni-home">
+        <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
+          <img src="https://drive.google.com/thumbnail?id=1t6woSpAPNlq7cJqzQ_VOq9ZE2i2tKCbn&sz=w400" alt="Home">
+        </button>
+      </div>
+      <div class="uni-mid-icons">
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
+            <img src="https://drive.google.com/thumbnail?id=1KXt1R0rgKgssexS_voe44xOw8V_T69g5&sz=w400" alt="Recipe Manager">
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
+            <img src="https://drive.google.com/thumbnail?id=1OEay0QV10AIwmf5l8La6WMft1Xa-f8Hh&sz=w400" alt="Ingredients Manager">
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
+            <img src="https://drive.google.com/thumbnail?id=1EaL8NEY4n1evVO-1rAwv9m4syTBx_Xp9&sz=w400" alt="Timers">
+            <span class="uni-mid-badge timers-badge hidden">0</span>
+          </button>
+        </div>
+      </div>
+      <div class="uni-close-wrap">
+        <button class="uni-close" onclick="attemptAppClose()" title="Close"><img src="https://drive.google.com/thumbnail?id=106rssp2Z2QYasO2EoDngsXu46h5-692p&sz=w400" alt="Close"></button>
+      </div>
+    </div>
+
     <header class="text-center pt-1 pb-0">
       <h1 class="text-5xl sm:text-6xl font-black font-title text-[#2b1707] tracking-widest uppercase">
         RecipE-Z
       </h1>
       <p class="tagline">your family recipes, all made E-Z</p>
-      <div class="header-divider">
-        <span class="header-divider-line"></span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a86022" stroke-width="1.6"><path d="M12 3c3 3 5 6 5 9a5 5 0 0 1-10 0c0-3 2-6 5-9z"/></svg>
-        <span class="header-divider-line"></span>
-      </div>
     </header>
 
     <main class="max-w-5xl mx-auto pt-1">
@@ -749,7 +764,7 @@
     <div class="uni-toolbar">
       <div class="uni-home">
         <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
-          <img src="https://drive.google.com/thumbnail?id=1LQdyz8FsloEYDGifVEy3wMRPed85VTNK&sz=w400" alt="Home">
+          <img src="https://drive.google.com/thumbnail?id=1t6woSpAPNlq7cJqzQ_VOq9ZE2i2tKCbn&sz=w400" alt="Home">
         </button>
       </div>
       <div class="uni-tabs">
@@ -766,7 +781,7 @@
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
-            <img src="https://drive.google.com/thumbnail?id=1AfOA5nKTq_ZFsMJ4JNMWRYkuuisX85NI&sz=w400" alt="Ingredients Manager">
+            <img src="https://drive.google.com/thumbnail?id=1OEay0QV10AIwmf5l8La6WMft1Xa-f8Hh&sz=w400" alt="Ingredients Manager">
           </button>
         </div>
         <div class="uni-mid-col">
@@ -882,7 +897,7 @@
     <div class="uni-toolbar">
       <div class="uni-home">
         <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
-          <img src="https://drive.google.com/thumbnail?id=1LQdyz8FsloEYDGifVEy3wMRPed85VTNK&sz=w400" alt="Home">
+          <img src="https://drive.google.com/thumbnail?id=1t6woSpAPNlq7cJqzQ_VOq9ZE2i2tKCbn&sz=w400" alt="Home">
         </button>
       </div>
       <div class="uni-mid-icons">
@@ -893,7 +908,7 @@
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
-            <img src="https://drive.google.com/thumbnail?id=1AfOA5nKTq_ZFsMJ4JNMWRYkuuisX85NI&sz=w400" alt="Ingredients Manager">
+            <img src="https://drive.google.com/thumbnail?id=1OEay0QV10AIwmf5l8La6WMft1Xa-f8Hh&sz=w400" alt="Ingredients Manager">
           </button>
         </div>
         <div class="uni-mid-col">
@@ -939,7 +954,7 @@
     <div class="uni-toolbar">
       <div class="uni-home">
         <button class="uni-home-btn" onclick="goHomeFromEditor()" title="Save &amp; Home">
-          <img src="https://drive.google.com/thumbnail?id=1LQdyz8FsloEYDGifVEy3wMRPed85VTNK&sz=w400" alt="Home">
+          <img src="https://drive.google.com/thumbnail?id=1t6woSpAPNlq7cJqzQ_VOq9ZE2i2tKCbn&sz=w400" alt="Home">
         </button>
       </div>
       <div class="uni-tabs">
@@ -956,7 +971,7 @@
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
-            <img src="https://drive.google.com/thumbnail?id=1AfOA5nKTq_ZFsMJ4JNMWRYkuuisX85NI&sz=w400" alt="Ingredients Manager">
+            <img src="https://drive.google.com/thumbnail?id=1OEay0QV10AIwmf5l8La6WMft1Xa-f8Hh&sz=w400" alt="Ingredients Manager">
           </button>
         </div>
         <div class="uni-mid-col">
@@ -1223,7 +1238,7 @@
     <div class="uni-toolbar">
       <div class="uni-home">
         <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
-          <img src="https://drive.google.com/thumbnail?id=1LQdyz8FsloEYDGifVEy3wMRPed85VTNK&sz=w400" alt="Home">
+          <img src="https://drive.google.com/thumbnail?id=1t6woSpAPNlq7cJqzQ_VOq9ZE2i2tKCbn&sz=w400" alt="Home">
         </button>
       </div>
       <div class="uni-tabs">
@@ -1240,7 +1255,7 @@
         </div>
         <div class="uni-mid-col">
           <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
-            <img src="https://drive.google.com/thumbnail?id=1AfOA5nKTq_ZFsMJ4JNMWRYkuuisX85NI&sz=w400" alt="Ingredients Manager">
+            <img src="https://drive.google.com/thumbnail?id=1OEay0QV10AIwmf5l8La6WMft1Xa-f8Hh&sz=w400" alt="Ingredients Manager">
           </button>
         </div>
         <div class="uni-mid-col">
@@ -2507,6 +2522,14 @@
         const el = document.getElementById(id);
         if (el) el.classList.add('hidden');
       });
+    }
+
+    // The home screen's own Close button — there's no page to return to (home is the base
+    // screen), so this just tries to close the browser tab/PWA. Only works in the specific
+    // cases browsers allow a page to close itself; silently does nothing otherwise, which is
+    // the same as most other close buttons on the web when that's not possible.
+    function attemptAppClose() {
+      try { window.close(); } catch (e) { /* not closable from here — nothing else to do */ }
     }
 
     // Home always saves from the editor (if there's a valid title to save), then returns home
