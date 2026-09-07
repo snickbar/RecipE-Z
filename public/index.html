@@ -31,7 +31,7 @@
       signOut, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import {
-      getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, onSnapshot,
+      getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, onSnapshot,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     import {
@@ -57,7 +57,7 @@
 
     window.fb = {
       auth, db, storage, functions,
-      doc, getDoc, setDoc, updateDoc, deleteDoc, collection, onSnapshot, serverTimestamp,
+      doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, onSnapshot, serverTimestamp,
       ref, uploadString, getDownloadURL, httpsCallable,
       GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword,
       signOut, sendPasswordResetEmail
@@ -543,13 +543,30 @@
     .detail-favorite-btn:hover { transform: scale(1.08); }
     .detail-favorite-btn.is-favorite svg { fill: #c0392b; }
 
-    /* Small badge on a recipe card so favorites are visible while browsing, without opening it */
-    .card-favorite-badge {
-      position: absolute; top: 8px; left: 8px; z-index: 20;
+    .detail-share-btn {
+      position: absolute; top: 12px; left: 12px; z-index: 10;
+      width: 40px; height: 40px; border-radius: 999px;
+      background: rgba(253,248,239,0.92); border: 1.5px solid #d8c19c;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: 0 2px 6px rgba(70,45,10,0.25);
+      transition: transform 0.15s ease;
+    }
+    .detail-share-btn:hover { transform: scale(1.08); }
+    .detail-share-btn.is-shared { background: #4a280e; border-color: #4a280e; }
+    .detail-share-btn.is-shared svg { stroke: #fdf8ef; }
+
+    /* Small badges row on a recipe card (favorite / shared / imported) so status is visible while
+       browsing, without opening the recipe */
+    .card-badges-row { position: absolute; top: 8px; left: 8px; z-index: 20; display: flex; gap: 6px; }
+    .card-badge {
       width: 24px; height: 24px; border-radius: 999px;
       background: rgba(253,248,239,0.9); border: 1.3px solid #d8c19c;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 1px 4px rgba(70,45,10,0.2);
+    }
+    .card-owner-label {
+      font-size: 10.5px; font-weight: 700; color: #97621f; text-align: center;
+      margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
     /* Settings screen rows + toggle switch */
@@ -939,6 +956,12 @@
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" style="display:inline-block;vertical-align:-1px;margin-right:3px;"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>Favorites
               </button>
             </div>
+            <div class="sort-toggles" id="mainOwnershipToggles" style="margin-top: 8px;">
+              <button type="button" class="sort-toggle active" data-ownership="all" onclick="setMainOwnershipFilter('all')">All</button>
+              <button type="button" class="sort-toggle" data-ownership="personal" onclick="setMainOwnershipFilter('personal')">Mine</button>
+              <button type="button" class="sort-toggle" data-ownership="shared" onclick="setMainOwnershipFilter('shared')">Shared</button>
+              <button type="button" class="sort-toggle" data-ownership="imported" onclick="setMainOwnershipFilter('imported')">Imported</button>
+            </div>
           </div>
 
           <button onclick="openIngredientsManager()" class="graphic-nav-btn btn-ingredients-manager" title="Ingredients Manager">
@@ -1004,8 +1027,14 @@
         <div class="tape-corner tape-bl"></div>
         <div class="tape-corner tape-br"></div>
         <img id="detailImage" src="" alt="Recipe Image" loading="lazy">
+        <button type="button" id="detailShareBtn" class="detail-share-btn" onclick="toggleShareCurrentRecipe()" title="Share">
+          <svg id="detailShareIcon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4a280e" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
+        </button>
         <button type="button" id="detailFavoriteBtn" class="detail-favorite-btn" data-sound="heart" onclick="toggleFavoriteCurrentRecipe()" title="Favorite">
           <svg id="detailFavoriteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>
+        </button>
+        <button type="button" id="detailImportBtn" onclick="importCurrentPreviewRecipe()" class="hidden" style="position:absolute; top:12px; right:12px; z-index:10; background:#4a280e; color:#fdf8ef; font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.03em; padding:9px 16px; border-radius:999px; border:none; cursor:pointer; box-shadow:0 2px 6px rgba(70,45,10,0.35);">
+          Import Recipe
         </button>
       </div>
 
@@ -1142,6 +1171,11 @@
       <button type="button" id="btnSmartImport" onclick="openSmartImportModal()" class="w-full mb-6 bg-white border-2 border-amber-800/40 hover:border-amber-800 text-amber-950 font-bold py-3 rounded-xl text-sm uppercase tracking-wider shadow flex items-center justify-center gap-2 transition-colors">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 4.5L18 9l-4.1 1.5L12 15l-1.9-4.5L6 9l4.1-1.5L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/></svg>
         Smart Import a Recipe
+      </button>
+
+      <button type="button" onclick="openBrowseSharedView()" class="w-full mb-6 bg-white border-2 border-amber-800/40 hover:border-amber-800 text-amber-950 font-bold py-3 rounded-xl text-sm uppercase tracking-wider shadow flex items-center justify-center gap-2 transition-colors">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
+        Browse Shared Recipes
       </button>
 
       <div class="sort-toggles" id="hubSortToggles" style="margin-bottom: 1.25rem;">
@@ -1625,6 +1659,51 @@
     </div>
   </div>
 
+  <!-- ================= BROWSE SHARED RECIPES MODAL ================= -->
+  <div id="browseSharedView" class="fixed inset-0 hidden flex flex-col z-40 linen-bg" style="overflow-y: auto;">
+    <div class="uni-toolbar">
+      <div class="uni-home">
+        <button class="uni-home-btn" onclick="goToHomeGrid()" title="Home">
+          <img src="/icons/home-v2.png" alt="Home">
+        </button>
+      </div>
+      <div class="uni-mid-icons">
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToRecipeManager()" title="Recipe Manager">
+            <img src="/icons/recipes-v2.png" alt="Recipe Manager">
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToIngredientsManager()" title="Ingredients Manager">
+            <img src="/icons/ingredients-v2.png" alt="Ingredients Manager">
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn timers-clock-btn" onclick="toggleTimersPanel(event)" title="Timers">
+            <img src="/icons/timer-v2.png" alt="Timers">
+            <span class="uni-mid-badge timers-badge hidden">0</span>
+          </button>
+        </div>
+        <div class="uni-mid-col">
+          <button type="button" class="uni-mid-btn" onclick="navToSettings()" title="Settings">
+            <img src="/icons/settings-v2.png" alt="Settings">
+          </button>
+        </div>
+      </div>
+      <div class="uni-close-wrap">
+        <button class="uni-close" onclick="closeBrowseSharedView()" title="Close"><img src="/icons/close-v2.png" alt="Close"></button>
+      </div>
+    </div>
+
+    <div class="detail-body" style="max-width: 1100px;">
+      <h1 class="text-2xl font-black font-title text-[#3b220c] text-center mb-4">Browse Shared Recipes</h1>
+      <div class="search-toolbar" style="margin: 0 auto 24px; max-width: 420px;">
+        <input type="text" id="sharedSearchInput" oninput="filterSharedGrid()" placeholder="Search shared recipes..." class="search-input">
+      </div>
+      <div id="sharedRecipesGrid" class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6"></div>
+    </div>
+  </div>
+
   <!-- ================= INFO / ALERT MODAL ================= -->
   <div id="infoModal" class="fixed inset-0 modal-backdrop hidden flex justify-center items-center p-4 z-[60]">
     <div class="bg-[#fcf8ef] border-2 border-amber-700 max-w-sm w-full p-6 rounded-xl shadow-2xl text-center space-y-4">
@@ -1775,6 +1854,7 @@
     let currentEditorStep = 1;
     let mainSortMode = 'A-Z';
     let mainFavoritesOnly = false;
+    let mainOwnershipFilter = 'all'; // 'all' | 'personal' | 'shared' | 'imported'
     let hubSortMode = 'A-Z';
 
     let draftIngredients = [];
@@ -2108,6 +2188,9 @@
 
       let filtered = masterRecipes.filter(r => r.title.toLowerCase().includes(query));
       if (mainFavoritesOnly) filtered = filtered.filter(r => r.favorite);
+      if (mainOwnershipFilter === 'personal') filtered = filtered.filter(r => !r.shared && !r.importedFrom);
+      else if (mainOwnershipFilter === 'shared') filtered = filtered.filter(r => r.shared);
+      else if (mainOwnershipFilter === 'imported') filtered = filtered.filter(r => !!r.importedFrom);
 
       if (mainSortMode === 'A-Z') {
         filtered.sort((a, b) => a.title.localeCompare(b.title));
@@ -2120,7 +2203,8 @@
       }
 
       if (filtered.length === 0) {
-        const msg = mainFavoritesOnly ? 'No favorite recipes yet.' : 'No recipe cards found.';
+        const ownershipMsg = { personal: 'No recipes of your own yet.', shared: 'You have not shared any recipes yet.', imported: 'You have not imported any recipes yet.' }[mainOwnershipFilter];
+        const msg = ownershipMsg || (mainFavoritesOnly ? 'No favorite recipes yet.' : 'No recipe cards found.');
         container.innerHTML = `<div class="col-span-full text-center py-12 text-amber-950 font-bold">${msg}</div>`;
         return;
       }
@@ -2147,6 +2231,14 @@
       renderMainGrid();
     }
 
+    function setMainOwnershipFilter(mode) {
+      mainOwnershipFilter = mode;
+      document.querySelectorAll('#mainOwnershipToggles .sort-toggle').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.ownership === mode);
+      });
+      renderMainGrid();
+    }
+
     const CARD_BG_URL = "https://i.imgur.com/cJbB04a.png";
 
     function createCardHTML(recipe, onclickHandler, isLazy = false, deleteHandler = null, index = 0) {
@@ -2157,7 +2249,10 @@
       return `
         <div onclick="${onclickHandler}" class="card-container" style="animation-delay: ${enterDelay}ms">
           ${deleteHandler ? `<button type="button" data-sound="delete" onclick="${deleteHandler}" class="absolute top-2 right-2 z-20 bg-red-700/90 hover:bg-red-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow" title="Delete Recipe">&times;</button>` : ''}
-          ${recipe.favorite ? `<div class="card-favorite-badge" title="Favorite"><svg width="13" height="13" viewBox="0 0 24 24" fill="#c0392b" stroke="#c0392b" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg></div>` : ''}
+          <div class="card-badges-row">
+            ${recipe.favorite ? `<div class="card-badge" title="Favorite"><svg width="13" height="13" viewBox="0 0 24 24" fill="#c0392b" stroke="#c0392b" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg></div>` : ''}
+            ${recipe.shared ? `<div class="card-badge" title="Shared"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4a280e" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg></div>` : (recipe.importedFrom ? `<div class="card-badge" title="Imported"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4a280e" stroke-width="2"><path d="M12 3v10m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></div>` : '')}
+          </div>
           <img src="${CARD_BG_URL}" class="card-bg-img" alt="Card Graphic" ${loadingAttr}>
           <div class="card-content">
             
@@ -2197,6 +2292,7 @@
     }
 
     let currentDetailRecipe = null;
+    let isViewingSharedPreview = false; // true when the detail view is showing someone else's shared recipe (not yet imported)
     let shoppingCheckedItems = new Set();
     let shoppingSortByType = false;
     let cookingStepIndex = 0;
@@ -2204,6 +2300,7 @@
     function openRecipeDetailView(id) {
       const recipe = masterRecipes.find(r => r.id === id);
       if (!recipe) return;
+      isViewingSharedPreview = false;
 
       currentDetailRecipe = recipe;
       shoppingCheckedItems = new Set();
@@ -2291,6 +2388,32 @@
         });
     }
 
+    // Sharing needs a Cloud Function round-trip (not a plain client write like favorite/import):
+    // shareRecipe validates ownership and copies public-safe fields into the sharedRecipes
+    // collection server-side, so the public copy's shape can never drift from what the client sent.
+    async function toggleShareCurrentRecipe() {
+      const recipe = currentDetailRecipe;
+      if (!recipe || !currentUser) return;
+      const newValue = !recipe.shared;
+      const shareBtn = document.getElementById('detailShareBtn');
+      shareBtn.disabled = true;
+
+      try {
+        const fn = window.fb.httpsCallable(window.fb.functions, newValue ? 'shareRecipe' : 'unshareRecipe');
+        const response = await fn({ recipeId: recipe.id });
+        recipe.shared = newValue;
+        recipe.sharedRecipeId = newValue ? response.data.sharedRecipeId : null;
+        shareBtn.classList.toggle('is-shared', newValue);
+        refreshRecipeGrids();
+        showAlert(newValue ? 'Recipe shared! Anyone signed in can now find it in Browse Shared Recipes.' : 'Recipe is no longer shared.');
+      } catch (error) {
+        console.error('Share error: ', error.message);
+        showAlert('Could not update sharing: ' + error.message);
+      } finally {
+        shareBtn.disabled = false;
+      }
+    }
+
     function switchDetailTab(tab) {
       const ids = { recipe: 'detailTabRecipe', print: 'detailTabPrint', shopping: 'detailTabShopping', cooking: 'detailTabCooking' };
       document.querySelectorAll('.uni-tab[data-tab]').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
@@ -2370,7 +2493,13 @@
       const imgSrc = recipe.mainPicture && recipe.mainPicture.trim() !== '' ? recipe.mainPicture : FOOD_FALLBACK_SVG;
 
       document.getElementById('detailImage').src = imgSrc;
-      document.getElementById('detailFavoriteBtn').classList.toggle('is-favorite', !!recipe.favorite);
+      document.getElementById('detailShareBtn').classList.toggle('hidden', isViewingSharedPreview);
+      document.getElementById('detailFavoriteBtn').classList.toggle('hidden', isViewingSharedPreview);
+      document.getElementById('detailImportBtn').classList.toggle('hidden', !isViewingSharedPreview);
+      if (!isViewingSharedPreview) {
+        document.getElementById('detailShareBtn').classList.toggle('is-shared', !!recipe.shared);
+        document.getElementById('detailFavoriteBtn').classList.toggle('is-favorite', !!recipe.favorite);
+      }
       document.getElementById('detailTitle').innerText = recipe.title;
       document.getElementById('detailCategory').innerText = recipe.category || 'Uncategorized';
       document.getElementById('detailEquipment').innerText = recipe.equipment || 'None listed';
@@ -3289,6 +3418,143 @@
       renderHubGrid();
     }
 
+    // --- BROWSE SHARED RECIPES ---
+    // A fresh fetch each time the screen opens (not a live onSnapshot) — this is an occasional
+    // "go look around" screen, not something that needs to update itself in real time while open.
+    let sharedRecipesList = [];
+
+    async function openBrowseSharedView() {
+      document.getElementById('browseSharedView').classList.remove('hidden');
+      document.getElementById('sharedSearchInput').value = '';
+      pushBackGuard();
+
+      const grid = document.getElementById('sharedRecipesGrid');
+      grid.innerHTML = `<div class="col-span-full text-center py-12 text-amber-950 font-bold">Loading shared recipes&hellip;</div>`;
+
+      try {
+        const sharedCol = window.fb.collection(window.fb.db, 'sharedRecipes');
+        const snapshot = await window.fb.getDocs(sharedCol);
+        sharedRecipesList = snapshot.docs.map(function(d) { return Object.assign({ sharedId: d.id }, d.data()); });
+        sharedRecipesList.sort(function(a, b) { return (b.sharedAt && b.sharedAt.toMillis ? b.sharedAt.toMillis() : 0) - (a.sharedAt && a.sharedAt.toMillis ? a.sharedAt.toMillis() : 0); });
+        renderSharedGrid();
+      } catch (error) {
+        console.error('Could not load shared recipes: ', error);
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-amber-950 font-bold">Could not load shared recipes: ${error.message}</div>`;
+      }
+    }
+
+    function closeBrowseSharedView() {
+      document.getElementById('browseSharedView').classList.add('hidden');
+    }
+
+    function createSharedCardHTML(shared, index) {
+      const imgSrc = shared.mainPicture && shared.mainPicture.trim() !== '' ? shared.mainPicture : FOOD_FALLBACK_SVG;
+      const enterDelay = Math.min(index, 16) * 35;
+      return `
+        <div onclick="openSharedRecipePreview('${shared.sharedId}')" class="card-container" style="animation-delay: ${enterDelay}ms">
+          <img src="${CARD_BG_URL}" class="card-bg-img" alt="Card Graphic">
+          <div class="card-content">
+            <div class="food-photo-frame">
+              <div class="tape-corner tape-tl"></div>
+              <div class="tape-corner tape-tr"></div>
+              <div class="tape-corner tape-bl"></div>
+              <div class="tape-corner tape-br"></div>
+              <img src="${imgSrc}" onerror="this.src='${FOOD_FALLBACK_SVG}'" class="w-full h-full object-cover" alt="${shared.title}" loading="lazy">
+            </div>
+            <div class="pt-2 text-center">
+              <h3 class="card-title-fit px-1">${shared.title}</h3>
+              <div class="card-owner-label">by ${shared.ownerDisplayName || 'a RecipE-Z user'}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSharedGrid() {
+      const grid = document.getElementById('sharedRecipesGrid');
+      const query = document.getElementById('sharedSearchInput').value.toLowerCase();
+      const filtered = sharedRecipesList.filter(function(r) { return (r.title || '').toLowerCase().includes(query); });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-amber-950 font-bold">${sharedRecipesList.length === 0 ? 'No one has shared a recipe yet.' : 'No shared recipes match your search.'}</div>`;
+        return;
+      }
+      grid.innerHTML = filtered.map(function(r, idx) { return createSharedCardHTML(r, idx); }).join('');
+      fitCardTitles(grid);
+    }
+
+    function filterSharedGrid() { renderSharedGrid(); }
+
+    function openSharedRecipePreview(sharedId) {
+      const shared = sharedRecipesList.find(function(r) { return r.sharedId === sharedId; });
+      if (!shared) return;
+
+      isViewingSharedPreview = true;
+      currentDetailRecipe = Object.assign({}, shared, { id: shared.sharedId });
+      shoppingCheckedItems = new Set();
+      shoppingSortByType = false;
+      cookingStepIndex = 0;
+
+      renderDetailRecipeTab();
+      renderDetailPrintTab();
+      renderShoppingList();
+      renderCookingStep();
+
+      document.getElementById('shoppingSortBtn').classList.remove('active');
+      switchDetailTab('recipe');
+
+      const view = document.getElementById('recipeDetailView');
+      view.classList.remove('hidden');
+      view.classList.add('flex');
+      pushBackGuard();
+    }
+
+    async function importCurrentPreviewRecipe() {
+      const shared = currentDetailRecipe;
+      if (!shared || !currentUser) return;
+      const btn = document.getElementById('detailImportBtn');
+      btn.disabled = true;
+      btn.innerText = 'Importing…';
+
+      try {
+        const newId = Date.now().toString();
+        const newRecipe = {
+          id: newId,
+          title: shared.title,
+          category: shared.category || '',
+          equipment: shared.equipment || '',
+          prepTime: shared.prepTime || '',
+          servings: shared.servings || '',
+          mainPicture: shared.mainPicture || '',
+          createdAt: Date.now(),
+          favorite: false,
+          shared: false,
+          sharedRecipeId: null,
+          ownerId: currentUser.uid,
+          importedFrom: {
+            sharedRecipeId: shared.sharedId,
+            originalOwnerId: shared.ownerId || null,
+            originalOwnerName: shared.ownerDisplayName || 'a RecipE-Z user',
+            importedAt: Date.now()
+          },
+          ingredients: shared.ingredients || [],
+          steps: shared.steps || [],
+          notes: shared.notes || []
+        };
+        await window.fb.setDoc(window.fb.doc(window.fb.db, 'users', currentUser.uid, 'recipes', newId), newRecipe);
+        closeRecipeDetailView();
+        closeBrowseSharedView();
+        goToHomeGrid();
+        showAlert('Imported "' + shared.title + '" into your recipes!');
+      } catch (error) {
+        console.error('Import error: ', error);
+        showAlert('Could not import that recipe: ' + error.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Import Recipe';
+      }
+    }
+
     // --- INGREDIENTS MANAGER ---
     function openIngredientsManager() {
       managerEditingIndex = null;
@@ -3331,7 +3597,7 @@
     // 'flex' is permanently part of these pages' base class (except the detail view, which manages
     // its own 'flex' toggle in open/closeRecipeDetailView) so it's never removed out from under them.
     function goToHomeGrid() {
-      ['recipeDetailView', 'recipeEditorModal', 'recipeManagerHubModal', 'ingredientsManagerModal', 'settingsComingSoonModal'].forEach(id => {
+      ['recipeDetailView', 'recipeEditorModal', 'recipeManagerHubModal', 'ingredientsManagerModal', 'settingsComingSoonModal', 'browseSharedView'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.add('hidden');
       });
@@ -3368,7 +3634,7 @@
 
     function anyOverlayOpen() {
       const ids = ['unsavedChangesModal', 'photoEditorModal', 'smartImportModal', 'smartCleanupModal',
-        'recipeEditorModal', 'ingredientsManagerModal', 'recipeManagerHubModal', 'recipeDetailView', 'settingsComingSoonModal'];
+        'recipeEditorModal', 'ingredientsManagerModal', 'recipeManagerHubModal', 'recipeDetailView', 'settingsComingSoonModal', 'browseSharedView'];
       return ids.some(id => {
         const el = document.getElementById(id);
         return el && !el.classList.contains('hidden');
@@ -3394,6 +3660,8 @@
         closeRecipeDetailView();
       } else if (!document.getElementById('settingsComingSoonModal').classList.contains('hidden')) {
         closeSettingsComingSoon();
+      } else if (!document.getElementById('browseSharedView').classList.contains('hidden')) {
+        closeBrowseSharedView();
       }
       if (anyOverlayOpen()) pushBackGuard();
     });
