@@ -3,3 +3,11 @@ functions/node_modules/
 firebase-debug.log
 firebase-debug.*.log
 ui-debug.log
+
+# Migration script inputs/outputs - a service account key is a real credential, and the exported
+# app data is a full personal-recipe-data dump. This repo is public; neither belongs in git.
+scripts/node_modules/
+scripts/app-data-export.json
+scripts/*serviceAccount*.json
+scripts/*firebase-adminsdk*.json
+scripts/*.key.json

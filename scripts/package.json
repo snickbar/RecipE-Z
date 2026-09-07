@@ -1,0 +1,8 @@
+{
+  "name": "recipe-z-scripts",
+  "private": true,
+  "description": "One-off maintenance/migration scripts for RecipE-Z - not part of the deployed app",
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  }
+}
