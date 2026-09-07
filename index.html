@@ -1507,6 +1507,17 @@
         </label>
       </div>
 
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">Tap Sounds</div>
+          <div class="settings-row-desc">Little click/pop sounds when you tap buttons, favorite a recipe, check off a shopping item, etc.</div>
+        </div>
+        <label class="toggle-switch" data-sound="toggle">
+          <input type="checkbox" id="tapSoundsToggle" onchange="setTapSoundsEnabled(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
       <p class="text-sm text-amber-950/70 font-semibold text-center mt-4">More settings coming soon!</p>
     </div>
   </div>
@@ -1682,6 +1693,7 @@
       renderMainGrid();
       loadTimersFromStorage();
       loadKeepScreenAwakeSetting();
+      loadTapSoundsSetting();
     };
 
     function persistRecipe(recipeData, onSuccess, onError) {
@@ -2017,6 +2029,24 @@
         wakeLockSentinel.release().catch(() => {});
         wakeLockSentinel = null;
       }
+    }
+
+    // --- Settings: tap sounds on/off ---
+    let tapSoundsEnabled = true; // on by default — they're new, and this is the first chance to turn them off
+    const TAP_SOUNDS_KEY = 'recipez_tap_sounds_enabled';
+
+    function loadTapSoundsSetting() {
+      try {
+        const stored = localStorage.getItem(TAP_SOUNDS_KEY);
+        tapSoundsEnabled = stored === null ? true : stored === '1';
+      } catch (e) { tapSoundsEnabled = true; }
+      const toggle = document.getElementById('tapSoundsToggle');
+      if (toggle) toggle.checked = tapSoundsEnabled;
+    }
+
+    function setTapSoundsEnabled(enabled) {
+      tapSoundsEnabled = enabled;
+      try { localStorage.setItem(TAP_SOUNDS_KEY, enabled ? '1' : '0'); } catch (e) { /* ignore */ }
     }
 
     document.addEventListener('visibilitychange', function() {
@@ -2854,6 +2884,7 @@
       '.cooking-nav-btn, .photo-thumb, a[onclick]';
 
     document.addEventListener('click', function(e) {
+      if (!tapSoundsEnabled) return;
       const soundEl = e.target.closest('[data-sound]');
       if (soundEl) {
         const kind = soundEl.dataset.sound;
@@ -2903,6 +2934,7 @@
     function openSettingsComingSoon() {
       document.getElementById('settingsComingSoonModal').classList.remove('hidden');
       document.getElementById('keepScreenAwakeToggle').checked = keepScreenAwakeEnabled;
+      document.getElementById('tapSoundsToggle').checked = tapSoundsEnabled;
       pushBackGuard();
     }
 
