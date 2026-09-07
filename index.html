@@ -2774,9 +2774,40 @@
       osc.stop(start + duration + 0.02);
     }
 
-    // Generic UI tap — short and unobtrusive, meant to fade into the background across dozens of
-    // presses (toolbar icons, tabs, sort toggles, nav buttons, cards, ...).
-    function playTapSound() { playTone(720, 0, 0.045, 'square', 0.09); }
+    // A short burst of filtered noise, not a tone — real mechanical clicks are a broadband
+    // transient, not a pitch, which is what makes this read as "clicky" instead of "beepy."
+    function playClickBurst(startDelay, duration, peakGain, filterFreq) {
+      const ctx = getTapAudioCtx();
+      if (!ctx) return;
+      const start = ctx.currentTime + startDelay;
+      const bufferSize = Math.max(1, Math.round(ctx.sampleRate * duration));
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = filterFreq;
+      filter.Q.value = 1.1;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(peakGain, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      noise.start(start);
+      noise.stop(start + duration + 0.005);
+    }
+
+    // Generic UI tap — a quick "click-click" (a sharp press transient immediately followed by a
+    // softer release), like a real button switch, instead of the tonal blip this used to be.
+    function playTapSound() {
+      playClickBurst(0, 0.018, 0.22, 2400);
+      playClickBurst(0.032, 0.015, 0.13, 1700);
+    }
 
     // Favoriting — a bright two-note "pop" echoing the heart's own pop animation.
     function playHeartSound() {
