@@ -1,0 +1,14 @@
+{
+  "name": "RecipE-Z",
+  "short_name": "RecipE-Z",
+  "description": "Your family recipes, all made E-Z",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6efdd",
+  "theme_color": "#4a280e",
+  "icons": [
+    { "src": "https://drive.google.com/uc?export=view&id=1Q_WuLXcJkOVJW6ag8L8Z_2iEEevE_4wv", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "https://drive.google.com/uc?export=view&id=12fW9UpqWhrDVEfKQAnW-Mmnri5qwS7h8", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
