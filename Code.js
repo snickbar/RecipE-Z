@@ -411,6 +411,7 @@ function getRecipes() {
       prepTime: row[5],
       servings: row[6],
       createdAt: Number(row[7]) || 0,
+      favorite: row[8] === true || row[8] === 'TRUE',
       ingredients: ingredientsByRecipe[id] || [],
       steps: stepsByRecipe[id] || [],
       notes: notesByRecipe[id] || []
@@ -587,6 +588,26 @@ function deleteRecipe(recipeId) {
     const notesSheet = ss.getSheetByName("RecipeNotes");
     if (notesSheet) clearRowsByRecipeId(notesSheet, recipeId);
     return { success: true };
+  });
+}
+
+// Toggles a recipe's favorite flag. Deliberately NOT routed through saveNewRecipe's full-row
+// upsert — that only ever writes 8 columns, so a normal recipe edit save can never clobber this
+// 9th "Favorite" column, and this function only ever touches that one cell in return.
+function toggleFavorite(recipeId, isFavorite) {
+  return withScriptLock(() => {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("RecipeList");
+    if (sheet.getRange(1, 9).getValue() !== "Favorite") {
+      sheet.getRange(1, 9).setValue("Favorite");
+    }
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] == recipeId) {
+        sheet.getRange(i + 1, 9).setValue(!!isFavorite);
+        return { success: true };
+      }
+    }
+    return { success: false, error: 'Recipe not found' };
   });
 }
 

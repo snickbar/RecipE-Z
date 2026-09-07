@@ -481,6 +481,47 @@
       margin-bottom: 22px;
     }
     .detail-photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+    .detail-favorite-btn {
+      position: absolute; top: 12px; right: 12px; z-index: 10;
+      width: 40px; height: 40px; border-radius: 999px;
+      background: rgba(253,248,239,0.92); border: 1.5px solid #d8c19c;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: 0 2px 6px rgba(70,45,10,0.25);
+      transition: transform 0.15s ease;
+    }
+    .detail-favorite-btn:hover { transform: scale(1.08); }
+    .detail-favorite-btn.is-favorite svg { fill: #c0392b; }
+
+    /* Small badge on a recipe card so favorites are visible while browsing, without opening it */
+    .card-favorite-badge {
+      position: absolute; top: 8px; left: 8px; z-index: 20;
+      width: 24px; height: 24px; border-radius: 999px;
+      background: rgba(253,248,239,0.9); border: 1.3px solid #d8c19c;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 4px rgba(70,45,10,0.2);
+    }
+
+    /* Settings screen rows + toggle switch */
+    .settings-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 14px 18px; background: #fdf8ef; border: 1.5px solid #d8c19c; border-radius: 12px;
+      margin-bottom: 14px;
+    }
+    .settings-row-label { font-weight: 700; font-size: 0.9rem; color: #3b220c; }
+    .settings-row-desc { font-size: 0.75rem; color: #8a7256; font-weight: 600; margin-top: 3px; }
+    .toggle-switch { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0; background: #d8c19c; border-radius: 999px; cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px;
+      background: #fff; border-radius: 50%; transition: transform 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .toggle-switch input:checked + .toggle-slider { background: #4a280e; }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
 
     .detail-title-row { text-align: center; margin-bottom: 22px; }
     .detail-title { font-family: 'Cinzel', serif; font-weight: 900; font-size: 40px; color: #2b1707; margin: 0; }
@@ -754,6 +795,9 @@
               <button type="button" class="sort-toggle" data-sort="Z-A" onclick="setMainSort('Z-A')">Z&ndash;A</button>
               <button type="button" class="sort-toggle" data-sort="Newest" onclick="setMainSort('Newest')">Newest</button>
               <button type="button" class="sort-toggle" data-sort="Oldest" onclick="setMainSort('Oldest')">Oldest</button>
+              <button type="button" class="sort-toggle favorites-toggle" id="mainFavoritesToggle" onclick="toggleMainFavoritesFilter()">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" style="display:inline-block;vertical-align:-1px;margin-right:3px;"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>Favorites
+              </button>
             </div>
           </div>
 
@@ -820,6 +864,9 @@
         <div class="tape-corner tape-bl"></div>
         <div class="tape-corner tape-br"></div>
         <img id="detailImage" src="" alt="Recipe Image" loading="lazy">
+        <button type="button" id="detailFavoriteBtn" class="detail-favorite-btn" onclick="toggleFavoriteCurrentRecipe()" title="Favorite">
+          <svg id="detailFavoriteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>
+        </button>
       </div>
 
       <div class="detail-title-row">
@@ -1401,9 +1448,21 @@
       </div>
     </div>
 
-    <div class="detail-body" style="max-width: 560px; text-align: center; padding-top: 60px;">
-      <h1 class="text-2xl font-black font-title text-[#3b220c] mb-3">Settings</h1>
-      <p class="text-sm text-amber-950/70 font-semibold">Coming soon! This is where app settings will live.</p>
+    <div class="detail-body" style="max-width: 560px; padding-top: 40px;">
+      <h1 class="text-2xl font-black font-title text-[#3b220c] mb-5 text-center">Settings</h1>
+
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">Keep Screen On During Cooking</div>
+          <div class="settings-row-desc">Prevents your phone from locking or dimming while the Cooking tab is open.</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="keepScreenAwakeToggle" onchange="setKeepScreenAwake(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <p class="text-sm text-amber-950/70 font-semibold text-center mt-4">More settings coming soon!</p>
     </div>
   </div>
 
@@ -1556,6 +1615,7 @@
     let isFormDirty = false;
     let currentEditorStep = 1;
     let mainSortMode = 'A-Z';
+    let mainFavoritesOnly = false;
     let hubSortMode = 'A-Z';
 
     let draftIngredients = [];
@@ -1576,6 +1636,7 @@
     window.onload = function() {
       renderMainGrid();
       loadTimersFromStorage();
+      loadKeepScreenAwakeSetting();
     };
 
     function persistRecipe(recipeData, onSuccess, onError) {
@@ -1677,6 +1738,7 @@
       const query = document.getElementById('mainSearchInput').value.toLowerCase();
 
       let filtered = masterRecipes.filter(r => r.title.toLowerCase().includes(query));
+      if (mainFavoritesOnly) filtered = filtered.filter(r => r.favorite);
 
       if (mainSortMode === 'A-Z') {
         filtered.sort((a, b) => a.title.localeCompare(b.title));
@@ -1689,7 +1751,8 @@
       }
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="col-span-full text-center py-12 text-amber-950 font-bold">No recipe cards found.</div>`;
+        const msg = mainFavoritesOnly ? 'No favorite recipes yet.' : 'No recipe cards found.';
+        container.innerHTML = `<div class="col-span-full text-center py-12 text-amber-950 font-bold">${msg}</div>`;
         return;
       }
 
@@ -1703,9 +1766,15 @@
 
     function setMainSort(mode) {
       mainSortMode = mode;
-      document.querySelectorAll('#mainSortToggles .sort-toggle').forEach(btn => {
+      document.querySelectorAll('#mainSortToggles .sort-toggle[data-sort]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.sort === mode);
       });
+      renderMainGrid();
+    }
+
+    function toggleMainFavoritesFilter() {
+      mainFavoritesOnly = !mainFavoritesOnly;
+      document.getElementById('mainFavoritesToggle').classList.toggle('active', mainFavoritesOnly);
       renderMainGrid();
     }
 
@@ -1718,6 +1787,7 @@
       return `
         <div onclick="${onclickHandler}" class="card-container">
           ${deleteHandler ? `<button type="button" onclick="${deleteHandler}" class="absolute top-2 right-2 z-20 bg-red-700/90 hover:bg-red-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow" title="Delete Recipe">&times;</button>` : ''}
+          ${recipe.favorite ? `<div class="card-favorite-badge" title="Favorite"><svg width="13" height="13" viewBox="0 0 24 24" fill="#c0392b" stroke="#c0392b" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg></div>` : ''}
           <img src="${CARD_BG_URL}" class="card-bg-img" alt="Card Graphic" ${loadingAttr}>
           <div class="card-content">
             
@@ -1789,6 +1859,30 @@
       view.classList.add('hidden');
       view.classList.remove('flex');
       currentDetailRecipe = null;
+      isCookingTabActive = false;
+      releaseWakeLock();
+    }
+
+    // Favoriting is a lightweight, dedicated server call (not routed through saveNewRecipe) so it
+    // can never race with — or get clobbered by — a full recipe edit save. Updates the local
+    // masterRecipes copy immediately so the heart and the home grid stay in sync without waiting
+    // on the round trip, and rolls back if the save fails.
+    function toggleFavoriteCurrentRecipe() {
+      const recipe = currentDetailRecipe;
+      if (!recipe) return;
+      const newValue = !recipe.favorite;
+      recipe.favorite = newValue;
+      document.getElementById('detailFavoriteBtn').classList.toggle('is-favorite', newValue);
+
+      google.script.run
+        .withSuccessHandler(function() { console.log('Favorite synced to Google Sheet!'); })
+        .withFailureHandler(function(error) {
+          console.error('Favorite sync error: ', error.message);
+          recipe.favorite = !newValue;
+          document.getElementById('detailFavoriteBtn').classList.toggle('is-favorite', !newValue);
+          showAlert('Could not save favorite: ' + error.message);
+        })
+        .toggleFavorite(recipe.id, newValue);
     }
 
     function switchDetailTab(tab) {
@@ -1797,13 +1891,62 @@
       Object.entries(ids).forEach(([key, elId]) => {
         document.getElementById(elId).classList.toggle('hidden', key !== tab);
       });
+      isCookingTabActive = (tab === 'cooking');
+      if (isCookingTabActive) acquireWakeLock();
+      else releaseWakeLock();
     }
+
+    // --- Settings: keep screen on during Cooking Mode ---
+    // The Wake Lock API only holds the lock while the document is visible — it releases itself
+    // automatically when the tab is backgrounded, so it has to be explicitly re-requested on
+    // visibilitychange, not just once when Cooking Mode opens.
+    let keepScreenAwakeEnabled = false;
+    let isCookingTabActive = false;
+    let wakeLockSentinel = null;
+    const KEEP_SCREEN_AWAKE_KEY = 'recipez_keep_screen_awake';
+
+    function loadKeepScreenAwakeSetting() {
+      try {
+        keepScreenAwakeEnabled = localStorage.getItem(KEEP_SCREEN_AWAKE_KEY) === '1';
+      } catch (e) { /* localStorage unavailable — defaults to off */ }
+      const toggle = document.getElementById('keepScreenAwakeToggle');
+      if (toggle) toggle.checked = keepScreenAwakeEnabled;
+    }
+
+    function setKeepScreenAwake(enabled) {
+      keepScreenAwakeEnabled = enabled;
+      try { localStorage.setItem(KEEP_SCREEN_AWAKE_KEY, enabled ? '1' : '0'); } catch (e) { /* ignore */ }
+      if (enabled && isCookingTabActive) acquireWakeLock();
+      else releaseWakeLock();
+    }
+
+    async function acquireWakeLock() {
+      if (!keepScreenAwakeEnabled) return;
+      if (!('wakeLock' in navigator)) return; // unsupported browser — screen just won't be kept on
+      if (wakeLockSentinel) return; // already held
+      try {
+        wakeLockSentinel = await navigator.wakeLock.request('screen');
+        wakeLockSentinel.addEventListener('release', () => { wakeLockSentinel = null; });
+      } catch (e) { /* denied/unavailable (e.g. low battery mode) — fails silently */ }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLockSentinel) {
+        wakeLockSentinel.release().catch(() => {});
+        wakeLockSentinel = null;
+      }
+    }
+
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible' && isCookingTabActive) acquireWakeLock();
+    });
 
     function renderDetailRecipeTab() {
       const recipe = currentDetailRecipe;
       const imgSrc = recipe.mainPicture && recipe.mainPicture.trim() !== '' ? recipe.mainPicture : FOOD_FALLBACK_SVG;
 
       document.getElementById('detailImage').src = imgSrc;
+      document.getElementById('detailFavoriteBtn').classList.toggle('is-favorite', !!recipe.favorite);
       document.getElementById('detailTitle').innerText = recipe.title;
       document.getElementById('detailCategory').innerText = recipe.category || 'Uncategorized';
       document.getElementById('detailEquipment').innerText = recipe.equipment || 'None listed';
@@ -2526,6 +2669,7 @@
     // real settings land here.
     function openSettingsComingSoon() {
       document.getElementById('settingsComingSoonModal').classList.remove('hidden');
+      document.getElementById('keepScreenAwakeToggle').checked = keepScreenAwakeEnabled;
       pushBackGuard();
     }
 
