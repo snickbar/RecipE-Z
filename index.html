@@ -717,8 +717,8 @@
     }
     .heart-particle { position: absolute; top: 50%; left: 50%; width: 7px; height: 7px; border-radius: 50%; background: #c0392b; animation: heart-particle-fly 0.55s ease-out forwards; }
 
-    @keyframes step-slide-next { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
-    @keyframes step-slide-prev { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: none; } }
+    @keyframes step-slide-next { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+    @keyframes step-slide-prev { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: none; } }
     .step-slide-next { animation: step-slide-next 0.26s ease-out; }
     .step-slide-prev { animation: step-slide-prev 0.26s ease-out; }
 
@@ -2133,10 +2133,22 @@
       renderShoppingList();
     }
 
-    function toggleShoppingItem(name) {
-      if (shoppingCheckedItems.has(name)) shoppingCheckedItems.delete(name);
-      else shoppingCheckedItems.add(name);
-      renderShoppingList();
+    // Toggling used to re-render the whole (re-sorted) list immediately, which yanked the row down
+    // to the checked section before its checkmark animation had any chance to play. Flip the
+    // checkbox in place first, then re-render (which does the actual move) a beat later.
+    function toggleShoppingItem(name, event) {
+      const willCheck = !shoppingCheckedItems.has(name);
+      const row = event && event.target.closest('.shopping-item');
+      if (row) {
+        row.classList.toggle('done', willCheck);
+        const box = row.querySelector('.shopping-checkbox');
+        box.classList.toggle('checked', willCheck);
+        box.innerHTML = willCheck
+          ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fdf8ef" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>'
+          : '';
+      }
+      if (willCheck) shoppingCheckedItems.add(name); else shoppingCheckedItems.delete(name);
+      setTimeout(renderShoppingList, 280);
     }
 
     const SHOPPING_CATEGORY_ORDER = ['probably buy', 'must check', 'basic', ''];
@@ -2146,7 +2158,7 @@
       const isChecked = shoppingCheckedItems.has(item.name);
       const safeName = item.name.replace(/'/g, "\\'");
       return `
-        <div class="shopping-item ${isChecked ? 'done' : ''}" onclick="toggleShoppingItem('${safeName}')">
+        <div class="shopping-item ${isChecked ? 'done' : ''}" onclick="toggleShoppingItem('${safeName}', event)">
           <div class="shopping-checkbox ${isChecked ? 'checked' : ''}">
             ${isChecked ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fdf8ef" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>' : ''}
           </div>
