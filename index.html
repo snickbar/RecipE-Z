@@ -909,7 +909,7 @@
         <div class="tape-corner tape-bl"></div>
         <div class="tape-corner tape-br"></div>
         <img id="detailImage" src="" alt="Recipe Image" loading="lazy">
-        <button type="button" id="detailFavoriteBtn" class="detail-favorite-btn" onclick="toggleFavoriteCurrentRecipe()" title="Favorite">
+        <button type="button" id="detailFavoriteBtn" class="detail-favorite-btn" data-sound="heart" onclick="toggleFavoriteCurrentRecipe()" title="Favorite">
           <svg id="detailFavoriteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>
         </button>
       </div>
@@ -1501,7 +1501,7 @@
           <div class="settings-row-label">Keep Screen On During Cooking</div>
           <div class="settings-row-desc">Prevents your phone from locking or dimming while the Cooking tab is open.</div>
         </div>
-        <label class="toggle-switch">
+        <label class="toggle-switch" data-sound="toggle">
           <input type="checkbox" id="keepScreenAwakeToggle" onchange="setKeepScreenAwake(this.checked)">
           <span class="toggle-slider"></span>
         </label>
@@ -1832,7 +1832,7 @@
 
       return `
         <div onclick="${onclickHandler}" class="card-container" style="animation-delay: ${enterDelay}ms">
-          ${deleteHandler ? `<button type="button" onclick="${deleteHandler}" class="absolute top-2 right-2 z-20 bg-red-700/90 hover:bg-red-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow" title="Delete Recipe">&times;</button>` : ''}
+          ${deleteHandler ? `<button type="button" data-sound="delete" onclick="${deleteHandler}" class="absolute top-2 right-2 z-20 bg-red-700/90 hover:bg-red-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow" title="Delete Recipe">&times;</button>` : ''}
           ${recipe.favorite ? `<div class="card-favorite-badge" title="Favorite"><svg width="13" height="13" viewBox="0 0 24 24" fill="#c0392b" stroke="#c0392b" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg></div>` : ''}
           <img src="${CARD_BG_URL}" class="card-bg-img" alt="Card Graphic" ${loadingAttr}>
           <div class="card-content">
@@ -2158,7 +2158,7 @@
       const isChecked = shoppingCheckedItems.has(item.name);
       const safeName = item.name.replace(/'/g, "\\'");
       return `
-        <div class="shopping-item ${isChecked ? 'done' : ''}" onclick="toggleShoppingItem('${safeName}', event)">
+        <div class="shopping-item ${isChecked ? 'done' : ''}" data-sound="check" onclick="toggleShoppingItem('${safeName}', event)">
           <div class="shopping-checkbox ${isChecked ? 'checked' : ''}">
             ${isChecked ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fdf8ef" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>' : ''}
           </div>
@@ -2744,6 +2744,98 @@
       }
     }
 
+    // --- Tactile tap sounds ---
+    // One shared, persistent AudioContext for all of these (unlike the timer alarm's beepOnce,
+    // which opens/closes its own context since it fires rarely) — taps can happen many times a
+    // second, and spinning up a fresh context per click is wasteful and adds latency.
+    let tapAudioCtx = null;
+    function getTapAudioCtx() {
+      try {
+        if (!tapAudioCtx) tapAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (tapAudioCtx.state === 'suspended') tapAudioCtx.resume().catch(() => {});
+        return tapAudioCtx;
+      } catch (e) { return null; } // Web Audio unavailable — taps are just silent
+    }
+
+    function playTone(freq, startDelay, duration, type, peakGain) {
+      const ctx = getTapAudioCtx();
+      if (!ctx) return;
+      const start = ctx.currentTime + startDelay;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, start);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(peakGain, start + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+      osc.start(start);
+      osc.stop(start + duration + 0.02);
+    }
+
+    // Generic UI tap — short and unobtrusive, meant to fade into the background across dozens of
+    // presses (toolbar icons, tabs, sort toggles, nav buttons, cards, ...).
+    function playTapSound() { playTone(720, 0, 0.045, 'square', 0.09); }
+
+    // Favoriting — a bright two-note "pop" echoing the heart's own pop animation.
+    function playHeartSound() {
+      playTone(880, 0, 0.09, 'sine', 0.13);
+      playTone(1320, 0.05, 0.09, 'sine', 0.13);
+    }
+
+    // Shopping checkbox — rounder than the generic tap, pitched up when checking on, down when
+    // checking off, so the two directions are distinguishable by ear.
+    function playCheckSound(isChecking) { playTone(isChecking ? 620 : 400, 0, 0.08, 'triangle', 0.12); }
+
+    // Deleting/removing — a short downward sweep reads as "this is going away."
+    function playDeleteSound() {
+      const ctx = getTapAudioCtx();
+      if (!ctx) return;
+      const start = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(340, start);
+      osc.frequency.exponentialRampToValueAtTime(140, start + 0.12);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.1, start + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.13);
+      osc.start(start);
+      osc.stop(start + 0.15);
+    }
+
+    // A toggle switch — two very fast clicks, like a physical flip.
+    function playToggleSound() {
+      playTone(900, 0, 0.03, 'square', 0.1);
+      playTone(650, 0.045, 0.03, 'square', 0.1);
+    }
+
+    // One delegated, capture-phase listener covers the whole app instead of wiring a sound call
+    // into every individual onclick — capture phase so it still fires even where a handler further
+    // down calls event.stopPropagation() (e.g. quickDeleteRecipe, toggleTimersPanel). Elements that
+    // need a specific sound are marked with data-sound="heart|check|delete|toggle" (see
+    // createCardHTML, the shopping row, the favorite button, and the settings toggle); anything
+    // else matching the generic tappable selector gets the plain tap. data-sound="none" opts out.
+    const TAP_SOUND_SELECTOR = 'button, .uni-tab, .sort-toggle, .graphic-nav-btn, .card-container, ' +
+      '.cooking-nav-btn, .photo-thumb, a[onclick]';
+
+    document.addEventListener('click', function(e) {
+      const soundEl = e.target.closest('[data-sound]');
+      if (soundEl) {
+        const kind = soundEl.dataset.sound;
+        if (kind === 'heart') playHeartSound();
+        else if (kind === 'check') playCheckSound(!soundEl.classList.contains('done'));
+        else if (kind === 'delete') playDeleteSound();
+        else if (kind === 'toggle') playToggleSound();
+        else if (kind !== 'none') playTapSound();
+        return;
+      }
+      if (e.target.closest(TAP_SOUND_SELECTOR)) playTapSound();
+    }, true);
+
     document.addEventListener('click', function(e) {
       const panel = document.getElementById('timersPanelDropdown');
       if (panel && !panel.classList.contains('hidden') && !panel.contains(e.target)) {
@@ -3241,7 +3333,7 @@
           <span class="font-bold text-[#3b220c] text-sm">${u}</span>
           <div class="flex gap-1">
             <button type="button" onclick="editManagerUnit(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold" title="Edit">✎</button>
-            <button type="button" onclick="deleteManagerUnit(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold" title="Delete">&times;</button>
+            <button type="button" data-sound="delete" onclick="deleteManagerUnit(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold" title="Delete">&times;</button>
           </div>
         </li>
       `).join('');
@@ -3285,7 +3377,7 @@
           </div>
           <div class="flex gap-1">
             <button type="button" onclick="editManagerIngredient(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold" title="Edit">✎</button>
-            <button type="button" onclick="deleteManagerIngredient(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold" title="Delete">&times;</button>
+            <button type="button" data-sound="delete" onclick="deleteManagerIngredient(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold" title="Delete">&times;</button>
           </div>
         </li>
       `;
@@ -3840,7 +3932,7 @@
           </div>
           <div class="flex gap-1 flex-shrink-0">
             <button type="button" onclick="editDraftNote(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold">✎</button>
-            <button type="button" onclick="removeDraftNote(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold">&times;</button>
+            <button type="button" data-sound="delete" onclick="removeDraftNote(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold">&times;</button>
           </div>
         </li>
       `).join('');
@@ -4132,7 +4224,7 @@
           </div>
           <div class="flex gap-1">
             <button type="button" onclick="editDraftIngredient(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold">✎</button>
-            <button type="button" onclick="removeDraftIngredient(${idx}, event)" class="text-red-700 hover:text-red-950 px-1 font-bold">&times;</button>
+            <button type="button" data-sound="delete" onclick="removeDraftIngredient(${idx}, event)" class="text-red-700 hover:text-red-950 px-1 font-bold">&times;</button>
           </div>
         </li>
       `).join('');
@@ -4403,7 +4495,7 @@
               </div>
               <span class="font-bold text-[#3b220c] text-xs">Step #${idx + 1}</span>
             </div>
-            <button type="button" onclick="event.stopPropagation(); removeDraftStep(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold" title="Delete Step">&times;</button>
+            <button type="button" data-sound="delete" onclick="event.stopPropagation(); removeDraftStep(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold" title="Delete Step">&times;</button>
           </div>
           <p class="text-amber-950 text-xs font-medium leading-relaxed">${step.text}</p>
           ${step.ingredients && step.ingredients.length > 0 ? `<div class="text-[10px] text-amber-900/70 font-semibold">Involves: ${formatStepIngredients(step.ingredients)}</div>` : ''}
