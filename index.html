@@ -1867,12 +1867,22 @@
     // can never race with — or get clobbered by — a full recipe edit save. Updates the local
     // masterRecipes copy immediately so the heart and the home grid stay in sync without waiting
     // on the round trip, and rolls back if the save fails.
+    // Re-renders whichever recipe grids are currently built (main home grid, and the Recipe
+    // Manager hub grid if it's been opened at least once this session) so a favorite change
+    // shows up immediately underneath the detail view instead of only after the next thing that
+    // happens to call renderMainGrid() anyway (search, sort, the favorites filter itself).
+    function refreshRecipeGrids() {
+      renderMainGrid();
+      if (document.getElementById('hubRecipesGrid').innerHTML.trim() !== '') renderHubGrid();
+    }
+
     function toggleFavoriteCurrentRecipe() {
       const recipe = currentDetailRecipe;
       if (!recipe) return;
       const newValue = !recipe.favorite;
       recipe.favorite = newValue;
       document.getElementById('detailFavoriteBtn').classList.toggle('is-favorite', newValue);
+      refreshRecipeGrids();
 
       google.script.run
         .withSuccessHandler(function() { console.log('Favorite synced to Google Sheet!'); })
@@ -1880,6 +1890,7 @@
           console.error('Favorite sync error: ', error.message);
           recipe.favorite = !newValue;
           document.getElementById('detailFavoriteBtn').classList.toggle('is-favorite', !newValue);
+          refreshRecipeGrids();
           showAlert('Could not save favorite: ' + error.message);
         })
         .toggleFavorite(recipe.id, newValue);
