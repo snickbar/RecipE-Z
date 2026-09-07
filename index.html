@@ -698,6 +698,51 @@
       z-index: 5;
     }
 
+    /* ============ MICRO-ANIMATIONS ============ */
+    @keyframes card-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .card-container { animation: card-enter 0.35s ease backwards; }
+
+    @keyframes card-delete-shrink { to { opacity: 0; transform: scale(0.85); } }
+    .card-deleting { animation: card-delete-shrink 0.22s ease forwards; pointer-events: none; }
+
+    @keyframes list-item-remove { to { opacity: 0; transform: translateX(12px) scale(0.96); } }
+    .list-item-removing { animation: list-item-remove 0.2s ease forwards; pointer-events: none; }
+
+    @keyframes heart-pop { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 55% { transform: scale(0.92); } 100% { transform: scale(1); } }
+    .heart-pop { animation: heart-pop 0.4s ease; }
+    .heart-burst { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+    @keyframes heart-particle-fly {
+      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+      100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1); opacity: 0; }
+    }
+    .heart-particle { position: absolute; top: 50%; left: 50%; width: 7px; height: 7px; border-radius: 50%; background: #c0392b; animation: heart-particle-fly 0.55s ease-out forwards; }
+
+    @keyframes step-slide-next { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+    @keyframes step-slide-prev { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: none; } }
+    .step-slide-next { animation: step-slide-next 0.26s ease-out; }
+    .step-slide-prev { animation: step-slide-prev 0.26s ease-out; }
+
+    @keyframes timer-done-shake {
+      0%, 100% { transform: rotate(0); } 20% { transform: rotate(-12deg); } 40% { transform: rotate(10deg); }
+      60% { transform: rotate(-8deg); } 80% { transform: rotate(6deg); }
+    }
+    .timer-done-shake { animation: timer-done-shake 0.5s ease; }
+
+    @keyframes checkbox-pop { 0% { transform: scale(0.5); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+    .shopping-checkbox.checked svg { animation: checkbox-pop 0.25s ease; }
+
+    @keyframes btn-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+    .btn-pulsing { animation: btn-pulse 1s ease-in-out infinite; }
+
+    .uni-home-btn:active, .uni-mid-btn:active, .uni-close:active { transform: scale(0.9); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card-container, .card-deleting, .list-item-removing, .heart-pop, .heart-particle,
+      .step-slide-next, .step-slide-prev, .timer-done-shake, .shopping-checkbox.checked svg, .btn-pulsing {
+        animation: none !important;
+      }
+    }
+
     /* ============ MOBILE LAYOUT ============ */
     @media (max-width: 640px) {
       .uni-toolbar { padding: 8px 10px; row-gap: 8px; }
@@ -939,7 +984,7 @@
     <!-- TAB: COOKING MODE -->
     <div id="detailTabCooking" class="detail-body hidden" style="max-width: 620px;">
       <div id="cookingPrevPeek" class="cooking-peek"></div>
-      <div class="cooking-current">
+      <div class="cooking-current" id="cookingCurrentCard">
         <div id="cookingStepBadge" class="cooking-step-badge"></div>
         <div id="cookingStepPhoto" class="cooking-step-photo hidden"></div>
         <div id="cookingIngUsed" class="cooking-ing-used"></div>
@@ -1756,7 +1801,7 @@
         return;
       }
 
-      container.innerHTML = filtered.map(r => createCardHTML(r, `openRecipeDetailView('${r.id}')`, true)).join('');
+      container.innerHTML = filtered.map((r, idx) => createCardHTML(r, `openRecipeDetailView('${r.id}')`, true, null, idx)).join('');
       fitCardTitles(container);
     }
 
@@ -1780,12 +1825,13 @@
 
     const CARD_BG_URL = "https://i.imgur.com/cJbB04a.png";
 
-    function createCardHTML(recipe, onclickHandler, isLazy = false, deleteHandler = null) {
+    function createCardHTML(recipe, onclickHandler, isLazy = false, deleteHandler = null, index = 0) {
       const imgSrc = recipe.mainPicture && recipe.mainPicture.trim() !== '' ? recipe.mainPicture : FOOD_FALLBACK_SVG;
       const loadingAttr = isLazy ? 'loading="lazy"' : '';
+      const enterDelay = Math.min(index, 16) * 35; // cap the stagger so a big grid doesn't crawl in
 
       return `
-        <div onclick="${onclickHandler}" class="card-container">
+        <div onclick="${onclickHandler}" class="card-container" style="animation-delay: ${enterDelay}ms">
           ${deleteHandler ? `<button type="button" onclick="${deleteHandler}" class="absolute top-2 right-2 z-20 bg-red-700/90 hover:bg-red-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow" title="Delete Recipe">&times;</button>` : ''}
           ${recipe.favorite ? `<div class="card-favorite-badge" title="Favorite"><svg width="13" height="13" viewBox="0 0 24 24" fill="#c0392b" stroke="#c0392b" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg></div>` : ''}
           <img src="${CARD_BG_URL}" class="card-bg-img" alt="Card Graphic" ${loadingAttr}>
@@ -1876,12 +1922,37 @@
       if (document.getElementById('hubRecipesGrid').innerHTML.trim() !== '') renderHubGrid();
     }
 
+    // Spawns a quick ring of small dots flying outward from the heart button, purely decorative —
+    // removes itself after the animation finishes rather than persisting in the DOM.
+    function animateHeartPop(btn) {
+      const icon = document.getElementById('detailFavoriteIcon');
+      icon.classList.remove('heart-pop');
+      void icon.offsetWidth; // restart the animation if it's already mid-play
+      icon.classList.add('heart-pop');
+
+      const burst = document.createElement('div');
+      burst.className = 'heart-burst';
+      const count = 6;
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+        const p = document.createElement('span');
+        p.className = 'heart-particle';
+        p.style.setProperty('--dx', (Math.cos(angle) * 22) + 'px');
+        p.style.setProperty('--dy', (Math.sin(angle) * 22) + 'px');
+        burst.appendChild(p);
+      }
+      btn.appendChild(burst);
+      setTimeout(() => burst.remove(), 600);
+    }
+
     function toggleFavoriteCurrentRecipe() {
       const recipe = currentDetailRecipe;
       if (!recipe) return;
       const newValue = !recipe.favorite;
       recipe.favorite = newValue;
-      document.getElementById('detailFavoriteBtn').classList.toggle('is-favorite', newValue);
+      const favBtn = document.getElementById('detailFavoriteBtn');
+      favBtn.classList.toggle('is-favorite', newValue);
+      if (newValue) animateHeartPop(favBtn);
       refreshRecipeGrids();
 
       google.script.run
@@ -2129,7 +2200,7 @@
     }
 
     // --- COOKING MODE ---
-    function renderCookingStep() {
+    function renderCookingStep(direction) {
       const recipe = currentDetailRecipe;
       if (!recipe) return;
       const steps = recipe.steps || [];
@@ -2195,15 +2266,22 @@
       document.getElementById('cookingNavCount').innerText = `Step ${cookingStepIndex + 1} / ${steps.length}`;
       document.getElementById('cookingPrevBtn').disabled = cookingStepIndex === 0;
       document.getElementById('cookingNextBtn').disabled = cookingStepIndex === steps.length - 1;
+
+      if (direction) {
+        const card = document.getElementById('cookingCurrentCard');
+        card.classList.remove('step-slide-next', 'step-slide-prev');
+        void card.offsetWidth; // restart the animation even if the previous one hasn't finished
+        card.classList.add(direction === 'next' ? 'step-slide-next' : 'step-slide-prev');
+      }
     }
 
     function cookingPrevStep() {
-      if (cookingStepIndex > 0) { cookingStepIndex--; renderCookingStep(); }
+      if (cookingStepIndex > 0) { cookingStepIndex--; renderCookingStep('prev'); }
     }
 
     function cookingNextStep() {
       const steps = (currentDetailRecipe && currentDetailRecipe.steps) || [];
-      if (cookingStepIndex < steps.length - 1) { cookingStepIndex++; renderCookingStep(); }
+      if (cookingStepIndex < steps.length - 1) { cookingStepIndex++; renderCookingStep('next'); }
     }
 
     // --- TIMERS (unlimited — added one at a time from the clock icon in the toolbar, present on
@@ -2622,7 +2700,16 @@
       } catch (e) { /* Web Audio unavailable — timer still flashes visually */ }
     }
 
+    function shakeTimerClockIcons() {
+      document.querySelectorAll('.timers-clock-btn').forEach(btn => {
+        btn.classList.remove('timer-done-shake');
+        void btn.offsetWidth;
+        btn.classList.add('timer-done-shake');
+      });
+    }
+
     function playTimerAlarm() {
+      shakeTimerClockIcons();
       beepOnce();
       if (!timerAlarmIntervalId) {
         timerAlarmBeepCount = 1;
@@ -2710,7 +2797,7 @@
         sorted.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
       }
       const hubGridEl = document.getElementById('hubRecipesGrid');
-      hubGridEl.innerHTML = sorted.map(r => createCardHTML(r, `openEditFromHub('${r.id}')`, false, `quickDeleteRecipe('${r.id}', event)`)).join('');
+      hubGridEl.innerHTML = sorted.map((r, idx) => createCardHTML(r, `openEditFromHub('${r.id}')`, false, `quickDeleteRecipe('${r.id}', event)`, idx)).join('');
       fitCardTitles(hubGridEl);
     }
 
@@ -3197,12 +3284,21 @@
       event.stopPropagation();
       const recipe = masterRecipes.find(r => r.id === id);
       if (!recipe) return;
+      const cardEl = event.target.closest('.card-container');
 
       showConfirmModal(`Delete "${recipe.title}"? This cannot be undone.`, function() {
-        masterRecipes = masterRecipes.filter(r => r.id !== id);
-        deleteRecipeById(id);
-        renderMainGrid();
-        renderHubGrid();
+        function finishDelete() {
+          masterRecipes = masterRecipes.filter(r => r.id !== id);
+          deleteRecipeById(id);
+          renderMainGrid();
+          renderHubGrid();
+        }
+        if (cardEl) {
+          cardEl.classList.add('card-deleting');
+          setTimeout(finishDelete, 220);
+        } else {
+          finishDelete();
+        }
       });
     }
 
@@ -3234,6 +3330,7 @@
       document.getElementById('smartImportText').value = '';
       document.getElementById('smartImportBtn').disabled = false;
       document.getElementById('smartImportBtn').innerText = 'Parse Recipe';
+      document.getElementById('smartImportBtn').classList.remove('btn-pulsing');
       document.getElementById('smartImportModal').classList.remove('hidden');
       pushBackGuard();
     }
@@ -3252,11 +3349,13 @@
       const btn = document.getElementById('smartImportBtn');
       btn.disabled = true;
       btn.innerText = 'Parsing…';
+      btn.classList.add('btn-pulsing');
 
       google.script.run
         .withSuccessHandler(function(result) {
           btn.disabled = false;
           btn.innerText = 'Parse Recipe';
+          btn.classList.remove('btn-pulsing');
           if (!result || !result.success) {
             showAlert('Could not parse that recipe: ' + (result && result.error ? result.error : 'unknown error'));
             return;
@@ -3267,6 +3366,7 @@
         .withFailureHandler(function(error) {
           btn.disabled = false;
           btn.innerText = 'Parse Recipe';
+          btn.classList.remove('btn-pulsing');
           showAlert('Smart import failed: ' + error.message);
         })
         .smartImportRecipe(text);
@@ -4020,7 +4120,7 @@
           </div>
           <div class="flex gap-1">
             <button type="button" onclick="editDraftIngredient(${idx})" class="text-amber-800 hover:text-amber-950 px-1 font-bold">✎</button>
-            <button type="button" onclick="removeDraftIngredient(${idx})" class="text-red-700 hover:text-red-950 px-1 font-bold">&times;</button>
+            <button type="button" onclick="removeDraftIngredient(${idx}, event)" class="text-red-700 hover:text-red-950 px-1 font-bold">&times;</button>
           </div>
         </li>
       `).join('');
@@ -4036,10 +4136,19 @@
       document.getElementById('btnSaveIngredient').innerText = "Update Ingredient";
     }
 
-    function removeDraftIngredient(idx) {
+    function removeDraftIngredient(idx, event) {
       markFormDirty();
-      draftIngredients.splice(idx, 1);
-      renderDraftIngredients();
+      const li = event && event.target.closest('li');
+      function finishRemove() {
+        draftIngredients.splice(idx, 1);
+        renderDraftIngredients();
+      }
+      if (li) {
+        li.classList.add('list-item-removing');
+        setTimeout(finishRemove, 180);
+      } else {
+        finishRemove();
+      }
     }
 
     // --- STEP FUNCTIONS ---
